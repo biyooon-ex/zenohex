@@ -24,3 +24,5 @@ zenohex-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+/priv/native/

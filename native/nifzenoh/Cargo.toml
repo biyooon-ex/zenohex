@@ -11,3 +11,11 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rustler = "0.26.0"
+# zenoh = { git = "https://github.com/eclipse-zenoh/zenoh.git"}
+zenoh = { version = "0.6.0-bata.1", default-features = true}
+async-std = { version = "=1.12.0", default-features = false, features = [
+  "attributes",
+] }
+env_logger = "0.10.0"
+clap = "4.0.29"
+futures = "0.3.25"
