@@ -6,7 +6,17 @@ use zenoh::prelude::r#async::*;
 use futures::executor::block_on;
 use futures::select;
 use futures::prelude::*;
+use rustler::{Env, ResourceArc, Term};
+use rustler::types::{Atom, Encoder};
+use std::sync::Mutex;
+use rustler::OwnedBinary;
+use rustler::resource::ResourceTypeProvider;
 
+// mod atoms { 
+//     rustler::atoms! {
+//         ok, error, out_of_range
+//     }
+// }
 
 pub async fn pub_zenoh() {
     env_logger::init();
@@ -27,7 +37,6 @@ pub async fn pub_zenoh() {
 
 pub async fn sub_zenoh() {
     env_logger::init();
-
 
     println!("Opening session...");
     let session = zenoh::open(Config::default()).res().await.unwrap();
@@ -58,6 +67,23 @@ pub async fn sub_zenoh() {
     }
 }
 
+struct SessionWrapper {
+    pub session: Session,
+}
+fn load(env: Env, _: Term) -> bool {
+    rustler::resource!(SessionWrapper, env);
+    true
+}
+
+
+#[rustler::nif]
+fn open(env: Env) -> Term {
+    let resource = ResourceArc::new( SessionWrapper {
+        session: block_on(zenoh::open(Config::default()).res()).unwrap()
+    });
+    (Atom::ok(), resource).encode(env)
+}
+
 #[rustler::nif]
 fn call_pub_zenoh() -> i64 {    
     block_on(pub_zenoh());
@@ -69,4 +95,4 @@ fn call_sub_zenoh() -> i64 {
     0
 }
 
-rustler::init!("Elixir.NifZenoh", [call_pub_zenoh, call_sub_zenoh]);
+rustler::init!("Elixir.NifZenoh", [open, call_pub_zenoh, call_sub_zenoh], load=load);
