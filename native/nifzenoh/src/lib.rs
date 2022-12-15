@@ -1,98 +1,51 @@
-use async_std::task::sleep;
+use futures::executor::block_on;
+use futures::prelude::*;
+use futures::select;
+use rustler::resource::ResourceTypeProvider;
+use rustler::types::atom::{error, ok};
+use rustler::types::{Decoder, Encoder};
+use rustler::OwnedBinary;
+use rustler::{Env, ResourceArc, Term};
 use std::convert::TryFrom;
+use std::sync::Mutex;
 use std::time::Duration;
 use zenoh::config::Config;
 use zenoh::prelude::r#async::*;
-use futures::executor::block_on;
-use futures::select;
-use futures::prelude::*;
-use rustler::{Env, ResourceArc, Term};
-use rustler::types::{Atom, Encoder};
-use std::sync::Mutex;
-use rustler::OwnedBinary;
-use rustler::resource::ResourceTypeProvider;
-
-// mod atoms { 
-//     rustler::atoms! {
-//         ok, error, out_of_range
-//     }
-// }
-
-pub async fn pub_zenoh() {
-    env_logger::init();
-    
-    let session = zenoh::open(Config::default()).res().await.unwrap();
-    let key_expr = "demo/example/zenoh-rs-pub".to_string();
-    println!("Declaring Publisher on '{}'...", key_expr);
-    let publisher = session.declare_publisher(&key_expr).res().await.unwrap();
-    let value = "Hello Zenoh!".to_string();
-
-    for idx in 0..u32::MAX {
-        sleep(Duration::from_secs(1)).await;
-        let buf = format!("[{:4}] {}", idx, value);
-        println!("Putting Data ('{}': '{}')...", &key_expr, buf);
-        publisher.put(buf).res().await.unwrap();
-    }
-}
-
-pub async fn sub_zenoh() {
-    env_logger::init();
-
-    println!("Opening session...");
-    let session = zenoh::open(Config::default()).res().await.unwrap();
-    let key_expr = "demo/example/zenoh-rs-pub".to_string();
-
-    println!("Declaring Subscriber on '{}'...", &key_expr);
-    let subscriber = session.declare_subscriber(&key_expr).res().await.unwrap();
-
-    println!("Enter 'q' to quit...");
-    let mut stdin = async_std::io::stdin();
-    let mut input = [0_u8];
-    loop {
-        select!(
-            sample = subscriber.recv_async() => {
-                let sample = sample.unwrap();
-                println!(">> [Subscriber] Received {} ('{}': '{}')",
-                    sample.kind, sample.key_expr.as_str(), sample.value);
-            },
-
-            _ = stdin.read_exact(&mut input).fuse() => {
-                match input[0] {
-                    b'q' => break,
-                    0 => sleep(Duration::from_secs(1)).await,
-                    _ => (),
-                }
-            }
-        );
-    }
-}
+use zenoh::publication::Publisher;
 
 struct SessionWrapper {
-    pub session: Session,
+    pub session: Mutex<Session>,
 }
+struct PublisherWrapper {
+    pub publisher: Mutex<Publisher<'static>>,
+}
+
 fn load(env: Env, _: Term) -> bool {
     rustler::resource!(SessionWrapper, env);
+    rustler::resource!(PublisherWrapper, env);
     true
 }
 
-
 #[rustler::nif]
 fn open(env: Env) -> Term {
-    let resource = ResourceArc::new( SessionWrapper {
-        session: block_on(zenoh::open(Config::default()).res()).unwrap()
+    let resource = ResourceArc::new(SessionWrapper {
+        session: Mutex::new(block_on(zenoh::open(Config::default()).res()).unwrap()),
     });
-    (Atom::ok(), resource).encode(env)
+    (ok(), resource).encode(env)
 }
 
 #[rustler::nif]
-fn call_pub_zenoh() -> i64 {    
-    block_on(pub_zenoh());
-    0
-}
-#[rustler::nif]
-fn call_sub_zenoh() -> i64 {    
-    block_on(sub_zenoh());
-    0
+fn nif_declare_publisher(
+    env: Env,
+    resource_session: ResourceArc<SessionWrapper>,
+    keyexpr: String,
+) -> Term {
+    let session = &resource_session.session;
+    let publisher = session.lock().unwrap().declare_publisher("");
+    let resource_publisher = ResourceArc::new(PublisherWrapper {
+        publisher: Mutex::new(block_on(publisher.res()).unwrap()),
+    });
+    (ok(), resource_publisher).encode(env)
 }
 
-rustler::init!("Elixir.NifZenoh", [open, call_pub_zenoh, call_sub_zenoh], load=load);
+rustler::init!("Elixir.NifZenoh", [open], load = load);
