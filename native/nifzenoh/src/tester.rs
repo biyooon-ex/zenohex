@@ -53,11 +53,11 @@ pub mod tester {
         }
     }
     #[rustler::nif]
-    fn call_pub_zenoh(key_expr: String, value: String) {
+    fn tester_pub(key_expr: String, value: String) {
         block_on(pub_zenoh(key_expr, value));
     }
     #[rustler::nif]
-    pub fn call_sub_zenoh(key_exprt: String) {
+    pub fn tester_sub(key_exprt: String) {
         block_on(sub_zenoh(key_exprt));
     }
 }

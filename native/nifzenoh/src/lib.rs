@@ -7,7 +7,7 @@ use zenoh::config::Config;
 use zenoh::prelude::r#async::*;
 use zenoh::publication::Publisher;
 pub mod tester;
-use tester::tester::{call_pub_zenoh, call_sub_zenoh};
+use tester::tester::{tester_pub, tester_sub};
 
 struct SessionContainer {
     session_mux: Mutex<&'static Session>,
@@ -24,7 +24,7 @@ fn load<'a>(env: Env<'a>, _: Term<'a>) -> bool {
 }
 
 #[rustler::nif]
-fn open<'a>() -> ResourceArc<SessionContainer> {
+fn zenoh_open<'a>() -> ResourceArc<SessionContainer> {
     ResourceArc::new(SessionContainer {
         session_mux: Mutex::new(Session::leak(
             block_on(zenoh::open(Config::default()).res()).unwrap(),
@@ -33,7 +33,7 @@ fn open<'a>() -> ResourceArc<SessionContainer> {
 }
 
 #[rustler::nif]
-fn nif_declare_publisher<'a>(
+fn session_declare_publisher<'a>(
     env: Env<'a>,
     resource_session: ResourceArc<SessionContainer>,
     keyexpr: String,
@@ -47,7 +47,7 @@ fn nif_declare_publisher<'a>(
 }
 
 #[rustler::nif]
-fn nif_put<'a>(
+fn publisher_put<'a>(
     env: Env<'a>,
     resource_session: ResourceArc<PublisherContainer>,
     value: String,
@@ -60,11 +60,11 @@ fn nif_put<'a>(
 rustler::init!(
     "Elixir.NifZenoh",
     [
-        open,
-        nif_declare_publisher,
-        nif_put,
-        call_pub_zenoh,
-        call_sub_zenoh
+        zenoh_open,
+        session_declare_publisher,
+        publisher_put,
+        tester_pub,
+        tester_sub
     ],
     load = load
 );

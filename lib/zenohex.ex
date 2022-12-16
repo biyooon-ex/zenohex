@@ -12,7 +12,8 @@ defmodule Zenohex do
       :world
 
   """
-  def hello do
-    :world
+  @spec open :: reference()
+  def open do
+    NifZenoh.zenoh_open()
   end
 end
