@@ -1,11 +1,13 @@
+use flume::Receiver;
 use futures::executor::block_on;
 use rustler::types::atom::ok;
 use rustler::types::Encoder;
-use rustler::{Env, ResourceArc, Term};
+use rustler::{Env, OwnedEnv, ResourceArc, Term};
 use std::sync::Mutex;
 use zenoh::config::Config;
 use zenoh::prelude::r#async::*;
 use zenoh::publication::Publisher;
+use zenoh::subscriber::{self, Subscriber};
 pub mod tester;
 use tester::tester::{tester_pub, tester_sub};
 
@@ -17,9 +19,14 @@ struct PublisherContainer {
     publisher_mux: Mutex<Publisher<'static>>,
 }
 
+struct SubscriberContainer {
+    subscriber_mux: Mutex<Subscriber<'static, Receiver<Sample>>>,
+}
+
 fn load<'a>(env: Env<'a>, _: Term<'a>) -> bool {
     rustler::resource!(SessionContainer, env);
     rustler::resource!(PublisherContainer, env);
+    rustler::resource!(SubscriberContainer, env);
     true
 }
 
@@ -57,6 +64,26 @@ fn publisher_put<'a>(
     (ok()).encode(env)
 }
 
+#[rustler::nif]
+fn session_declare_subscriber<'a>(
+    env: Env<'a>,
+    resource_session: ResourceArc<SessionContainer>,
+    keyexpr: String,
+) -> Term<'a> {
+    let session = resource_session.session_mux.lock().unwrap();
+    let subscriber = block_on(session.declare_subscriber(keyexpr).res()).unwrap();
+    let resource_subscriber = ResourceArc::new(SubscriberContainer {
+        subscriber_mux: Mutex::new(subscriber),
+    });
+    (ok(), resource_subscriber).encode(env)
+}
+
+// #[rustler::nif]
+// fn send_message<'a>(env: Env<'a>, value: String) -> Term<'a> {
+//     env.send(&(env.pid()), value.encode(env));
+//     (ok()).encode(env)
+// }
+
 rustler::init!(
     "Elixir.NifZenoh",
     [
@@ -64,7 +91,9 @@ rustler::init!(
         session_declare_publisher,
         publisher_put,
         tester_pub,
-        tester_sub
+        tester_sub,
+        session_declare_subscriber,
+        // send_message
     ],
     load = load
 );

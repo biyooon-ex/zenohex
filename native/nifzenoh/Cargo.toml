@@ -19,3 +19,4 @@ async-std = { version = "=1.12.0", default-features = false, features = [
 env_logger = "0.10.0"
 clap = "4.0.29"
 futures = "0.3.25"
+flume = "0.10.14"

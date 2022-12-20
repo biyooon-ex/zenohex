@@ -15,4 +15,8 @@ defmodule NifZenoh do
 
   @spec tester_sub(charlist()) :: no_return()
   def tester_sub(_keyexpr), do: exit(:nif_not_loaded)
+
+  def session_declare_subscriber(_session, _keyexpr), do: exit(:nif_not_loaded)
+
+  # def send_message(_value), do: exit(:nif_not_loaded)
 end

@@ -1019,6 +1019,7 @@ dependencies = [
  "async-std",
  "clap 4.0.29",
  "env_logger 0.10.0",
+ "flume",
  "futures",
  "rustler",
  "zenoh",
