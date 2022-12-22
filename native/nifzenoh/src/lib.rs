@@ -1,7 +1,7 @@
 use flume::Receiver;
 use futures::executor::block_on;
 use rustler::types::atom::ok;
-use rustler::types::Encoder;
+use rustler::types::{Encoder, Pid};
 use rustler::{Env, OwnedEnv, ResourceArc, Term};
 use std::sync::Mutex;
 use zenoh::config::Config;
@@ -19,14 +19,9 @@ struct PublisherContainer {
     publisher_mux: Mutex<Publisher<'static>>,
 }
 
-// struct SubscriberContainer {
-//     subscriber_mux: Mutex<Subscriber<'static, Receiver<Sample>>>,
-// }
-
 fn load<'a>(env: Env<'a>, _: Term<'a>) -> bool {
     rustler::resource!(SessionContainer, env);
     rustler::resource!(PublisherContainer, env);
-    // rustler::resource!(SubscriberContainer, env);
     true
 }
 
@@ -69,29 +64,20 @@ fn session_declare_subscriber<'a>(
     env: Env<'a>,
     resource_session: ResourceArc<SessionContainer>,
     keyexpr: String,
+    pid: Pid,
 ) -> Term<'a> {
-    let pid = env.pid();
     let mut subscriber_env = OwnedEnv::new();
 
     let session = resource_session.session_mux.lock().unwrap();
     let subscriber = block_on(session.declare_subscriber(keyexpr).res()).unwrap();
 
-    std::thread::spawn(move || {
-        loop {
-            let sample = block_on(subscriber.recv_async()).unwrap();
-            subscriber_env.send_and_clear(&pid, |env| {sample.value.to_string().encode(env)});
-        }
-    }
-    );
+    std::thread::spawn(move || loop {
+        let sample = block_on(subscriber.recv_async()).unwrap();
+        subscriber_env.send_and_clear(&pid, |env| sample.value.to_string().encode(env));
+    });
 
     ok().encode(env)
 }
-
-// #[rustler::nif]
-// fn send_message<'a>(env: Env<'a>, value: String) -> Term<'a> {
-//     env.send(&(env.pid()), value.encode(env));
-//     (ok()).encode(env)
-// }
 
 rustler::init!(
     "Elixir.NifZenoh",
@@ -102,7 +88,6 @@ rustler::init!(
         tester_pub,
         tester_sub,
         session_declare_subscriber,
-        // send_message
     ],
     load = load
 );

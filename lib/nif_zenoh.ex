@@ -16,7 +16,18 @@ defmodule NifZenoh do
   @spec tester_sub(charlist()) :: no_return()
   def tester_sub(_keyexpr), do: exit(:nif_not_loaded)
 
-  def session_declare_subscriber(_session, _keyexpr), do: exit(:nif_not_loaded)
+  @spec session_declare_subscriber(reference(), charlist(), pid()) :: none
+  def session_declare_subscriber(_session, _keyexpr, _callbackpid), do: exit(:nif_not_loaded)
 
-  # def send_message(_value), do: exit(:nif_not_loaded)
+  @spec session_declare_subscriber_wrapper(reference(), charlist(), function()) :: no_return()
+  def session_declare_subscriber_wrapper(session, keyexpr, callback) do
+    pid =
+      spawn(fn ->
+        receive do
+          msg -> callback.(msg)
+        end
+      end)
+
+    session_declare_subscriber(session, keyexpr, pid)
+  end
 end
