@@ -19,14 +19,14 @@ struct PublisherContainer {
     publisher_mux: Mutex<Publisher<'static>>,
 }
 
-struct SubscriberContainer {
-    subscriber_mux: Mutex<Subscriber<'static, Receiver<Sample>>>,
-}
+// struct SubscriberContainer {
+//     subscriber_mux: Mutex<Subscriber<'static, Receiver<Sample>>>,
+// }
 
 fn load<'a>(env: Env<'a>, _: Term<'a>) -> bool {
     rustler::resource!(SessionContainer, env);
     rustler::resource!(PublisherContainer, env);
-    rustler::resource!(SubscriberContainer, env);
+    // rustler::resource!(SubscriberContainer, env);
     true
 }
 
@@ -70,12 +70,21 @@ fn session_declare_subscriber<'a>(
     resource_session: ResourceArc<SessionContainer>,
     keyexpr: String,
 ) -> Term<'a> {
+    let pid = env.pid();
+    let mut subscriber_env = OwnedEnv::new();
+
     let session = resource_session.session_mux.lock().unwrap();
     let subscriber = block_on(session.declare_subscriber(keyexpr).res()).unwrap();
-    let resource_subscriber = ResourceArc::new(SubscriberContainer {
-        subscriber_mux: Mutex::new(subscriber),
-    });
-    (ok(), resource_subscriber).encode(env)
+
+    std::thread::spawn(move || {
+        loop {
+            let sample = block_on(subscriber.recv_async()).unwrap();
+            subscriber_env.send_and_clear(&pid, |env| {sample.value.to_string().encode(env)});
+        }
+    }
+    );
+
+    ok().encode(env)
 }
 
 // #[rustler::nif]
