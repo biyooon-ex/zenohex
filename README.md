@@ -26,13 +26,13 @@ be found at <https://hexdocs.pm/zenohex>.
 ### terminal 1
 ```
 iex -S mix
-iex> NifZenoh.call_sub_zenoh
+iex> NifZenoh.tester_sub
 ```
 
 ### terminal 2
 ```
 iex -S mix
-iex> session = NifZenoh.open
-iex> publisher = NifZenoh.nif_declare_publisher(session, "demo/example/zenoh-rs-pub")
-iex> NifZenoh.nif_put(publisher, "Hello zenoh?")
+iex> session = NifZenoh.zenoh_open
+iex> publisher = NifZenoh.session_declare_publisher(session, "demo/example/zenoh-rs-pub")
+iex> NifZenoh.publisher_put(publisher, "Hello zenoh?")
 ```
