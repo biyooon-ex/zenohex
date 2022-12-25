@@ -4,15 +4,9 @@ defmodule Zenohex do
   """
 
   @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Zenohex.hello()
-      :world
 
   """
-  @spec open :: reference()
+  @spec open :: NifZenoh.session()
   def open do
     NifZenoh.zenoh_open()
   end
