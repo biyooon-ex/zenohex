@@ -11,8 +11,16 @@ defmodule NifZenoh do
   def session_declare_publisher(_session, _keyexpr),
     do: :erlang.nif_error("NIF session_declare_publisher is not implemented")
 
-  @spec publisher_put(publisher(), charlist()) :: no_return()
-  def publisher_put(_publisher, _value),
+  @spec publisher_put_string(publisher(), charlist()) :: no_return()
+  def publisher_put_string(_publisher, _value),
+    do: :erlang.nif_error("NIF publisher_put is not implemented")
+
+  @spec publisher_put_integer(publisher(), charlist()) :: no_return()
+  def publisher_put_integer(_publisher, _value),
+    do: :erlang.nif_error("NIF publisher_put is not implemented")
+
+  @spec publisher_put_float(publisher(), charlist()) :: no_return()
+  def publisher_put_float(_publisher, _value),
     do: :erlang.nif_error("NIF publisher_put is not implemented")
 
   @spec tester_pub(charlist(), charlist()) :: no_return()
@@ -27,13 +35,16 @@ defmodule NifZenoh do
 
   @spec session_declare_subscriber_wrapper(session(), charlist(), function()) :: no_return()
   def session_declare_subscriber_wrapper(session, keyexpr, callback) do
-    pid =
-      spawn(fn ->
-        receive do
-          msg -> callback.(msg)
-        end
-      end)
+    pid = spawn(NifZenoh, :wait_message, [callback])
 
     session_declare_subscriber(session, keyexpr, pid)
+  end
+
+  def wait_message(callback) do
+    receive do
+      msg -> callback.(msg)
+    end
+
+    wait_message(callback)
   end
 end

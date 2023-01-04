@@ -35,20 +35,20 @@ iex> NifZenoh.tester_sub
 #### terminal 2 (Publisher)
 ```
 iex -S mix
-iex> session = NifZenoh.zenoh_open
-iex> {:ok, publisher} = NifZenoh.session_declare_publisher(session, "demo/example/zenoh-rs-pub")
-iex> NifZenoh.publisher_put(publisher, "Hello zenoh?")
+iex> session = Zenohex.open
+iex> {:ok, publisher} = Session.declare_publisher(session, "demo/example/zenoh-rs-pub")
+iex> Publisher.put(publisher, "Hello zenoh?")
 ```
 
 ### Subscriber example
 ```
 (Subscriber)
 iex -S mix
-iex> session = NifZenoh.zenoh_open
-iex> NifZenoh.session_declare_subscriber_wrapper(session, "demo/example/zenoh-rs-pub", fn m -> IO.inspect(m) end)
+iex> session = Zenohex.open
+iex> Session.declare_subscriber_wrapper(session, "demo/example/zenoh-rs-pub", fn m -> IO.inspect(m) end)
 (third argument is callback function)
 
 (Publisher)
-iex> {:ok, publisher} = NifZenoh.session_declare_publisher(session, "demo/example/zenoh-rs-pub")
-iex> NifZenoh.publisher_put(publisher, "Hello zenoh?")
+iex> {:ok, publisher} = Session.declare_publisher(session, "demo/example/zenoh-rs-pub")
+iex> Publisher.put(publisher, "Hello zenoh?")
 ```
