@@ -4,8 +4,8 @@ defmodule Session do
     NifZenoh.session_declare_publisher(session, key)
   end
 
-  @spec declare_subscriber_wrapper(NifZenoh.session(), charlist(), function()) :: no_return()
-  def declare_subscriber_wrapper(session, keyexpr, callback) do
+  @spec declare_subscriber(NifZenoh.session(), charlist(), function()) :: no_return()
+  def declare_subscriber(session, keyexpr, callback) do
     NifZenoh.session_declare_subscriber_wrapper(session, keyexpr, callback)
   end
 end

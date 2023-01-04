@@ -1,4 +1,3 @@
-use flume::Receiver;
 use futures::executor::block_on;
 use rustler::types::atom::ok;
 use rustler::types::{Encoder, Pid};
@@ -7,7 +6,6 @@ use std::sync::Mutex;
 use zenoh::config::Config;
 use zenoh::prelude::r#async::*;
 use zenoh::publication::Publisher;
-use zenoh::subscriber::{self, Subscriber};
 pub mod tester;
 use tester::tester::{tester_pub, tester_sub};
 
@@ -48,15 +46,41 @@ fn session_declare_publisher<'a>(
     (ok(), resource_publisher).encode(env)
 }
 
-#[rustler::nif]
 fn publisher_put<'a>(
     env: Env<'a>,
     resource_session: ResourceArc<PublisherContainer>,
-    value: String,
+    value: Value,
 ) -> Term<'a> {
     let publisher = &resource_session.publisher_mux.lock().unwrap();
     block_on(publisher.put(value).res()).unwrap();
     (ok()).encode(env)
+}
+
+#[rustler::nif]
+fn publisher_put_string<'a>(
+    env: Env<'a>,
+    resource_session: ResourceArc<PublisherContainer>,
+    value: String,
+) -> Term<'a> {
+    publisher_put(env, resource_session, Value::from(value))
+}
+
+#[rustler::nif]
+fn publisher_put_integer<'a>(
+    env: Env<'a>,
+    resource_session: ResourceArc<PublisherContainer>,
+    value: i64,
+) -> Term<'a> {
+    publisher_put(env, resource_session, Value::from(value))
+}
+
+#[rustler::nif]
+fn publisher_put_float<'a>(
+    env: Env<'a>,
+    resource_session: ResourceArc<PublisherContainer>,
+    value: f64,
+) -> Term<'a> {
+    publisher_put(env, resource_session, Value::from(value))
 }
 
 #[rustler::nif]
@@ -84,7 +108,9 @@ rustler::init!(
     [
         zenoh_open,
         session_declare_publisher,
-        publisher_put,
+        publisher_put_string,
+        publisher_put_float,
+        publisher_put_integer,
         tester_pub,
         tester_sub,
         session_declare_subscriber,
