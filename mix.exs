@@ -6,6 +6,12 @@ defmodule Zenohex.MixProject do
       app: :zenohex,
       version: "0.1.0",
       elixir: "~> 1.13",
+      description: "Zenoh client library for elixir.",
+      package: [
+        maintainers: ["s-hosoai"],
+        licenses: ["MIT"],
+        links: %{"GitHub" => "https://github.com/b5g-ex/zenohex"}
+      ],
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
