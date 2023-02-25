@@ -974,7 +974,7 @@ dependencies = [
 
 [[package]]
 name = "nifzenoh"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "async-std",
  "clap 4.0.29",

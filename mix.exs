@@ -4,7 +4,7 @@ defmodule Zenohex.MixProject do
   def project do
     [
       app: :zenohex,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.13",
       description: "Zenoh client library for elixir.",
       package: package(),
