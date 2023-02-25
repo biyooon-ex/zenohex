@@ -1,10 +1,11 @@
 defmodule Zenohex.MixProject do
   use Mix.Project
+  @version "0.1.3"
 
   def project do
     [
       app: :zenohex,
-      version: "0.1.2",
+      version: @version,
       elixir: "~> 1.13",
       description: "Zenoh client library for elixir.",
       package: package(),
@@ -23,8 +24,8 @@ defmodule Zenohex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler, "~>0.26.0"},
       {:rustler_precompiled, "~> 0.6"},
+      {:rustler, ">= 0.0.0", optional: true},
       {:ex_doc, "~> 0.10", only: :dev}
 
       # {:dep_from_hexpm, "~> 0.3.0"},
