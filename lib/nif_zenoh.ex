@@ -7,7 +7,7 @@ defmodule NifZenoh do
     base_url: "https://github.com/b5g-ex/zenohex/releases/download/v#{version}",
     force_build: System.get_env("RUSTLER_PRECOMPILATION_EXAMPLE_BUILD") in ["1", "true"],
     targets:
-      Enum.uniq(["aarch64-unknown-linux-musl" | RustlerPrecompiled.Config.default_targets()]),
+      Enum.uniq(["aarch64-unknown-linux-gnu" | RustlerPrecompiled.Config.default_targets()]),
     version: version
 
   @type session() :: reference()
