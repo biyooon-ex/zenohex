@@ -13,7 +13,7 @@ by adding `zenohex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:zenohex, "~> 0.1.0"}
+    {:zenohex, "~> 0.1.3"}
   ]
 end
 ```
@@ -22,7 +22,13 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/zenohex>.
 
-### install rust.
+### Install rust (Optional)
+Since version 0.1.3, Zenohex uses rustler precompiled and does not require Rust to be installed.
+
+If you need to build rust NIFs code, please set the environment variable and install rust.
+```
+export RUSTLER_PRECOMPILATION_EXAMPLE_BUILD=1
+```
 https://www.rust-lang.org/tools/install
 
 ## Getting Started
