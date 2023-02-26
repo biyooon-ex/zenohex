@@ -1,5 +1,8 @@
 # Zenohex
 
+[![Hex version](https://img.shields.io/hexpm/v/zenohex.svg "Hex version")](https://hex.pm/packages/zenohex)
+[![API docs](https://img.shields.io/hexpm/v/rclex.svg?label=hexdocs "API docs")](https://hexdocs.pm/zenohex/)
+
 Zenohex is the [zenoh](https://zenoh.io/) client library for elixir.
 
 Currently zenohex uses version 0.7.0-rc of zenoh.
