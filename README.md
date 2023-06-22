@@ -41,7 +41,7 @@ https://www.rust-lang.org/tools/install
 #### terminal 1 (Subscriber)
 ```
 iex -S mix
-iex> NifZenoh.tester_sub
+iex> NifZenoh.tester_sub "demo/example/zenoh-rs-pub"
 ```
 
 #### terminal 2 (Publisher)
