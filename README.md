@@ -57,7 +57,7 @@ iex> Publisher.put(publisher, "Hello zenoh?")
 (Subscriber)
 iex -S mix
 iex> session = Zenohex.open
-iex> Session.declare_subscriber_wrapper(session, "demo/example/zenoh-rs-pub", fn m -> IO.inspect(m) end)
+iex> Session.declare_subscriber(session, "demo/example/zenoh-rs-pub", fn m -> IO.inspect(m) end)
 (third argument is callback function)
 
 (Publisher)
