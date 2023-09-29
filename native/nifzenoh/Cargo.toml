@@ -10,13 +10,12 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-rustler = "0.26.0"
-# zenoh = { git = "https://github.com/eclipse-zenoh/zenoh.git"}
-zenoh = { version = "0.7.0-rc", default-features = true}
+rustler = "0.29.1"
+zenoh = { version = "0.10.0-rc", default-features = true }
 async-std = { version = "=1.12.0", default-features = false, features = [
   "attributes",
 ] }
 env_logger = "0.10.0"
-clap = "4.0.29"
-futures = "0.3.25"
-flume = "0.10.14"
+clap = "4.4.6"
+futures = "0.3.28"
+flume = "0.11.0"
