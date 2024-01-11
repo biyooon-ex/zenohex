@@ -10,12 +10,12 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-rustler = "0.29.1"
-zenoh = { version = "0.10.0-rc", default-features = true }
+rustler = "0.30.0"
+zenoh = { version = "0.10.1-rc", default-features = true }
 async-std = { version = "=1.12.0", default-features = false, features = [
   "attributes",
 ] }
-env_logger = "0.10.0"
-clap = "4.4.6"
-futures = "0.3.28"
+env_logger = "0.10.1"
+clap = "4.4.16"
+futures = "0.3.30"
 flume = "0.11.0"
