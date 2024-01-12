@@ -17,7 +17,7 @@ by adding `zenohex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:zenohex, "~> 0.1.3"}
+    {:zenohex, "~> 0.1.4"}
   ]
 end
 ```
