@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rustler = "0.30.0"
+zenoh = "0.10.1-rc"
