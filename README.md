@@ -6,7 +6,7 @@
 
 Zenohex is the [zenoh](https://zenoh.io/) client library for elixir.
 
-Currently zenohex uses version 0.7.0-rc of zenoh.
+Currently zenohex uses version 0.10.1-rc of zenoh.
 If you want to communicate with Rust version of Zenoh, please use the same version. 
 
 ## Installation
