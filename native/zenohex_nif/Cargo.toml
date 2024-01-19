@@ -10,5 +10,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
+flume = "0.11.0"
+futures = "0.3.30"
 rustler = "0.30.0"
 zenoh = "0.10.1-rc"
