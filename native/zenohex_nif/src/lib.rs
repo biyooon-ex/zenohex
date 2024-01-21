@@ -5,7 +5,7 @@ use flume::Receiver;
 use rustler::types::atom;
 use rustler::{thread, Encoder};
 use rustler::{Atom, Env, ResourceArc, Term};
-use zenoh::prelude::{r#async::*, sync::SyncResolve};
+use zenoh::prelude::sync::*;
 use zenoh::{publication::Publisher, sample::Sample, subscriber::Subscriber, Session};
 
 mod atoms {
