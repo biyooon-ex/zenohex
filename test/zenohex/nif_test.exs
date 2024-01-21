@@ -22,9 +22,13 @@ defmodule Zenohex.NifTest do
       assert is_reference(Nif.declare_publisher(session, "key/expression"))
     end
 
-    test "publisher_put/2", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
-      assert Nif.publisher_put(publisher, "value") == :ok
+    for {type, value} <- [{"string", "value"}, {"integer", 0}, {"float", 0.0}] do
+      test "publisher_put_#{type}/2", %{session: session} do
+        type = unquote(type)
+        value = unquote(value)
+        publisher = Nif.declare_publisher(session, "key/expression")
+        assert apply(Nif, :"publisher_put_#{type}", [publisher, value]) == :ok
+      end
     end
   end
 
@@ -37,7 +41,7 @@ defmodule Zenohex.NifTest do
       publisher = Nif.declare_publisher(session, "key/expression")
       subscriber = Nif.declare_subscriber(session, "key/expression")
 
-      Nif.publisher_put(publisher, "value")
+      Nif.publisher_put_string(publisher, "value")
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == "value"
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == :timeout
     end

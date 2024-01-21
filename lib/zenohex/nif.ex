@@ -16,8 +16,10 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def publisher_put(_publisher, _value) do
-    :erlang.nif_error(:nif_not_loaded)
+  for type <- ["string", "integer", "float"] do
+    def unquote(:"publisher_put_#{type}")(_publisher, _value) do
+      :erlang.nif_error(:nif_not_loaded)
+    end
   end
 
   def declare_subscriber(_session, _key_expr) do

@@ -53,7 +53,24 @@ fn declare_publisher(env: Env, resource: ResourceArc<ExSessionRef>, key_expr: St
 }
 
 #[rustler::nif]
-fn publisher_put(resource: ResourceArc<ExPublisherRef>, value: String) -> Atom {
+fn publisher_put_string(resource: ResourceArc<ExPublisherRef>, value: String) -> Atom {
+    publisher_put_impl(resource, value)
+}
+
+#[rustler::nif]
+fn publisher_put_integer(resource: ResourceArc<ExPublisherRef>, value: i64) -> Atom {
+    publisher_put_impl(resource, value)
+}
+
+#[rustler::nif]
+fn publisher_put_float(resource: ResourceArc<ExPublisherRef>, value: f64) -> Atom {
+    publisher_put_impl(resource, value)
+}
+
+fn publisher_put_impl<T: Into<zenoh::value::Value>>(
+    resource: ResourceArc<ExPublisherRef>,
+    value: T,
+) -> Atom {
     let publisher: &Publisher = &resource.0;
     match publisher.put(value).res_sync() {
         Ok(()) => atom::ok(),
@@ -103,7 +120,9 @@ rustler::init!(
         test_thread,
         zenoh_open,
         declare_publisher,
-        publisher_put,
+        publisher_put_string,
+        publisher_put_integer,
+        publisher_put_float,
         declare_subscriber,
         subscriber_recv_timeout
     ],
