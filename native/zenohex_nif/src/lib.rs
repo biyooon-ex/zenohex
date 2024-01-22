@@ -98,11 +98,43 @@ fn subscriber_recv_timeout(
 ) -> Term {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => {
-            let sample: Sample = sample;
-            sample.value.to_string().encode(env)
-        }
+        Ok(sample) => to_term(&sample, env),
         Err(_recv_timeout_error) => atoms::timeout().encode(env),
+    }
+}
+
+fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
+    match sample.value.encoding.prefix() {
+        KnownEncoding::Empty => todo!(),
+        KnownEncoding::AppOctetStream => todo!(),
+        KnownEncoding::AppCustom => todo!(),
+        KnownEncoding::TextPlain => match String::try_from(&sample.value) {
+            Ok(value) => value.encode(env),
+            Err(_err) => atom::error().encode(env),
+        },
+        KnownEncoding::AppProperties => todo!(),
+        KnownEncoding::AppJson => todo!(),
+        KnownEncoding::AppSql => todo!(),
+        KnownEncoding::AppInteger => match i64::try_from(&sample.value) {
+            Ok(value) => value.encode(env),
+            Err(_err) => atom::error().encode(env),
+        },
+        KnownEncoding::AppFloat => match f64::try_from(&sample.value) {
+            Ok(value) => value.encode(env),
+            Err(_err) => atom::error().encode(env),
+        },
+        KnownEncoding::AppXml => todo!(),
+        KnownEncoding::AppXhtmlXml => todo!(),
+        KnownEncoding::AppXWwwFormUrlencoded => todo!(),
+        KnownEncoding::TextJson => todo!(),
+        KnownEncoding::TextHtml => todo!(),
+        KnownEncoding::TextXml => todo!(),
+        KnownEncoding::TextCss => todo!(),
+        KnownEncoding::TextCsv => todo!(),
+        KnownEncoding::TextJavascript => todo!(),
+        KnownEncoding::ImageJpeg => todo!(),
+        KnownEncoding::ImagePng => todo!(),
+        KnownEncoding::ImageGif => todo!(),
     }
 }
 

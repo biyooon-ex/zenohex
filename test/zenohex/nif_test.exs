@@ -43,6 +43,13 @@ defmodule Zenohex.NifTest do
 
       Nif.publisher_put_string(publisher, "value")
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == "value"
+
+      Nif.publisher_put_integer(publisher, 0)
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == 0
+
+      Nif.publisher_put_float(publisher, 0.0)
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == 0.0
+
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == :timeout
     end
   end
