@@ -22,7 +22,12 @@ defmodule Zenohex.NifTest do
       assert is_reference(Nif.declare_publisher(session, "key/expression"))
     end
 
-    for {type, value} <- [{"string", "value"}, {"integer", 0}, {"float", 0.0}] do
+    for {type, value} <- [
+          {"string", "value"},
+          {"integer", 0},
+          {"float", 0.0},
+          {"binary", :erlang.term_to_binary("binary")}
+        ] do
       test "publisher_put_#{type}/2", %{session: session} do
         type = unquote(type)
         value = unquote(value)
@@ -50,7 +55,30 @@ defmodule Zenohex.NifTest do
       Nif.publisher_put_float(publisher, 0.0)
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == 0.0
 
+      Nif.publisher_put_binary(publisher, :erlang.term_to_binary("binary"))
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == :erlang.term_to_binary("binary")
+
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == :timeout
+    end
+  end
+
+  describe "binary pub/sub" do
+    setup context do
+      key_expr = "key/expression"
+      publisher = Nif.declare_publisher(context.session, key_expr)
+      subscriber = Nif.declare_subscriber(context.session, key_expr)
+      %{publisher: publisher, subscriber: subscriber}
+    end
+
+    for {test_name, binary} <- [
+          {"empty binary", ""},
+          {"erlang term binary", :erlang.term_to_binary(%URI{})}
+        ] do
+      test "#{test_name}", %{publisher: publisher, subscriber: subscriber} do
+        binary = unquote(binary)
+        Nif.publisher_put_binary(publisher, binary)
+        assert Nif.subscriber_recv_timeout(subscriber, 1000) == binary
+      end
     end
   end
 end

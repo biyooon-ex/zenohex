@@ -1,9 +1,11 @@
+use std::borrow::Cow;
+use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 
 use flume::Receiver;
 use rustler::types::atom;
-use rustler::{thread, Encoder};
+use rustler::{thread, Binary, Encoder, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::{publication::Publisher, sample::Sample, subscriber::Subscriber, Session};
@@ -67,6 +69,11 @@ fn publisher_put_float(resource: ResourceArc<ExPublisherRef>, value: f64) -> Ato
     publisher_put_impl(resource, value)
 }
 
+#[rustler::nif]
+fn publisher_put_binary(resource: ResourceArc<ExPublisherRef>, value: Binary) -> Atom {
+    publisher_put_impl(resource, Value::from(value.as_slice()))
+}
+
 fn publisher_put_impl<T: Into<zenoh::value::Value>>(
     resource: ResourceArc<ExPublisherRef>,
     value: T,
@@ -106,7 +113,14 @@ fn subscriber_recv_timeout(
 fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
     match sample.value.encoding.prefix() {
         KnownEncoding::Empty => todo!(),
-        KnownEncoding::AppOctetStream => todo!(),
+        KnownEncoding::AppOctetStream => match Cow::try_from(&sample.value) {
+            Ok(value) => {
+                let mut binary = OwnedBinary::new(value.len()).unwrap();
+                binary.as_mut_slice().write_all(&value).unwrap();
+                binary.release(env).encode(env)
+            }
+            Err(_err) => atom::error().encode(env),
+        },
         KnownEncoding::AppCustom => todo!(),
         KnownEncoding::TextPlain => match String::try_from(&sample.value) {
             Ok(value) => value.encode(env),
@@ -155,6 +169,7 @@ rustler::init!(
         publisher_put_string,
         publisher_put_integer,
         publisher_put_float,
+        publisher_put_binary,
         declare_subscriber,
         subscriber_recv_timeout
     ],
