@@ -112,7 +112,7 @@ fn subscriber_recv_timeout(
 
 fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
     match sample.value.encoding.prefix() {
-        KnownEncoding::Empty => todo!(),
+        KnownEncoding::Empty => unimplemented!(),
         KnownEncoding::AppOctetStream => match Cow::try_from(&sample.value) {
             Ok(value) => {
                 let mut binary = OwnedBinary::new(value.len()).unwrap();
@@ -121,14 +121,14 @@ fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
             }
             Err(_err) => atom::error().encode(env),
         },
-        KnownEncoding::AppCustom => todo!(),
+        KnownEncoding::AppCustom => unimplemented!(),
         KnownEncoding::TextPlain => match String::try_from(&sample.value) {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
         },
-        KnownEncoding::AppProperties => todo!(),
-        KnownEncoding::AppJson => todo!(),
-        KnownEncoding::AppSql => todo!(),
+        KnownEncoding::AppProperties => unimplemented!(),
+        KnownEncoding::AppJson => unimplemented!(),
+        KnownEncoding::AppSql => unimplemented!(),
         KnownEncoding::AppInteger => match i64::try_from(&sample.value) {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
@@ -137,18 +137,18 @@ fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
         },
-        KnownEncoding::AppXml => todo!(),
-        KnownEncoding::AppXhtmlXml => todo!(),
-        KnownEncoding::AppXWwwFormUrlencoded => todo!(),
-        KnownEncoding::TextJson => todo!(),
-        KnownEncoding::TextHtml => todo!(),
-        KnownEncoding::TextXml => todo!(),
-        KnownEncoding::TextCss => todo!(),
-        KnownEncoding::TextCsv => todo!(),
-        KnownEncoding::TextJavascript => todo!(),
-        KnownEncoding::ImageJpeg => todo!(),
-        KnownEncoding::ImagePng => todo!(),
-        KnownEncoding::ImageGif => todo!(),
+        KnownEncoding::AppXml => unimplemented!(),
+        KnownEncoding::AppXhtmlXml => unimplemented!(),
+        KnownEncoding::AppXWwwFormUrlencoded => unimplemented!(),
+        KnownEncoding::TextJson => unimplemented!(),
+        KnownEncoding::TextHtml => unimplemented!(),
+        KnownEncoding::TextXml => unimplemented!(),
+        KnownEncoding::TextCss => unimplemented!(),
+        KnownEncoding::TextCsv => unimplemented!(),
+        KnownEncoding::TextJavascript => unimplemented!(),
+        KnownEncoding::ImageJpeg => unimplemented!(),
+        KnownEncoding::ImagePng => unimplemented!(),
+        KnownEncoding::ImageGif => unimplemented!(),
     }
 }
 
