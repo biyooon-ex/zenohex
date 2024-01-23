@@ -8,6 +8,7 @@ use rustler::types::atom;
 use rustler::{thread, Binary, Encoder, ListIterator, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
+use zenoh::subscriber::SubscriberBuilder;
 use zenoh::{publication::Publisher, sample::Sample, subscriber::Subscriber, Session};
 
 mod atoms {
@@ -23,7 +24,13 @@ mod atoms {
             data_high,
             data,
             data_low,
-            background
+            background,
+        mode,
+            push,
+            pull,
+        reliability,
+            best_effort,
+            reliable,
     }
 }
 
@@ -157,12 +164,25 @@ fn publisher_delete(resource: ResourceArc<ExPublisherRef>) -> Atom {
 fn declare_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
+    opts: ListIterator,
 ) -> ResourceArc<ExSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
-    let subscriber: Subscriber<'_, Receiver<Sample>> = session
-        .declare_subscriber(key_expr)
-        .res_sync()
-        .expect("declare_subscriber failed");
+    let builder: SubscriberBuilder<_, _> = session.declare_subscriber(key_expr);
+
+    let builder = opts.fold(builder, |acc, kv: Term| {
+        match kv.decode::<(Atom, Atom)>().unwrap() {
+            (k, v) if k == atoms::reliability() => match v {
+                v if v == atoms::best_effort() => acc.best_effort(),
+                v if v == atoms::reliable() => acc.reliable(),
+                _ => unreachable!(),
+            },
+            _ => acc,
+        }
+    });
+
+    let subscriber: Subscriber<'_, Receiver<Sample>> =
+        builder.res_sync().expect("declare_subscriber failed");
+
     ResourceArc::new(ExSubscriberRef(subscriber))
 }
 
@@ -242,7 +262,7 @@ rustler::init!(
         publisher_congestion_control,
         publisher_priority,
         declare_subscriber,
-        subscriber_recv_timeout
+        subscriber_recv_timeout,
     ],
     load = load
 );

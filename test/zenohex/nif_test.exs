@@ -64,6 +64,12 @@ defmodule Zenohex.NifTest do
       assert is_reference(Nif.declare_subscriber(session, "key/expression"))
     end
 
+    test "declare_subscriber/3", %{session: session} do
+      assert is_reference(
+               Nif.declare_subscriber(session, "key/expression", reliability: :reliable)
+             )
+    end
+
     test "subscriber_recv_timeout/1", %{session: session} do
       publisher = Nif.declare_publisher(session, "key/expression")
       subscriber = Nif.declare_subscriber(session, "key/expression")

@@ -34,7 +34,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_subscriber(_session, _key_expr) do
+  def declare_subscriber(_session, _key_expr, _opts \\ []) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
