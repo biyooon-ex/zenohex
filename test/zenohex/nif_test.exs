@@ -82,8 +82,30 @@ defmodule Zenohex.NifTest do
 
       Nif.publisher_put_binary(publisher, "binary")
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == "binary"
-
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == :timeout
+    end
+  end
+
+  describe "pull subscriber" do
+    test "declare_pull_subscriber/2", %{session: session} do
+      assert is_reference(Nif.declare_pull_subscriber(session, "key/expression"))
+    end
+
+    test "declare_pull_subscriber/3", %{session: session} do
+      assert is_reference(
+               Nif.declare_pull_subscriber(session, "key/expression", reliability: :reliable)
+             )
+    end
+
+    test "pull_subscriber_pull/1", %{session: session} do
+      publisher = Nif.declare_publisher(session, "key/expression")
+      pull_subscriber = Nif.declare_pull_subscriber(session, "key/expression")
+
+      :ok = Nif.publisher_put_integer(publisher, 0)
+      0 = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
+      :timeout = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
+      assert Nif.pull_subscriber_pull(pull_subscriber) == :ok
+      assert Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000) == 0
     end
   end
 

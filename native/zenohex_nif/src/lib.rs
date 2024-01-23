@@ -9,7 +9,10 @@ use rustler::{thread, Binary, Encoder, ListIterator, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::subscriber::SubscriberBuilder;
-use zenoh::{publication::Publisher, sample::Sample, subscriber::Subscriber, Session};
+use zenoh::{
+    publication::Publisher, sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber,
+    Session,
+};
 
 mod atoms {
     rustler::atoms! {
@@ -37,6 +40,7 @@ mod atoms {
 pub struct ExSessionRef(Arc<Session>);
 pub struct ExPublisherRef(Publisher<'static>);
 pub struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
+pub struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
 
 #[rustler::nif]
 fn add(a: i64, b: i64) -> i64 {
@@ -199,6 +203,55 @@ fn subscriber_recv_timeout(
     }
 }
 
+#[rustler::nif]
+fn declare_pull_subscriber(
+    resource: ResourceArc<ExSessionRef>,
+    key_expr: String,
+    opts: ListIterator,
+) -> ResourceArc<ExPullSubscriberRef> {
+    let session: &Arc<Session> = &resource.0;
+    let builder: SubscriberBuilder<_, _> = session.declare_subscriber(key_expr).pull_mode();
+
+    let builder = opts.fold(builder, |acc, kv: Term| {
+        match kv.decode::<(Atom, Atom)>().unwrap() {
+            (k, v) if k == atoms::reliability() => match v {
+                v if v == atoms::best_effort() => acc.best_effort(),
+                v if v == atoms::reliable() => acc.reliable(),
+                _ => unreachable!(),
+            },
+            _ => acc,
+        }
+    });
+
+    let pull_subscriber: PullSubscriber<'_, Receiver<Sample>> =
+        builder.res_sync().expect("declare_pull_subscriber failed");
+
+    ResourceArc::new(ExPullSubscriberRef(pull_subscriber))
+}
+
+#[rustler::nif]
+fn pull_subscriber_recv_timeout(
+    env: Env,
+    resource: ResourceArc<ExPullSubscriberRef>,
+    timeout_us: u64,
+) -> Term {
+    let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
+    match pull_subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
+        Ok(sample) => to_term(&sample, env),
+        Err(_recv_timeout_error) => atoms::timeout().encode(env),
+    }
+}
+
+#[rustler::nif]
+fn pull_subscriber_pull(resource: ResourceArc<ExPullSubscriberRef>) -> Atom {
+    let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
+    pull_subscriber
+        .pull()
+        .res_sync()
+        .expect("pull_subscriber_pull failed");
+    atom::ok()
+}
+
 fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
     match sample.value.encoding.prefix() {
         KnownEncoding::Empty => unimplemented!(),
@@ -245,6 +298,7 @@ fn load(env: Env, _term: Term) -> bool {
     rustler::resource!(ExSessionRef, env);
     rustler::resource!(ExPublisherRef, env);
     rustler::resource!(ExSubscriberRef, env);
+    rustler::resource!(ExPullSubscriberRef, env);
     true
 }
 
@@ -263,6 +317,9 @@ rustler::init!(
         publisher_priority,
         declare_subscriber,
         subscriber_recv_timeout,
+        declare_pull_subscriber,
+        pull_subscriber_pull,
+        pull_subscriber_recv_timeout,
     ],
     load = load
 );
