@@ -31,27 +31,23 @@ fn test_thread(env: Env) -> Atom {
 }
 
 #[rustler::nif]
-fn zenoh_open(env: Env) -> Term {
+fn zenoh_open() -> ResourceArc<ExSessionRef> {
     let config = config::peer();
-    match zenoh::open(config).res_sync() {
-        Ok(session) => {
-            let session: Session = session;
-            ResourceArc::new(ExSessionRef(session.into_arc())).encode(env)
-        }
-        Err(_err) => atom::error().encode(env),
-    }
+    let session: Session = zenoh::open(config).res_sync().expect("zenoh_open failed");
+    ResourceArc::new(ExSessionRef(session.into_arc()))
 }
 
 #[rustler::nif]
-fn declare_publisher(env: Env, resource: ResourceArc<ExSessionRef>, key_expr: String) -> Term {
+fn declare_publisher(
+    resource: ResourceArc<ExSessionRef>,
+    key_expr: String,
+) -> ResourceArc<ExPublisherRef> {
     let session: &Arc<Session> = &resource.0;
-    match session.declare_publisher(key_expr).res_sync() {
-        Ok(publisher) => {
-            let publisher: Publisher<'_> = publisher;
-            ResourceArc::new(ExPublisherRef(publisher)).encode(env)
-        }
-        Err(_err) => atom::error().encode(env),
-    }
+    let publisher: Publisher<'_> = session
+        .declare_publisher(key_expr)
+        .res_sync()
+        .expect("declare_publisher failed");
+    ResourceArc::new(ExPublisherRef(publisher))
 }
 
 #[rustler::nif]
@@ -79,22 +75,24 @@ fn publisher_put_impl<T: Into<zenoh::value::Value>>(
     value: T,
 ) -> Atom {
     let publisher: &Publisher = &resource.0;
-    match publisher.put(value).res_sync() {
-        Ok(()) => atom::ok(),
-        Err(_err) => atom::error(),
-    }
+    publisher
+        .put(value)
+        .res_sync()
+        .expect("publisher_put_impl failed");
+    atom::ok()
 }
 
 #[rustler::nif]
-fn declare_subscriber(env: Env, resource: ResourceArc<ExSessionRef>, key_expr: String) -> Term {
+fn declare_subscriber(
+    resource: ResourceArc<ExSessionRef>,
+    key_expr: String,
+) -> ResourceArc<ExSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
-    match session.declare_subscriber(key_expr).res_sync() {
-        Ok(subscriber) => {
-            let subscriber: Subscriber<'_, Receiver<Sample>> = subscriber;
-            ResourceArc::new(ExSubscriberRef(subscriber)).encode(env)
-        }
-        Err(_err) => atom::error().encode(env),
-    }
+    let subscriber: Subscriber<'_, Receiver<Sample>> = session
+        .declare_subscriber(key_expr)
+        .res_sync()
+        .expect("declare_subscriber failed");
+    ResourceArc::new(ExSubscriberRef(subscriber))
 }
 
 #[rustler::nif]
