@@ -12,6 +12,20 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
+  for type <- ["integer", "float", "binary"] do
+    def unquote(:"session_put_#{type}")(_session, _key_expr, _value) do
+      :erlang.nif_error(:nif_not_loaded)
+    end
+  end
+
+  def session_get_timeout(_session, _selector, _timeout_us) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def session_delete(_session, _key_expr) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
   def declare_publisher(_session, _key_expr, _opts \\ []) do
     :erlang.nif_error(:nif_not_loaded)
   end

@@ -17,6 +17,28 @@ defmodule Zenohex.NifTest do
     %{session: Nif.zenoh_open()}
   end
 
+  describe "session" do
+    for {type, value} <- [
+          {"integer", 0},
+          {"float", 0.0},
+          {"binary", :erlang.term_to_binary("binary")}
+        ] do
+      test "session_put_#{type}/2", %{session: session} do
+        type = unquote(type)
+        value = unquote(value)
+        assert apply(Nif, :"session_put_#{type}", [session, "key/expression", value]) == :ok
+      end
+    end
+
+    test "session_get_timeout/3", %{session: session} do
+      assert Nif.session_get_timeout(session, "key_expression", 1000) == :timeout
+    end
+
+    test "session_delete/2", %{session: session} do
+      assert Nif.session_delete(session, "key_expression") == :ok
+    end
+  end
+
   describe "publisher" do
     test "declare_publisher/2", %{session: session} do
       assert is_reference(Nif.declare_publisher(session, "key/expression"))

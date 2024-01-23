@@ -64,6 +64,71 @@ fn zenoh_open() -> ResourceArc<ExSessionRef> {
 }
 
 #[rustler::nif]
+fn session_put_integer(resource: ResourceArc<ExSessionRef>, key_expr: String, value: i64) -> Atom {
+    let session: &Arc<Session> = &resource.0;
+    session
+        .put(key_expr, value)
+        .res_sync()
+        .expect("session_put_integer failed");
+    atom::ok()
+}
+
+#[rustler::nif]
+fn session_put_float(resource: ResourceArc<ExSessionRef>, key_expr: String, value: f64) -> Atom {
+    let session: &Arc<Session> = &resource.0;
+    session
+        .put(key_expr, value)
+        .res_sync()
+        .expect("session_put_float failed");
+    atom::ok()
+}
+
+#[rustler::nif]
+fn session_put_binary(
+    resource: ResourceArc<ExSessionRef>,
+    key_expr: String,
+    value: Binary,
+) -> Atom {
+    let session: &Arc<Session> = &resource.0;
+    session
+        .put(key_expr, Value::from(value.as_slice()))
+        .res_sync()
+        .expect("session_put_float failed");
+    atom::ok()
+}
+
+#[rustler::nif]
+fn session_get_timeout(
+    env: Env,
+    resource: ResourceArc<ExSessionRef>,
+    selector: String,
+    timeout_us: u64,
+) -> Term {
+    let session: &Arc<Session> = &resource.0;
+    let receiver = session
+        .get(selector)
+        .res_sync()
+        .expect("session_get failed");
+    match receiver.recv_timeout(Duration::from_micros(timeout_us)) {
+        Ok(reply) => match reply.sample {
+            Ok(sample) => to_term(&sample.value, env).encode(env),
+            Err(value) => to_term(&value, env).encode(env),
+        },
+        Err(_recv_timeout_error) => atoms::timeout().encode(env),
+    }
+}
+
+#[rustler::nif]
+fn session_delete(resource: ResourceArc<ExSessionRef>, key_expr: String) -> Atom {
+    let session: &Arc<Session> = &resource.0;
+    session
+        .delete(key_expr)
+        .res_sync()
+        .expect("session_delete failed");
+    atom::ok()
+}
+
+#[rustler::nif]
 fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
@@ -200,7 +265,7 @@ fn subscriber_recv_timeout(
 ) -> Term {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => to_term(&sample, env),
+        Ok(sample) => to_term(&sample.value, env),
         Err(_recv_timeout_error) => atoms::timeout().encode(env),
     }
 }
@@ -239,7 +304,7 @@ fn pull_subscriber_recv_timeout(
 ) -> Term {
     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
     match pull_subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => to_term(&sample, env),
+        Ok(sample) => to_term(&sample.value, env),
         Err(_recv_timeout_error) => atoms::timeout().encode(env),
     }
 }
@@ -277,10 +342,10 @@ fn declare_queryable(
     ResourceArc::new(ExQueryableRef(queryable))
 }
 
-fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
-    match sample.value.encoding.prefix() {
+fn to_term<'a>(value: &Value, env: Env<'a>) -> Term<'a> {
+    match value.encoding.prefix() {
         KnownEncoding::Empty => unimplemented!(),
-        KnownEncoding::AppOctetStream => match Cow::try_from(&sample.value) {
+        KnownEncoding::AppOctetStream => match Cow::try_from(value) {
             Ok(value) => {
                 let mut binary = OwnedBinary::new(value.len()).unwrap();
                 binary.as_mut_slice().write_all(&value).unwrap();
@@ -289,18 +354,18 @@ fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
             Err(_err) => atom::error().encode(env),
         },
         KnownEncoding::AppCustom => unimplemented!(),
-        KnownEncoding::TextPlain => match String::try_from(&sample.value) {
+        KnownEncoding::TextPlain => match String::try_from(value) {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
         },
         KnownEncoding::AppProperties => unimplemented!(),
         KnownEncoding::AppJson => unimplemented!(),
         KnownEncoding::AppSql => unimplemented!(),
-        KnownEncoding::AppInteger => match i64::try_from(&sample.value) {
+        KnownEncoding::AppInteger => match i64::try_from(value) {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
         },
-        KnownEncoding::AppFloat => match f64::try_from(&sample.value) {
+        KnownEncoding::AppFloat => match f64::try_from(value) {
             Ok(value) => value.encode(env),
             Err(_err) => atom::error().encode(env),
         },
@@ -334,6 +399,11 @@ rustler::init!(
         add,
         test_thread,
         zenoh_open,
+        session_put_integer,
+        session_put_float,
+        session_put_binary,
+        session_get_timeout,
+        session_delete,
         declare_publisher,
         publisher_put_integer,
         publisher_put_float,
