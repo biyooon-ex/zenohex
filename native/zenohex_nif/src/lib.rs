@@ -5,13 +5,26 @@ use std::time::Duration;
 
 use flume::Receiver;
 use rustler::types::atom;
-use rustler::{thread, Binary, Encoder, OwnedBinary};
+use rustler::{thread, Binary, Encoder, ListIterator, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::{publication::Publisher, sample::Sample, subscriber::Subscriber, Session};
 
 mod atoms {
-    rustler::atoms! {timeout}
+    rustler::atoms! {
+        timeout,
+        congestion_control,
+            drop,
+            block,
+        priority,
+            realtime,
+            interactive_high,
+            interactive_low,
+            data_high,
+            data,
+            data_low,
+            background
+    }
 }
 
 pub struct ExSessionRef(Arc<Session>);
@@ -41,13 +54,66 @@ fn zenoh_open() -> ResourceArc<ExSessionRef> {
 fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
+    opts: ListIterator,
 ) -> ResourceArc<ExPublisherRef> {
     let session: &Arc<Session> = &resource.0;
-    let publisher: Publisher<'_> = session
+    let publisher: Publisher = session
         .declare_publisher(key_expr)
         .res_sync()
         .expect("declare_publisher failed");
+
+    let publisher = opts.fold(publisher, |acc, kv: Term| {
+        match kv.decode::<(Atom, Atom)>().unwrap() {
+            (k, v) if k == atoms::congestion_control() => publisher_congestion_control_impl(acc, v),
+            (k, v) if k == atoms::priority() => publisher_priority_impl(acc, v),
+            _ => acc,
+        }
+    });
+
     ResourceArc::new(ExPublisherRef(publisher))
+}
+
+#[rustler::nif]
+fn publisher_congestion_control(
+    resource: ResourceArc<ExPublisherRef>,
+    value: Atom,
+) -> ResourceArc<ExPublisherRef> {
+    let publisher: &Publisher = &resource.0;
+    let publisher: Publisher = publisher_congestion_control_impl(publisher.clone(), value);
+
+    ResourceArc::new(ExPublisherRef(publisher))
+}
+
+fn publisher_congestion_control_impl(publisher: Publisher, value: Atom) -> Publisher {
+    match value {
+        v if v == atoms::drop() => publisher.congestion_control(CongestionControl::Drop),
+        v if v == atoms::block() => publisher.congestion_control(CongestionControl::Block),
+        _ => unreachable!(),
+    }
+}
+
+#[rustler::nif]
+fn publisher_priority(
+    resource: ResourceArc<ExPublisherRef>,
+    value: Atom,
+) -> ResourceArc<ExPublisherRef> {
+    let publisher: &Publisher = &resource.0;
+    let publisher: Publisher = publisher_priority_impl(publisher.clone(), value);
+
+    ResourceArc::new(ExPublisherRef(publisher))
+}
+
+fn publisher_priority_impl(publisher: Publisher, value: Atom) -> Publisher {
+    match value {
+        v if v == atoms::realtime() => publisher.priority(Priority::RealTime),
+        v if v == atoms::interactive_high() => publisher.priority(Priority::InteractiveHigh),
+        v if v == atoms::interactive_low() => publisher.priority(Priority::InteractiveLow),
+        v if v == atoms::data_high() => publisher.priority(Priority::DataHigh),
+        v if v == atoms::data() => publisher.priority(Priority::Data),
+        v if v == atoms::data_low() => publisher.priority(Priority::DataLow),
+        v if v == atoms::background() => publisher.priority(Priority::Background),
+        _ => unreachable!(),
+    }
 }
 
 #[rustler::nif]
@@ -79,6 +145,16 @@ fn publisher_put_impl<T: Into<zenoh::value::Value>>(
         .put(value)
         .res_sync()
         .expect("publisher_put_impl failed");
+    atom::ok()
+}
+
+#[rustler::nif]
+fn publisher_delete(resource: ResourceArc<ExPublisherRef>) -> Atom {
+    let publisher: &Publisher = &resource.0;
+    publisher
+        .delete()
+        .res_sync()
+        .expect("publisher_delete failed.");
     atom::ok()
 }
 
@@ -168,6 +244,9 @@ rustler::init!(
         publisher_put_integer,
         publisher_put_float,
         publisher_put_binary,
+        publisher_delete,
+        publisher_congestion_control,
+        publisher_priority,
         declare_subscriber,
         subscriber_recv_timeout
     ],

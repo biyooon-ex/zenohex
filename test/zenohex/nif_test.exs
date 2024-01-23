@@ -22,6 +22,24 @@ defmodule Zenohex.NifTest do
       assert is_reference(Nif.declare_publisher(session, "key/expression"))
     end
 
+    test "declare_publisher/3", %{session: session} do
+      assert is_reference(
+               Nif.declare_publisher(session, "key/expression", congestion_control: :block)
+             )
+
+      assert is_reference(Nif.declare_publisher(session, "key/expression", priority: :realtime))
+    end
+
+    test "publisher_congestion_control/2", %{session: session} do
+      publisher = Nif.declare_publisher(session, "key/expression")
+      assert is_reference(Nif.publisher_congestion_control(publisher, :block))
+    end
+
+    test "publisher_priority/2", %{session: session} do
+      publisher = Nif.declare_publisher(session, "key/expression")
+      assert is_reference(Nif.publisher_priority(publisher, :realtime))
+    end
+
     for {type, value} <- [
           {"string", "value"},
           {"integer", 0},
@@ -34,6 +52,11 @@ defmodule Zenohex.NifTest do
         publisher = Nif.declare_publisher(session, "key/expression")
         assert apply(Nif, :"publisher_put_#{type}", [publisher, value]) == :ok
       end
+    end
+
+    test "publisher_delete/1", %{session: session} do
+      publisher = Nif.declare_publisher(session, "key/expression")
+      assert Nif.publisher_delete(publisher) == :ok
     end
   end
 

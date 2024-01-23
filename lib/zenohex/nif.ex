@@ -12,7 +12,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_publisher(_session, _key_expr) do
+  def declare_publisher(_session, _key_expr, _opts \\ []) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
@@ -20,6 +20,18 @@ defmodule Zenohex.Nif do
     def unquote(:"publisher_put_#{type}")(_publisher, _value) do
       :erlang.nif_error(:nif_not_loaded)
     end
+  end
+
+  def publisher_delete(_publisher) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def publisher_congestion_control(_publisher, _congestion_control) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def publisher_priority(_publisher, _priority) do
+    :erlang.nif_error(:nif_not_loaded)
   end
 
   def declare_subscriber(_session, _key_expr) do
