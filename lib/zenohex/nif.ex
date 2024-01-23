@@ -16,7 +16,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  for type <- ["string", "integer", "float", "binary"] do
+  for type <- ["integer", "float", "binary"] do
     def unquote(:"publisher_put_#{type}")(_publisher, _value) do
       :erlang.nif_error(:nif_not_loaded)
     end

@@ -117,11 +117,6 @@ fn publisher_priority_impl(publisher: Publisher, value: Atom) -> Publisher {
 }
 
 #[rustler::nif]
-fn publisher_put_string(resource: ResourceArc<ExPublisherRef>, value: String) -> Atom {
-    publisher_put_impl(resource, value)
-}
-
-#[rustler::nif]
 fn publisher_put_integer(resource: ResourceArc<ExPublisherRef>, value: i64) -> Atom {
     publisher_put_impl(resource, value)
 }
@@ -240,7 +235,6 @@ rustler::init!(
         test_thread,
         zenoh_open,
         declare_publisher,
-        publisher_put_string,
         publisher_put_integer,
         publisher_put_float,
         publisher_put_binary,
