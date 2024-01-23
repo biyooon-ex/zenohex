@@ -53,4 +53,8 @@ defmodule Zenohex.Nif do
   def pull_subscriber_recv_timeout(_pull_subscriber, _timeout_us) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  def declare_queryable(_session, _key_expr, _opts \\ []) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end

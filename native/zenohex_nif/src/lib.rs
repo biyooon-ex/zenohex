@@ -8,11 +8,11 @@ use rustler::types::atom;
 use rustler::{thread, Binary, Encoder, ListIterator, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
-use zenoh::subscriber::SubscriberBuilder;
 use zenoh::{
-    publication::Publisher, sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber,
-    Session,
+    publication::Publisher, queryable::Queryable, subscriber::PullSubscriber,
+    subscriber::Subscriber, Session,
 };
+use zenoh::{queryable::Query, sample::Sample, subscriber::SubscriberBuilder};
 
 mod atoms {
     rustler::atoms! {
@@ -34,6 +34,7 @@ mod atoms {
         reliability,
             best_effort,
             reliable,
+        complete,
     }
 }
 
@@ -41,6 +42,7 @@ pub struct ExSessionRef(Arc<Session>);
 pub struct ExPublisherRef(Publisher<'static>);
 pub struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
 pub struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
+pub struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
 
 #[rustler::nif]
 fn add(a: i64, b: i64) -> i64 {
@@ -252,6 +254,29 @@ fn pull_subscriber_pull(resource: ResourceArc<ExPullSubscriberRef>) -> Atom {
     atom::ok()
 }
 
+#[rustler::nif]
+fn declare_queryable(
+    resource: ResourceArc<ExSessionRef>,
+    key_expr: String,
+    opts: ListIterator,
+) -> ResourceArc<ExQueryableRef> {
+    let session: &Arc<Session> = &resource.0;
+    let builder = session.declare_queryable(key_expr);
+    let builder = opts.fold(builder, |acc, kv: Term| {
+        match kv.decode::<(Atom, Atom)>().unwrap() {
+            (k, v) if k == atoms::complete() => match v {
+                v if v == atom::true_() => acc.complete(true),
+                v if v == atom::false_() => acc.complete(false),
+                _ => unreachable!(),
+            },
+            _ => acc,
+        }
+    });
+    let queryable: Queryable<'_, Receiver<Query>> =
+        builder.res_sync().expect("declare_queryable failed");
+    ResourceArc::new(ExQueryableRef(queryable))
+}
+
 fn to_term<'a>(sample: &Sample, env: Env<'a>) -> Term<'a> {
     match sample.value.encoding.prefix() {
         KnownEncoding::Empty => unimplemented!(),
@@ -299,6 +324,7 @@ fn load(env: Env, _term: Term) -> bool {
     rustler::resource!(ExPublisherRef, env);
     rustler::resource!(ExSubscriberRef, env);
     rustler::resource!(ExPullSubscriberRef, env);
+    rustler::resource!(ExQueryableRef, env);
     true
 }
 
@@ -320,6 +346,7 @@ rustler::init!(
         declare_pull_subscriber,
         pull_subscriber_pull,
         pull_subscriber_recv_timeout,
+        declare_queryable,
     ],
     load = load
 );

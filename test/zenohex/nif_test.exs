@@ -128,4 +128,14 @@ defmodule Zenohex.NifTest do
       end
     end
   end
+
+  describe "queryable" do
+    test "declare_queryable/2", %{session: session} do
+      assert is_reference(Nif.declare_queryable(session, "key/expression"))
+    end
+
+    test "declare_queryable/3", %{session: session} do
+      assert is_reference(Nif.declare_queryable(session, "key/expression", complete: true))
+    end
+  end
 end
