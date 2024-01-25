@@ -17,17 +17,6 @@ use zenoh::{queryable::Query, sample::Sample, subscriber::SubscriberBuilder};
 mod atoms {
     rustler::atoms! {
         timeout,
-        congestion_control,
-            drop,
-            block,
-        priority,
-            realtime,
-            interactive_high,
-            interactive_low,
-            data_high,
-            data,
-            data_low,
-            background,
         mode,
             push,
             pull,
@@ -132,21 +121,15 @@ fn session_delete(resource: ResourceArc<ExSessionRef>, key_expr: String) -> Atom
 fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: ListIterator,
+    opts: PublisherOptions,
 ) -> ResourceArc<ExPublisherRef> {
     let session: &Arc<Session> = &resource.0;
     let publisher: Publisher = session
         .declare_publisher(key_expr)
+        .congestion_control(opts.congestion_control.into())
+        .priority(opts.priority.into())
         .res_sync()
         .expect("declare_publisher failed");
-
-    let publisher = opts.fold(publisher, |acc, kv: Term| {
-        match kv.decode::<(Atom, Atom)>().unwrap() {
-            (k, v) if k == atoms::congestion_control() => publisher_congestion_control_impl(acc, v),
-            (k, v) if k == atoms::priority() => publisher_priority_impl(acc, v),
-            _ => acc,
-        }
-    });
 
     ResourceArc::new(ExPublisherRef(publisher))
 }
@@ -154,44 +137,23 @@ fn declare_publisher(
 #[rustler::nif]
 fn publisher_congestion_control(
     resource: ResourceArc<ExPublisherRef>,
-    value: Atom,
+    value: CongestionControl,
 ) -> ResourceArc<ExPublisherRef> {
     let publisher: &Publisher = &resource.0;
-    let publisher: Publisher = publisher_congestion_control_impl(publisher.clone(), value);
+    let publisher: Publisher = publisher.clone().congestion_control(value.into());
 
     ResourceArc::new(ExPublisherRef(publisher))
-}
-
-fn publisher_congestion_control_impl(publisher: Publisher, value: Atom) -> Publisher {
-    match value {
-        v if v == atoms::drop() => publisher.congestion_control(CongestionControl::Drop),
-        v if v == atoms::block() => publisher.congestion_control(CongestionControl::Block),
-        _ => unreachable!(),
-    }
 }
 
 #[rustler::nif]
 fn publisher_priority(
     resource: ResourceArc<ExPublisherRef>,
-    value: Atom,
+    value: Priority,
 ) -> ResourceArc<ExPublisherRef> {
     let publisher: &Publisher = &resource.0;
-    let publisher: Publisher = publisher_priority_impl(publisher.clone(), value);
+    let publisher: Publisher = publisher.clone().priority(value.into());
 
     ResourceArc::new(ExPublisherRef(publisher))
-}
-
-fn publisher_priority_impl(publisher: Publisher, value: Atom) -> Publisher {
-    match value {
-        v if v == atoms::realtime() => publisher.priority(Priority::RealTime),
-        v if v == atoms::interactive_high() => publisher.priority(Priority::InteractiveHigh),
-        v if v == atoms::interactive_low() => publisher.priority(Priority::InteractiveLow),
-        v if v == atoms::data_high() => publisher.priority(Priority::DataHigh),
-        v if v == atoms::data() => publisher.priority(Priority::Data),
-        v if v == atoms::data_low() => publisher.priority(Priority::DataLow),
-        v if v == atoms::background() => publisher.priority(Priority::Background),
-        _ => unreachable!(),
-    }
 }
 
 #[rustler::nif]
@@ -340,6 +302,53 @@ fn declare_queryable(
     let queryable: Queryable<'_, Receiver<Query>> =
         builder.res_sync().expect("declare_queryable failed");
     ResourceArc::new(ExQueryableRef(queryable))
+}
+
+#[derive(rustler::NifStruct)]
+#[module = "Zenohex.Publisher.Options"]
+pub struct PublisherOptions {
+    congestion_control: CongestionControl,
+    priority: Priority,
+}
+
+#[derive(rustler::NifUnitEnum)]
+pub enum CongestionControl {
+    Drop,
+    Block,
+}
+
+impl From<CongestionControl> for zenoh::publication::CongestionControl {
+    fn from(value: CongestionControl) -> Self {
+        match value {
+            CongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
+            CongestionControl::Block => zenoh::publication::CongestionControl::Block,
+        }
+    }
+}
+
+#[derive(rustler::NifUnitEnum)]
+pub enum Priority {
+    RealTime,
+    InteractiveHigh,
+    InteractiveLow,
+    DataHigh,
+    Data,
+    DataLow,
+    Background,
+}
+
+impl From<Priority> for zenoh::publication::Priority {
+    fn from(value: Priority) -> Self {
+        match value {
+            Priority::RealTime => zenoh::publication::Priority::RealTime,
+            Priority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
+            Priority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
+            Priority::DataHigh => zenoh::publication::Priority::DataHigh,
+            Priority::Data => zenoh::publication::Priority::Data,
+            Priority::DataLow => zenoh::publication::Priority::DataLow,
+            Priority::Background => zenoh::publication::Priority::Background,
+        }
+    }
 }
 
 fn to_term<'a>(value: &Value, env: Env<'a>) -> Term<'a> {

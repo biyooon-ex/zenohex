@@ -40,16 +40,15 @@ defmodule Zenohex.NifTest do
   end
 
   describe "publisher" do
+    alias Zenohex.Publisher.Options
+
     test "declare_publisher/2", %{session: session} do
       assert is_reference(Nif.declare_publisher(session, "key/expression"))
     end
 
     test "declare_publisher/3", %{session: session} do
-      assert is_reference(
-               Nif.declare_publisher(session, "key/expression", congestion_control: :block)
-             )
-
-      assert is_reference(Nif.declare_publisher(session, "key/expression", priority: :realtime))
+      opts = %Options{congestion_control: :block, priority: :real_time}
+      assert is_reference(Nif.declare_publisher(session, "key/expression", opts))
     end
 
     test "publisher_congestion_control/2", %{session: session} do
@@ -59,7 +58,7 @@ defmodule Zenohex.NifTest do
 
     test "publisher_priority/2", %{session: session} do
       publisher = Nif.declare_publisher(session, "key/expression")
-      assert is_reference(Nif.publisher_priority(publisher, :realtime))
+      assert is_reference(Nif.publisher_priority(publisher, :real_time))
     end
 
     for {type, value} <- [
