@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use flume::Receiver;
 use rustler::types::atom;
-use rustler::{thread, Binary, Encoder, ListIterator, OwnedBinary};
+use rustler::{thread, Binary, Encoder, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::{
@@ -17,7 +17,6 @@ use zenoh::{queryable::Query, sample::Sample};
 mod atoms {
     rustler::atoms! {
         timeout,
-        complete,
     }
 }
 
@@ -260,22 +259,15 @@ fn pull_subscriber_pull(resource: ResourceArc<ExPullSubscriberRef>) -> Atom {
 fn declare_queryable(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: ListIterator,
+    opts: QueryableOptions,
 ) -> ResourceArc<ExQueryableRef> {
     let session: &Arc<Session> = &resource.0;
-    let builder = session.declare_queryable(key_expr);
-    let builder = opts.fold(builder, |acc, kv: Term| {
-        match kv.decode::<(Atom, Atom)>().unwrap() {
-            (k, v) if k == atoms::complete() => match v {
-                v if v == atom::true_() => acc.complete(true),
-                v if v == atom::false_() => acc.complete(false),
-                _ => unreachable!(),
-            },
-            _ => acc,
-        }
-    });
-    let queryable: Queryable<'_, Receiver<Query>> =
-        builder.res_sync().expect("declare_queryable failed");
+    let queryable: Queryable<'_, Receiver<Query>> = session
+        .declare_queryable(key_expr)
+        .complete(opts.complete)
+        .res_sync()
+        .expect("declare_queryable failed");
+
     ResourceArc::new(ExQueryableRef(queryable))
 }
 
@@ -345,6 +337,12 @@ impl From<Reliability> for zenoh::subscriber::Reliability {
             Reliability::Reliable => zenoh::subscriber::Reliability::Reliable,
         }
     }
+}
+
+#[derive(rustler::NifStruct)]
+#[module = "Zenohex.Queryable.Options"]
+pub struct QueryableOptions {
+    complete: bool,
 }
 
 fn to_term<'a>(value: &Value, env: Env<'a>) -> Term<'a> {

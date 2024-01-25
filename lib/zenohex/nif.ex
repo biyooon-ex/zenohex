@@ -3,6 +3,7 @@ defmodule Zenohex.Nif do
 
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
+  alias Zenohex.Queryable
 
   # When your NIF is loaded, it will override this function.
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
@@ -71,7 +72,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_queryable(_session, _key_expr, _opts \\ []) do
+  def declare_queryable(_session, _key_expr, _opts \\ %Queryable.Options{}) do
     :erlang.nif_error(:nif_not_loaded)
   end
 end
