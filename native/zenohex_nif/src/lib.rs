@@ -12,17 +12,11 @@ use zenoh::{
     publication::Publisher, queryable::Queryable, subscriber::PullSubscriber,
     subscriber::Subscriber, Session,
 };
-use zenoh::{queryable::Query, sample::Sample, subscriber::SubscriberBuilder};
+use zenoh::{queryable::Query, sample::Sample};
 
 mod atoms {
     rustler::atoms! {
         timeout,
-        mode,
-            push,
-            pull,
-        reliability,
-            best_effort,
-            reliable,
         complete,
     }
 }
@@ -197,24 +191,14 @@ fn publisher_delete(resource: ResourceArc<ExPublisherRef>) -> Atom {
 fn declare_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: ListIterator,
+    opts: SubscriberOptions,
 ) -> ResourceArc<ExSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
-    let builder: SubscriberBuilder<_, _> = session.declare_subscriber(key_expr);
-
-    let builder = opts.fold(builder, |acc, kv: Term| {
-        match kv.decode::<(Atom, Atom)>().unwrap() {
-            (k, v) if k == atoms::reliability() => match v {
-                v if v == atoms::best_effort() => acc.best_effort(),
-                v if v == atoms::reliable() => acc.reliable(),
-                _ => unreachable!(),
-            },
-            _ => acc,
-        }
-    });
-
-    let subscriber: Subscriber<'_, Receiver<Sample>> =
-        builder.res_sync().expect("declare_subscriber failed");
+    let subscriber: Subscriber<'_, Receiver<Sample>> = session
+        .declare_subscriber(key_expr)
+        .reliability(opts.reliability.into())
+        .res_sync()
+        .expect("declare_subscriber failed");
 
     ResourceArc::new(ExSubscriberRef(subscriber))
 }
@@ -236,24 +220,15 @@ fn subscriber_recv_timeout(
 fn declare_pull_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: ListIterator,
+    opts: SubscriberOptions,
 ) -> ResourceArc<ExPullSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
-    let builder: SubscriberBuilder<_, _> = session.declare_subscriber(key_expr).pull_mode();
-
-    let builder = opts.fold(builder, |acc, kv: Term| {
-        match kv.decode::<(Atom, Atom)>().unwrap() {
-            (k, v) if k == atoms::reliability() => match v {
-                v if v == atoms::best_effort() => acc.best_effort(),
-                v if v == atoms::reliable() => acc.reliable(),
-                _ => unreachable!(),
-            },
-            _ => acc,
-        }
-    });
-
-    let pull_subscriber: PullSubscriber<'_, Receiver<Sample>> =
-        builder.res_sync().expect("declare_pull_subscriber failed");
+    let pull_subscriber: PullSubscriber<'_, Receiver<Sample>> = session
+        .declare_subscriber(key_expr)
+        .reliability(opts.reliability.into())
+        .pull_mode()
+        .res_sync()
+        .expect("declare_pull_subscriber failed");
 
     ResourceArc::new(ExPullSubscriberRef(pull_subscriber))
 }
@@ -347,6 +322,27 @@ impl From<Priority> for zenoh::publication::Priority {
             Priority::Data => zenoh::publication::Priority::Data,
             Priority::DataLow => zenoh::publication::Priority::DataLow,
             Priority::Background => zenoh::publication::Priority::Background,
+        }
+    }
+}
+
+#[derive(rustler::NifStruct)]
+#[module = "Zenohex.Subscriber.Options"]
+pub struct SubscriberOptions {
+    reliability: Reliability,
+}
+
+#[derive(rustler::NifUnitEnum)]
+pub enum Reliability {
+    BestEffort,
+    Reliable,
+}
+
+impl From<Reliability> for zenoh::subscriber::Reliability {
+    fn from(value: Reliability) -> Self {
+        match value {
+            Reliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
+            Reliability::Reliable => zenoh::subscriber::Reliability::Reliable,
         }
     }
 }

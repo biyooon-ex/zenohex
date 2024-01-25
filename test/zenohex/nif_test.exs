@@ -81,14 +81,15 @@ defmodule Zenohex.NifTest do
   end
 
   describe "subscriber" do
+    alias Zenohex.Subscriber.Options
+
     test "declare_subscriber/2", %{session: session} do
       assert is_reference(Nif.declare_subscriber(session, "key/expression"))
     end
 
     test "declare_subscriber/3", %{session: session} do
-      assert is_reference(
-               Nif.declare_subscriber(session, "key/expression", reliability: :reliable)
-             )
+      opts = %Options{reliability: :reliable}
+      assert is_reference(Nif.declare_subscriber(session, "key/expression", opts))
     end
 
     test "subscriber_recv_timeout/1", %{session: session} do
@@ -108,14 +109,15 @@ defmodule Zenohex.NifTest do
   end
 
   describe "pull subscriber" do
+    alias Zenohex.Subscriber.Options
+
     test "declare_pull_subscriber/2", %{session: session} do
       assert is_reference(Nif.declare_pull_subscriber(session, "key/expression"))
     end
 
     test "declare_pull_subscriber/3", %{session: session} do
-      assert is_reference(
-               Nif.declare_pull_subscriber(session, "key/expression", reliability: :reliable)
-             )
+      opts = %Options{reliability: :reliable}
+      assert is_reference(Nif.declare_pull_subscriber(session, "key/expression", opts))
     end
 
     test "pull_subscriber_pull/1", %{session: session} do

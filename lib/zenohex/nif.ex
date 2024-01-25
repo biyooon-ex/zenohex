@@ -1,7 +1,8 @@
 defmodule Zenohex.Nif do
   use Rustler, otp_app: :zenohex, crate: "zenohex_nif"
 
-  alias Zenohex.Publisher.Options
+  alias Zenohex.Publisher
+  alias Zenohex.Subscriber
 
   # When your NIF is loaded, it will override this function.
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
@@ -28,7 +29,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_publisher(_session, _key_expr, _opts \\ %Options{}) do
+  def declare_publisher(_session, _key_expr, _opts \\ %Publisher.Options{}) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
@@ -50,7 +51,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_subscriber(_session, _key_expr, _opts \\ []) do
+  def declare_subscriber(_session, _key_expr, _opts \\ %Subscriber.Options{}) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
@@ -58,7 +59,7 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
-  def declare_pull_subscriber(_session, _key_expr, _opts \\ []) do
+  def declare_pull_subscriber(_session, _key_expr, _opts \\ %Subscriber.Options{}) do
     :erlang.nif_error(:nif_not_loaded)
   end
 
