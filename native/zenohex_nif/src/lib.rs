@@ -20,6 +20,7 @@ mod atoms {
     }
 }
 mod publisher;
+mod subscriber;
 
 pub struct ExSessionRef(Arc<Session>);
 pub struct ExPublisherRef(Publisher<'static>);
@@ -132,7 +133,7 @@ fn declare_publisher(
 fn declare_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: SubscriberOptions,
+    opts: subscriber::SubscriberOptions,
 ) -> ResourceArc<ExSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
     let subscriber: Subscriber<'_, Receiver<Sample>> = session
@@ -145,23 +146,10 @@ fn declare_subscriber(
 }
 
 #[rustler::nif]
-fn subscriber_recv_timeout(
-    env: Env,
-    resource: ResourceArc<ExSubscriberRef>,
-    timeout_us: u64,
-) -> Term {
-    let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
-    match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => to_term(&sample.value, env),
-        Err(_recv_timeout_error) => atoms::timeout().encode(env),
-    }
-}
-
-#[rustler::nif]
 fn declare_pull_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: SubscriberOptions,
+    opts: subscriber::SubscriberOptions,
 ) -> ResourceArc<ExPullSubscriberRef> {
     let session: &Arc<Session> = &resource.0;
     let pull_subscriber: PullSubscriber<'_, Receiver<Sample>> = session
@@ -211,27 +199,6 @@ fn declare_queryable(
         .expect("declare_queryable failed");
 
     ResourceArc::new(ExQueryableRef(queryable))
-}
-
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Subscriber.Options"]
-pub struct SubscriberOptions {
-    reliability: Reliability,
-}
-
-#[derive(rustler::NifUnitEnum)]
-pub enum Reliability {
-    BestEffort,
-    Reliable,
-}
-
-impl From<Reliability> for zenoh::subscriber::Reliability {
-    fn from(value: Reliability) -> Self {
-        match value {
-            Reliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
-            Reliability::Reliable => zenoh::subscriber::Reliability::Reliable,
-        }
-    }
 }
 
 #[derive(rustler::NifStruct)]
@@ -310,7 +277,7 @@ rustler::init!(
         publisher::publisher_congestion_control,
         publisher::publisher_priority,
         declare_subscriber,
-        subscriber_recv_timeout,
+        subscriber::subscriber_recv_timeout,
         declare_pull_subscriber,
         pull_subscriber_pull,
         pull_subscriber_recv_timeout,
