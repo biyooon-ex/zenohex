@@ -21,6 +21,7 @@ mod atoms {
 }
 mod publisher;
 mod pull_subscriber;
+mod queryable;
 mod subscriber;
 
 pub struct ExSessionRef(Arc<Session>);
@@ -167,7 +168,7 @@ fn declare_pull_subscriber(
 fn declare_queryable(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: QueryableOptions,
+    opts: queryable::QueryableOptions,
 ) -> ResourceArc<ExQueryableRef> {
     let session: &Arc<Session> = &resource.0;
     let queryable: Queryable<'_, Receiver<Query>> = session
@@ -177,12 +178,6 @@ fn declare_queryable(
         .expect("declare_queryable failed");
 
     ResourceArc::new(ExQueryableRef(queryable))
-}
-
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Queryable.Options"]
-pub struct QueryableOptions {
-    complete: bool,
 }
 
 fn to_term<'a>(value: &Value, env: Env<'a>) -> Term<'a> {
