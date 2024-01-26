@@ -19,6 +19,7 @@ mod atoms {
         timeout,
     }
 }
+mod publisher;
 
 pub struct ExSessionRef(Arc<Session>);
 pub struct ExPublisherRef(Publisher<'static>);
@@ -114,7 +115,7 @@ fn session_delete(resource: ResourceArc<ExSessionRef>, key_expr: String) -> Atom
 fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
-    opts: PublisherOptions,
+    opts: publisher::PublisherOptions,
 ) -> ResourceArc<ExPublisherRef> {
     let session: &Arc<Session> = &resource.0;
     let publisher: Publisher = session
@@ -125,65 +126,6 @@ fn declare_publisher(
         .expect("declare_publisher failed");
 
     ResourceArc::new(ExPublisherRef(publisher))
-}
-
-#[rustler::nif]
-fn publisher_congestion_control(
-    resource: ResourceArc<ExPublisherRef>,
-    value: CongestionControl,
-) -> ResourceArc<ExPublisherRef> {
-    let publisher: &Publisher = &resource.0;
-    let publisher: Publisher = publisher.clone().congestion_control(value.into());
-
-    ResourceArc::new(ExPublisherRef(publisher))
-}
-
-#[rustler::nif]
-fn publisher_priority(
-    resource: ResourceArc<ExPublisherRef>,
-    value: Priority,
-) -> ResourceArc<ExPublisherRef> {
-    let publisher: &Publisher = &resource.0;
-    let publisher: Publisher = publisher.clone().priority(value.into());
-
-    ResourceArc::new(ExPublisherRef(publisher))
-}
-
-#[rustler::nif]
-fn publisher_put_integer(resource: ResourceArc<ExPublisherRef>, value: i64) -> Atom {
-    publisher_put_impl(resource, value)
-}
-
-#[rustler::nif]
-fn publisher_put_float(resource: ResourceArc<ExPublisherRef>, value: f64) -> Atom {
-    publisher_put_impl(resource, value)
-}
-
-#[rustler::nif]
-fn publisher_put_binary(resource: ResourceArc<ExPublisherRef>, value: Binary) -> Atom {
-    publisher_put_impl(resource, Value::from(value.as_slice()))
-}
-
-fn publisher_put_impl<T: Into<zenoh::value::Value>>(
-    resource: ResourceArc<ExPublisherRef>,
-    value: T,
-) -> Atom {
-    let publisher: &Publisher = &resource.0;
-    publisher
-        .put(value)
-        .res_sync()
-        .expect("publisher_put_impl failed");
-    atom::ok()
-}
-
-#[rustler::nif]
-fn publisher_delete(resource: ResourceArc<ExPublisherRef>) -> Atom {
-    let publisher: &Publisher = &resource.0;
-    publisher
-        .delete()
-        .res_sync()
-        .expect("publisher_delete failed.");
-    atom::ok()
 }
 
 #[rustler::nif]
@@ -269,53 +211,6 @@ fn declare_queryable(
         .expect("declare_queryable failed");
 
     ResourceArc::new(ExQueryableRef(queryable))
-}
-
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Publisher.Options"]
-pub struct PublisherOptions {
-    congestion_control: CongestionControl,
-    priority: Priority,
-}
-
-#[derive(rustler::NifUnitEnum)]
-pub enum CongestionControl {
-    Drop,
-    Block,
-}
-
-impl From<CongestionControl> for zenoh::publication::CongestionControl {
-    fn from(value: CongestionControl) -> Self {
-        match value {
-            CongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
-            CongestionControl::Block => zenoh::publication::CongestionControl::Block,
-        }
-    }
-}
-
-#[derive(rustler::NifUnitEnum)]
-pub enum Priority {
-    RealTime,
-    InteractiveHigh,
-    InteractiveLow,
-    DataHigh,
-    Data,
-    DataLow,
-    Background,
-}
-
-impl From<Priority> for zenoh::publication::Priority {
-    fn from(value: Priority) -> Self {
-        match value {
-            Priority::RealTime => zenoh::publication::Priority::RealTime,
-            Priority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
-            Priority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
-            Priority::DataHigh => zenoh::publication::Priority::DataHigh,
-            Priority::Data => zenoh::publication::Priority::Data,
-            Priority::DataLow => zenoh::publication::Priority::DataLow,
-            Priority::Background => zenoh::publication::Priority::Background,
-        }
-    }
 }
 
 #[derive(rustler::NifStruct)]
@@ -408,12 +303,12 @@ rustler::init!(
         session_get_timeout,
         session_delete,
         declare_publisher,
-        publisher_put_integer,
-        publisher_put_float,
-        publisher_put_binary,
-        publisher_delete,
-        publisher_congestion_control,
-        publisher_priority,
+        publisher::publisher_put_integer,
+        publisher::publisher_put_float,
+        publisher::publisher_put_binary,
+        publisher::publisher_delete,
+        publisher::publisher_congestion_control,
+        publisher::publisher_priority,
         declare_subscriber,
         subscriber_recv_timeout,
         declare_pull_subscriber,
