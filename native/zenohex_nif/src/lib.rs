@@ -20,6 +20,7 @@ mod atoms {
     }
 }
 mod publisher;
+mod pull_subscriber;
 mod subscriber;
 
 pub struct ExSessionRef(Arc<Session>);
@@ -163,29 +164,6 @@ fn declare_pull_subscriber(
 }
 
 #[rustler::nif]
-fn pull_subscriber_recv_timeout(
-    env: Env,
-    resource: ResourceArc<ExPullSubscriberRef>,
-    timeout_us: u64,
-) -> Term {
-    let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
-    match pull_subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => to_term(&sample.value, env),
-        Err(_recv_timeout_error) => atoms::timeout().encode(env),
-    }
-}
-
-#[rustler::nif]
-fn pull_subscriber_pull(resource: ResourceArc<ExPullSubscriberRef>) -> Atom {
-    let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
-    pull_subscriber
-        .pull()
-        .res_sync()
-        .expect("pull_subscriber_pull failed");
-    atom::ok()
-}
-
-#[rustler::nif]
 fn declare_queryable(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
@@ -279,8 +257,8 @@ rustler::init!(
         declare_subscriber,
         subscriber::subscriber_recv_timeout,
         declare_pull_subscriber,
-        pull_subscriber_pull,
-        pull_subscriber_recv_timeout,
+        pull_subscriber::pull_subscriber_pull,
+        pull_subscriber::pull_subscriber_recv_timeout,
         declare_queryable,
     ],
     load = load
