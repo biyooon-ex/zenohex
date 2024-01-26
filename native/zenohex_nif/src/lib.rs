@@ -1,11 +1,10 @@
 use std::borrow::Cow;
 use std::io::Write;
 use std::sync::Arc;
-use std::time::Duration;
 
 use flume::Receiver;
 use rustler::types::atom;
-use rustler::{thread, Binary, Encoder, OwnedBinary};
+use rustler::{thread, Encoder, OwnedBinary};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::{
@@ -22,6 +21,7 @@ mod atoms {
 mod publisher;
 mod pull_subscriber;
 mod queryable;
+mod session;
 mod subscriber;
 
 pub struct ExSessionRef(Arc<Session>);
@@ -47,71 +47,6 @@ fn zenoh_open() -> ResourceArc<ExSessionRef> {
     let config = config::peer();
     let session: Session = zenoh::open(config).res_sync().expect("zenoh_open failed");
     ResourceArc::new(ExSessionRef(session.into_arc()))
-}
-
-#[rustler::nif]
-fn session_put_integer(resource: ResourceArc<ExSessionRef>, key_expr: String, value: i64) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, value)
-        .res_sync()
-        .expect("session_put_integer failed");
-    atom::ok()
-}
-
-#[rustler::nif]
-fn session_put_float(resource: ResourceArc<ExSessionRef>, key_expr: String, value: f64) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, value)
-        .res_sync()
-        .expect("session_put_float failed");
-    atom::ok()
-}
-
-#[rustler::nif]
-fn session_put_binary(
-    resource: ResourceArc<ExSessionRef>,
-    key_expr: String,
-    value: Binary,
-) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, Value::from(value.as_slice()))
-        .res_sync()
-        .expect("session_put_float failed");
-    atom::ok()
-}
-
-#[rustler::nif]
-fn session_get_timeout(
-    env: Env,
-    resource: ResourceArc<ExSessionRef>,
-    selector: String,
-    timeout_us: u64,
-) -> Term {
-    let session: &Arc<Session> = &resource.0;
-    let receiver = session
-        .get(selector)
-        .res_sync()
-        .expect("session_get failed");
-    match receiver.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(reply) => match reply.sample {
-            Ok(sample) => to_term(&sample.value, env).encode(env),
-            Err(value) => to_term(&value, env).encode(env),
-        },
-        Err(_recv_timeout_error) => atoms::timeout().encode(env),
-    }
-}
-
-#[rustler::nif]
-fn session_delete(resource: ResourceArc<ExSessionRef>, key_expr: String) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .delete(key_expr)
-        .res_sync()
-        .expect("session_delete failed");
-    atom::ok()
 }
 
 #[rustler::nif]
@@ -237,11 +172,11 @@ rustler::init!(
         add,
         test_thread,
         zenoh_open,
-        session_put_integer,
-        session_put_float,
-        session_put_binary,
-        session_get_timeout,
-        session_delete,
+        session::session_put_integer,
+        session::session_put_float,
+        session::session_put_binary,
+        session::session_get_timeout,
+        session::session_delete,
         declare_publisher,
         publisher::publisher_put_integer,
         publisher::publisher_put_float,
