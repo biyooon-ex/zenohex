@@ -28,7 +28,8 @@ defmodule Zenohex.MixProject do
       {:rustler, ">= 0.30.0", optional: true},
       {:ex_doc, "~> 0.31.0", only: :dev},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
