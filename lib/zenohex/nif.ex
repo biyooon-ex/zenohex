@@ -1,4 +1,6 @@
 defmodule Zenohex.Nif do
+  @moduledoc false
+
   use Rustler, otp_app: :zenohex, crate: "zenohex_nif"
 
   alias Zenohex.Publisher

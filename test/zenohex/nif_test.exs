@@ -1,5 +1,5 @@
 defmodule Zenohex.NifTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   alias Zenohex.Nif
 
