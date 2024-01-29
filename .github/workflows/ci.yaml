@@ -1,5 +1,5 @@
 env:
-  OTP_VERSION: 26.1.1
+  OTP_VERSION: 26.1.2
   ELIXIR_VERSION: 1.15.7
 
 # based https://github.com/erlef/setup-beam
