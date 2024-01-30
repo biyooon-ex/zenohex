@@ -1,7 +1,15 @@
 defmodule Zenohex.Nif do
   @moduledoc false
 
-  use Rustler, otp_app: :zenohex, crate: "zenohex_nif"
+  mix_config = Mix.Project.config()
+  version = mix_config[:version]
+  github_url = mix_config[:package][:links]["GitHub"]
+
+  use RustlerPrecompiled,
+    otp_app: :zenohex,
+    crate: "zenohex_nif",
+    version: version,
+    base_url: "#{github_url}/releases/download/v#{version}"
 
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
