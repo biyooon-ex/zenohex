@@ -1,7 +1,7 @@
 # Zenohex
 
 [![Hex version](https://img.shields.io/hexpm/v/zenohex.svg "Hex version")](https://hex.pm/packages/zenohex)
-[![API docs](https://img.shields.io/hexpm/v/rclex.svg?label=hexdocs "API docs")](https://hexdocs.pm/zenohex/)
+[![API docs](https://img.shields.io/hexpm/v/zenohex.svg?label=hexdocs "API docs")](https://hexdocs.pm/zenohex/)
 [![License](https://img.shields.io/hexpm/l/zenohex.svg)](https://github.com/zenohex/zenohex/blob/main/LICENSE)
 
 Zenohex is the [zenoh](https://zenoh.io/) client library for elixir.
