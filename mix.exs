@@ -1,6 +1,8 @@
 defmodule Zenohex.MixProject do
   use Mix.Project
+
   @version "0.2.0-dev.0"
+  @source_url "https://github.com/b5g-ex/zenohex"
 
   def project do
     [
@@ -10,7 +12,11 @@ defmodule Zenohex.MixProject do
       description: "Zenoh client library for elixir.",
       package: package(),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      # Docs
+      name: "ZenohEx",
+      source_url: @source_url,
+      docs: docs()
     ]
   end
 
@@ -49,7 +55,11 @@ defmodule Zenohex.MixProject do
       ],
       maintainers: ["s-hosoai"],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/b5g-ex/zenohex"}
+      links: %{"GitHub" => @source_url}
     ]
+  end
+
+  defp docs() do
+    [extras: ["README.md", "LICENSE"], main: "readme"]
   end
 end
