@@ -60,3 +60,9 @@ iex(5)> Zenohex.Subscriber.recv_timeout!(subscriber, 1000)
 iex(6)> Zenohex.Subscriber.recv_timeout!(subscriber, 1000)
 :timeout
 ```
+
+## For developer
+
+### How to release
+
+Follow [Recommended flow](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
