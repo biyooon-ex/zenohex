@@ -39,9 +39,11 @@ defmodule Zenohex.MixProject do
       name: "zenohex",
       files: [
         "lib",
-        "native/nifzenoh/.cargo",
-        "native/nifzenoh/src",
-        "native/nifzenoh/Cargo*",
+        "native/zenohex_nif/.cargo",
+        "native/zenohex_nif/src",
+        "native/zenohex_nif/Cargo*",
+        "LICENSE",
+        "README.md",
         "checksum-*.exs",
         "mix.exs"
       ],
