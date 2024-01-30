@@ -9,7 +9,10 @@ defmodule Zenohex.Nif do
     otp_app: :zenohex,
     crate: "zenohex_nif",
     version: version,
-    base_url: "#{github_url}/releases/download/v#{version}"
+    base_url: "#{github_url}/releases/download/v#{version}",
+    targets:
+      RustlerPrecompiled.Config.default_targets()
+      |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
 
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
