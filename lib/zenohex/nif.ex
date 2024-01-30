@@ -14,6 +14,9 @@ defmodule Zenohex.Nif do
       RustlerPrecompiled.Config.default_targets()
       |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
 
+  # for Nerves
+  @compile {:autoload, false}
+
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
   alias Zenohex.Queryable
