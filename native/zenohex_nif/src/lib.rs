@@ -50,6 +50,18 @@ fn zenoh_open() -> ResourceArc<ExSessionRef> {
 }
 
 #[rustler::nif]
+fn zenoh_scouting_delay_zero_session() -> ResourceArc<ExSessionRef> {
+    let mut config = config::peer();
+    config
+        .scouting
+        .set_delay(Some(0))
+        .expect("set_delay failed");
+
+    let session: Session = zenoh::open(config).res_sync().expect("zenoh_open failed");
+    ResourceArc::new(ExSessionRef(session.into_arc()))
+}
+
+#[rustler::nif]
 fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
@@ -172,6 +184,7 @@ rustler::init!(
         add,
         test_thread,
         zenoh_open,
+        zenoh_scouting_delay_zero_session,
         declare_publisher,
         declare_subscriber,
         declare_pull_subscriber,

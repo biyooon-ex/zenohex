@@ -16,7 +16,8 @@ defmodule Zenohex.MixProject do
       # Docs
       name: "ZenohEx",
       source_url: @source_url,
-      docs: docs()
+      docs: docs(),
+      aliases: [test: [&disable_zenoh_delay/1, "test"]]
     ]
   end
 
@@ -61,5 +62,22 @@ defmodule Zenohex.MixProject do
 
   defp docs() do
     [extras: ["README.md", "LICENSE"], main: "readme"]
+  end
+
+  defp disable_zenoh_delay(_args) do
+    :ok =
+      """
+      =================================================================
+      HEY, ZENOHEX DEVELOPER. TO REDUCE TESTING TIME,
+      WE COMPILE WITH API_OPEN_SESSION_DELAY=0 AND SET SCOUTING DELAY 0
+      =================================================================
+      """
+      |> String.trim_trailing()
+      |> Mix.shell().info()
+
+    :ok = System.put_env("API_OPEN_SESSION_DELAY", "0")
+    :ok = System.put_env("SCOUTING_DELAY", "0")
+
+    Mix.Task.run("compile", ["--force"])
   end
 end

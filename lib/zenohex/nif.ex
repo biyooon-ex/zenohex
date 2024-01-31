@@ -32,6 +32,10 @@ defmodule Zenohex.Nif do
     :erlang.nif_error(:nif_not_loaded)
   end
 
+  def zenoh_scouting_delay_zero_session() do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
   for type <- ["integer", "float", "binary"] do
     def unquote(:"session_put_#{type}")(_session, _key_expr, _value) do
       :erlang.nif_error(:nif_not_loaded)

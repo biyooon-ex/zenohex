@@ -15,6 +15,10 @@ defmodule Zenohex do
   """
   @spec open! :: Session.t()
   def open!() do
-    Nif.zenoh_open()
+    if System.get_env("SCOUTING_DELAY") == "0" do
+      Nif.zenoh_scouting_delay_zero_session()
+    else
+      Nif.zenoh_open()
+    end
   end
 end
