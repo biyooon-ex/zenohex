@@ -9,11 +9,11 @@ fn subscriber_recv_timeout(
     env: Env,
     resource: ResourceArc<crate::ExSubscriberRef>,
     timeout_us: u64,
-) -> Term {
+) -> Result<Term, Term> {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => crate::to_term(&sample.value, env),
-        Err(_recv_timeout_error) => crate::atoms::timeout().encode(env),
+        Ok(sample) => crate::to_result(&sample.value, env),
+        Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
 }
 

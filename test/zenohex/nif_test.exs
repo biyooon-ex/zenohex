@@ -14,7 +14,8 @@ defmodule Zenohex.NifTest do
   end
 
   setup_all do
-    %{session: Nif.zenoh_open()}
+    {:ok, session} = Nif.zenoh_open()
+    %{session: session}
   end
 
   describe "session" do
@@ -31,7 +32,7 @@ defmodule Zenohex.NifTest do
     end
 
     test "session_get_timeout/3", %{session: session} do
-      assert Nif.session_get_timeout(session, "key_expression", 1000) == :timeout
+      assert Nif.session_get_timeout(session, "key_expression", 1000) == {:error, :timeout}
     end
 
     test "session_delete/2", %{session: session} do
@@ -43,21 +44,23 @@ defmodule Zenohex.NifTest do
     alias Zenohex.Publisher.Options
 
     test "declare_publisher/2", %{session: session} do
-      assert is_reference(Nif.declare_publisher(session, "key/expression"))
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
+      assert is_reference(publisher)
     end
 
     test "declare_publisher/3", %{session: session} do
       opts = %Options{congestion_control: :block, priority: :real_time}
-      assert is_reference(Nif.declare_publisher(session, "key/expression", opts))
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression", opts)
+      assert is_reference(publisher)
     end
 
     test "publisher_congestion_control/2", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
       assert is_reference(Nif.publisher_congestion_control(publisher, :block))
     end
 
     test "publisher_priority/2", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
       assert is_reference(Nif.publisher_priority(publisher, :real_time))
     end
 
@@ -69,13 +72,13 @@ defmodule Zenohex.NifTest do
       test "publisher_put_#{type}/2", %{session: session} do
         type = unquote(type)
         value = unquote(value)
-        publisher = Nif.declare_publisher(session, "key/expression")
+        {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
         assert apply(Nif, :"publisher_put_#{type}", [publisher, value]) == :ok
       end
     end
 
     test "publisher_delete/1", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
       assert Nif.publisher_delete(publisher) == :ok
     end
   end
@@ -84,27 +87,29 @@ defmodule Zenohex.NifTest do
     alias Zenohex.Subscriber.Options
 
     test "declare_subscriber/2", %{session: session} do
-      assert is_reference(Nif.declare_subscriber(session, "key/expression"))
+      {:ok, subscriber} = Nif.declare_subscriber(session, "key/expression")
+      assert is_reference(subscriber)
     end
 
     test "declare_subscriber/3", %{session: session} do
       opts = %Options{reliability: :reliable}
-      assert is_reference(Nif.declare_subscriber(session, "key/expression", opts))
+      {:ok, subscriber} = Nif.declare_subscriber(session, "key/expression", opts)
+      assert is_reference(subscriber)
     end
 
     test "subscriber_recv_timeout/1", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
-      subscriber = Nif.declare_subscriber(session, "key/expression")
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
+      {:ok, subscriber} = Nif.declare_subscriber(session, "key/expression")
 
       Nif.publisher_put_integer(publisher, 0)
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == 0
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, 0}
 
       Nif.publisher_put_float(publisher, 0.0)
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == 0.0
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, 0.0}
 
       Nif.publisher_put_binary(publisher, "binary")
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == "binary"
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == :timeout
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, "binary"}
+      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:error, :timeout}
     end
   end
 
@@ -112,31 +117,33 @@ defmodule Zenohex.NifTest do
     alias Zenohex.Subscriber.Options
 
     test "declare_pull_subscriber/2", %{session: session} do
-      assert is_reference(Nif.declare_pull_subscriber(session, "key/expression"))
+      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression")
+      assert is_reference(pull_subscriber)
     end
 
     test "declare_pull_subscriber/3", %{session: session} do
       opts = %Options{reliability: :reliable}
-      assert is_reference(Nif.declare_pull_subscriber(session, "key/expression", opts))
+      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression", opts)
+      assert is_reference(pull_subscriber)
     end
 
     test "pull_subscriber_pull/1", %{session: session} do
-      publisher = Nif.declare_publisher(session, "key/expression")
-      pull_subscriber = Nif.declare_pull_subscriber(session, "key/expression")
+      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
+      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression")
 
       :ok = Nif.publisher_put_integer(publisher, 0)
-      0 = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
-      :timeout = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
+      {:ok, 0} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
+      {:error, :timeout} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
       assert Nif.pull_subscriber_pull(pull_subscriber) == :ok
-      assert Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000) == 0
+      assert Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000) == {:ok, 0}
     end
   end
 
   describe "binary pub/sub" do
     setup context do
       key_expr = "key/expression"
-      publisher = Nif.declare_publisher(context.session, key_expr)
-      subscriber = Nif.declare_subscriber(context.session, key_expr)
+      {:ok, publisher} = Nif.declare_publisher(context.session, key_expr)
+      {:ok, subscriber} = Nif.declare_subscriber(context.session, key_expr)
       %{publisher: publisher, subscriber: subscriber}
     end
 
@@ -147,7 +154,7 @@ defmodule Zenohex.NifTest do
       test "#{test_name}", %{publisher: publisher, subscriber: subscriber} do
         binary = unquote(binary)
         Nif.publisher_put_binary(publisher, binary)
-        assert Nif.subscriber_recv_timeout(subscriber, 1000) == binary
+        assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, binary}
       end
     end
   end
@@ -156,12 +163,14 @@ defmodule Zenohex.NifTest do
     alias Zenohex.Queryable.Options
 
     test "declare_queryable/2", %{session: session} do
-      assert is_reference(Nif.declare_queryable(session, "key/expression"))
+      {:ok, queryable} = Nif.declare_queryable(session, "key/expression")
+      assert is_reference(queryable)
     end
 
     test "declare_queryable/3", %{session: session} do
       opts = %Options{complete: true}
-      assert is_reference(Nif.declare_queryable(session, "key/expression", opts))
+      {:ok, queryable} = Nif.declare_queryable(session, "key/expression", opts)
+      assert is_reference(queryable)
     end
   end
 end

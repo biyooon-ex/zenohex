@@ -22,13 +22,16 @@ defmodule Zenohex.Subscriber do
 
   ## Examples
 
-      iex> session = Zenohex.open!()
-      iex> subscriber = Zenohex.Session.declare_subscriber!(session, "key/expression")
-      iex> Zenohex.Subscriber.recv_timeout!(subscriber, 1000)
-      :timeout
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "key/expression")
+      iex> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+      {:error, :timeout}
   """
-  @spec recv_timeout!(t(), pos_integer()) :: integer() | float() | binary() | :timeout
-  def recv_timeout!(subscriber, timeout_us)
+  @spec recv_timeout(t(), pos_integer()) ::
+          {:ok, integer() | float() | binary()}
+          | {:error, :timeout}
+          | {:error, reason :: String.t()}
+  def recv_timeout(subscriber, timeout_us)
       when is_reference(subscriber) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.subscriber_recv_timeout(subscriber, timeout_us)
   end

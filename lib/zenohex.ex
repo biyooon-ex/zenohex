@@ -11,10 +11,10 @@ defmodule Zenohex do
 
   ## Examples
 
-      iex> Zenohex.open!()
+      iex> Zenohex.open()
   """
-  @spec open! :: Session.t()
-  def open!() do
+  @spec open :: {:ok, Session.t()} | {:error, reason :: String.t()}
+  def open() do
     if System.get_env("SCOUTING_DELAY") == "0" do
       Nif.zenoh_scouting_delay_zero_session()
     else

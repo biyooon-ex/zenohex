@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use flume::Receiver;
-use rustler::{types::atom, Atom, Encoder, Env, ResourceArc, Term};
+use rustler::{types::atom, Encoder, Env, ResourceArc, Term};
 use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
 
 #[rustler::nif]
@@ -9,20 +9,19 @@ fn pull_subscriber_recv_timeout(
     env: Env,
     resource: ResourceArc<crate::ExPullSubscriberRef>,
     timeout_us: u64,
-) -> Term {
+) -> Result<Term, Term> {
     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
     match pull_subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => crate::to_term(&sample.value, env),
-        Err(_recv_timeout_error) => crate::atoms::timeout().encode(env),
+        Ok(sample) => crate::to_result(&sample.value, env),
+        Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
 }
 
 #[rustler::nif]
-fn pull_subscriber_pull(resource: ResourceArc<crate::ExPullSubscriberRef>) -> Atom {
+fn pull_subscriber_pull(env: Env, resource: ResourceArc<crate::ExPullSubscriberRef>) -> Term {
     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
-    pull_subscriber
-        .pull()
-        .res_sync()
-        .expect("pull_subscriber_pull failed");
-    atom::ok()
+    match pull_subscriber.pull().res_sync() {
+        Ok(_) => atom::ok().encode(env),
+        Err(error) => (atom::error(), error.to_string()).encode(env),
+    }
 }

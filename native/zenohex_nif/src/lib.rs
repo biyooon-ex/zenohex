@@ -43,22 +43,26 @@ fn test_thread(env: Env) -> Atom {
 }
 
 #[rustler::nif]
-fn zenoh_open() -> ResourceArc<ExSessionRef> {
+fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {
     let config = config::peer();
-    let session: Session = zenoh::open(config).res_sync().expect("zenoh_open failed");
-    ResourceArc::new(ExSessionRef(session.into_arc()))
+    match zenoh::open(config).res_sync() {
+        Ok(session) => Ok(ResourceArc::new(ExSessionRef(session.into_arc()))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 #[rustler::nif]
-fn zenoh_scouting_delay_zero_session() -> ResourceArc<ExSessionRef> {
+fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<ExSessionRef>, String> {
     let mut config = config::peer();
-    config
-        .scouting
-        .set_delay(Some(0))
-        .expect("set_delay failed");
+    let config = match config.scouting.set_delay(Some(0)) {
+        Ok(_) => config,
+        Err(_) => return Err("set_delay failed".to_string()),
+    };
 
-    let session: Session = zenoh::open(config).res_sync().expect("zenoh_open failed");
-    ResourceArc::new(ExSessionRef(session.into_arc()))
+    match zenoh::open(config).res_sync() {
+        Ok(session) => Ok(ResourceArc::new(ExSessionRef(session.into_arc()))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 #[rustler::nif]
@@ -66,16 +70,17 @@ fn declare_publisher(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
     opts: publisher::PublisherOptions,
-) -> ResourceArc<ExPublisherRef> {
+) -> Result<ResourceArc<ExPublisherRef>, String> {
     let session: &Arc<Session> = &resource.0;
-    let publisher: Publisher = session
+    match session
         .declare_publisher(key_expr)
         .congestion_control(opts.congestion_control.into())
         .priority(opts.priority.into())
         .res_sync()
-        .expect("declare_publisher failed");
-
-    ResourceArc::new(ExPublisherRef(publisher))
+    {
+        Ok(publisher) => Ok(ResourceArc::new(ExPublisherRef(publisher))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 #[rustler::nif]
@@ -83,15 +88,16 @@ fn declare_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
     opts: subscriber::SubscriberOptions,
-) -> ResourceArc<ExSubscriberRef> {
+) -> Result<ResourceArc<ExSubscriberRef>, String> {
     let session: &Arc<Session> = &resource.0;
-    let subscriber: Subscriber<'_, Receiver<Sample>> = session
+    match session
         .declare_subscriber(key_expr)
         .reliability(opts.reliability.into())
         .res_sync()
-        .expect("declare_subscriber failed");
-
-    ResourceArc::new(ExSubscriberRef(subscriber))
+    {
+        Ok(subscriber) => Ok(ResourceArc::new(ExSubscriberRef(subscriber))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 #[rustler::nif]
@@ -99,16 +105,17 @@ fn declare_pull_subscriber(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
     opts: subscriber::SubscriberOptions,
-) -> ResourceArc<ExPullSubscriberRef> {
+) -> Result<ResourceArc<ExPullSubscriberRef>, String> {
     let session: &Arc<Session> = &resource.0;
-    let pull_subscriber: PullSubscriber<'_, Receiver<Sample>> = session
+    match session
         .declare_subscriber(key_expr)
         .reliability(opts.reliability.into())
         .pull_mode()
         .res_sync()
-        .expect("declare_pull_subscriber failed");
-
-    ResourceArc::new(ExPullSubscriberRef(pull_subscriber))
+    {
+        Ok(pull_subscriber) => Ok(ResourceArc::new(ExPullSubscriberRef(pull_subscriber))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
 #[rustler::nif]
@@ -116,43 +123,44 @@ fn declare_queryable(
     resource: ResourceArc<ExSessionRef>,
     key_expr: String,
     opts: queryable::QueryableOptions,
-) -> ResourceArc<ExQueryableRef> {
+) -> Result<ResourceArc<ExQueryableRef>, String> {
     let session: &Arc<Session> = &resource.0;
-    let queryable: Queryable<'_, Receiver<Query>> = session
+    match session
         .declare_queryable(key_expr)
         .complete(opts.complete)
         .res_sync()
-        .expect("declare_queryable failed");
-
-    ResourceArc::new(ExQueryableRef(queryable))
+    {
+        Ok(queryable) => Ok(ResourceArc::new(ExQueryableRef(queryable))),
+        Err(error) => Err(error.to_string()),
+    }
 }
 
-fn to_term<'a>(value: &Value, env: Env<'a>) -> Term<'a> {
+fn to_result<'a>(value: &Value, env: Env<'a>) -> Result<Term<'a>, Term<'a>> {
     match value.encoding.prefix() {
         KnownEncoding::Empty => unimplemented!(),
         KnownEncoding::AppOctetStream => match Cow::try_from(value) {
             Ok(value) => {
                 let mut binary = OwnedBinary::new(value.len()).unwrap();
                 binary.as_mut_slice().write_all(&value).unwrap();
-                binary.release(env).encode(env)
+                Ok(binary.release(env).encode(env))
             }
-            Err(_err) => atom::error().encode(env),
+            Err(error) => Err(error.to_string().encode(env)),
         },
         KnownEncoding::AppCustom => unimplemented!(),
         KnownEncoding::TextPlain => match String::try_from(value) {
-            Ok(value) => value.encode(env),
-            Err(_err) => atom::error().encode(env),
+            Ok(value) => Ok(value.encode(env)),
+            Err(error) => Err(error.to_string().encode(env)),
         },
         KnownEncoding::AppProperties => unimplemented!(),
         KnownEncoding::AppJson => unimplemented!(),
         KnownEncoding::AppSql => unimplemented!(),
         KnownEncoding::AppInteger => match i64::try_from(value) {
-            Ok(value) => value.encode(env),
-            Err(_err) => atom::error().encode(env),
+            Ok(value) => Ok(value.encode(env)),
+            Err(error) => Err(error.to_string().encode(env)),
         },
         KnownEncoding::AppFloat => match f64::try_from(value) {
-            Ok(value) => value.encode(env),
-            Err(_err) => atom::error().encode(env),
+            Ok(value) => Ok(value.encode(env)),
+            Err(error) => Err(error.to_string().encode(env)),
         },
         KnownEncoding::AppXml => unimplemented!(),
         KnownEncoding::AppXhtmlXml => unimplemented!(),

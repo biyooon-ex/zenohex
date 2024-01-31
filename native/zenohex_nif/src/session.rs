@@ -1,48 +1,49 @@
 use std::{sync::Arc, time::Duration};
 
-use rustler::{types::atom, Atom, Binary, Encoder, Env, ResourceArc, Term};
+use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
 use zenoh::{prelude::sync::SyncResolve, value::Value, Session};
 
 #[rustler::nif]
 fn session_put_integer(
+    env: Env,
     resource: ResourceArc<crate::ExSessionRef>,
     key_expr: String,
     value: i64,
-) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, value)
-        .res_sync()
-        .expect("session_put_integer failed");
-    atom::ok()
+) -> Term {
+    session_put_impl(env, resource, key_expr, value)
 }
 
 #[rustler::nif]
 fn session_put_float(
+    env: Env,
     resource: ResourceArc<crate::ExSessionRef>,
     key_expr: String,
     value: f64,
-) -> Atom {
-    let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, value)
-        .res_sync()
-        .expect("session_put_float failed");
-    atom::ok()
+) -> Term {
+    session_put_impl(env, resource, key_expr, value)
 }
 
 #[rustler::nif]
-fn session_put_binary(
+fn session_put_binary<'a>(
+    env: Env<'a>,
     resource: ResourceArc<crate::ExSessionRef>,
     key_expr: String,
-    value: Binary,
-) -> Atom {
+    value: Binary<'a>,
+) -> Term<'a> {
+    session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+}
+
+fn session_put_impl<T: Into<zenoh::value::Value>>(
+    env: Env,
+    resource: ResourceArc<crate::ExSessionRef>,
+    key_expr: String,
+    value: T,
+) -> Term {
     let session: &Arc<Session> = &resource.0;
-    session
-        .put(key_expr, Value::from(value.as_slice()))
-        .res_sync()
-        .expect("session_put_float failed");
-    atom::ok()
+    match session.put(key_expr, value).res_sync() {
+        Ok(_) => atom::ok().encode(env),
+        Err(error) => (atom::error(), error.to_string()).encode(env),
+    }
 }
 
 #[rustler::nif]
@@ -51,27 +52,26 @@ fn session_get_timeout(
     resource: ResourceArc<crate::ExSessionRef>,
     selector: String,
     timeout_us: u64,
-) -> Term {
+) -> Result<Term, Term> {
     let session: &Arc<Session> = &resource.0;
-    let receiver = session
-        .get(selector)
-        .res_sync()
-        .expect("session_get failed");
+    let receiver = match session.get(selector).res_sync() {
+        Ok(receiver) => receiver,
+        Err(error) => return Err(error.to_string().encode(env)),
+    };
     match receiver.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(reply) => match reply.sample {
-            Ok(sample) => crate::to_term(&sample.value, env).encode(env),
-            Err(value) => crate::to_term(&value, env).encode(env),
+            Ok(sample) => crate::to_result(&sample.value, env),
+            Err(value) => crate::to_result(&value, env),
         },
-        Err(_recv_timeout_error) => crate::atoms::timeout().encode(env),
+        Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
 }
 
 #[rustler::nif]
-fn session_delete(resource: ResourceArc<crate::ExSessionRef>, key_expr: String) -> Atom {
+fn session_delete(env: Env, resource: ResourceArc<crate::ExSessionRef>, key_expr: String) -> Term {
     let session: &Arc<Session> = &resource.0;
-    session
-        .delete(key_expr)
-        .res_sync()
-        .expect("session_delete failed");
-    atom::ok()
+    match session.delete(key_expr).res_sync() {
+        Ok(_) => atom::ok().encode(env),
+        Err(error) => (atom::error(), error.to_string()).encode(env),
+    }
 }

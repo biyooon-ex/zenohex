@@ -31,24 +31,22 @@ defmodule Zenohex.Publisher do
 
   ## Examples
 
-      iex> session = Zenohex.open!()
-      iex> publisher = Zenohex.Session.declare_publisher!(session, "key/expression")
-      iex> :ok = Zenohex.Publisher.put!(publisher, "value")
-      iex> :ok = Zenohex.Publisher.put!(publisher, 0)
-      iex> :ok = Zenohex.Publisher.put!(publisher, 0.0)
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
+      iex> :ok = Zenohex.Publisher.put(publisher, "value")
+      iex> :ok = Zenohex.Publisher.put(publisher, 0)
+      iex> :ok = Zenohex.Publisher.put(publisher, 0.0)
   """
-  @spec put!(t(), binary()) :: :ok
-  def put!(publisher, value) when is_binary(value) do
+  @spec put(t(), binary() | integer() | float()) :: :ok | {:error, reason :: String.t()}
+  def put(publisher, value) when is_binary(value) do
     Nif.publisher_put_binary(publisher, value)
   end
 
-  @spec put!(t(), integer()) :: :ok
-  def put!(publisher, value) when is_integer(value) do
+  def put(publisher, value) when is_integer(value) do
     Nif.publisher_put_integer(publisher, value)
   end
 
-  @spec put!(t(), float()) :: :ok
-  def put!(publisher, value) when is_float(value) do
+  def put(publisher, value) when is_float(value) do
     Nif.publisher_put_float(publisher, value)
   end
 
@@ -57,12 +55,12 @@ defmodule Zenohex.Publisher do
 
   ## Examples
 
-      iex> session = Zenohex.open!()
-      iex> publisher = Zenohex.Session.declare_publisher!(session, "key/expression")
-      iex> :ok = Zenohex.Publisher.delete!(publisher)
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
+      iex> :ok = Zenohex.Publisher.delete(publisher)
   """
-  @spec delete!(t()) :: :ok
-  def delete!(publisher) do
+  @spec delete(t()) :: :ok | {:error, reason :: String.t()}
+  def delete(publisher) do
     Nif.publisher_delete(publisher)
   end
 
@@ -71,12 +69,12 @@ defmodule Zenohex.Publisher do
 
   ## Examples
 
-      iex> session = Zenohex.open!()
-      iex> publisher = Zenohex.Session.declare_publisher!(session, "key/expression")
-      iex> Zenohex.Publisher.congestion_control!(publisher, :drop)
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
+      iex> Zenohex.Publisher.congestion_control(publisher, :drop)
   """
-  @spec congestion_control!(t(), Options.congestion_control()) :: t()
-  def congestion_control!(publisher, congestion_control) do
+  @spec congestion_control(t(), Options.congestion_control()) :: t()
+  def congestion_control(publisher, congestion_control) do
     Nif.publisher_congestion_control(publisher, congestion_control)
   end
 
@@ -85,12 +83,12 @@ defmodule Zenohex.Publisher do
 
   ## Examples
 
-      iex> session = Zenohex.open!()
-      iex> publisher = Zenohex.Session.declare_publisher!(session, "key/expression")
-      iex> Zenohex.Publisher.priority!(publisher, :real_time)
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
+      iex> Zenohex.Publisher.priority(publisher, :real_time)
   """
-  @spec priority!(t(), Options.priority()) :: t()
-  def priority!(publisher, priority) do
+  @spec priority(t(), Options.priority()) :: t()
+  def priority(publisher, priority) do
     Nif.publisher_priority(publisher, priority)
   end
 end

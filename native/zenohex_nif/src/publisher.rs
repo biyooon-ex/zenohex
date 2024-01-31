@@ -1,42 +1,45 @@
 use crate::ExPublisherRef;
-use rustler::{types::atom, Atom, Binary, ResourceArc};
+use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
 use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
 
 #[rustler::nif]
-fn publisher_put_integer(resource: ResourceArc<ExPublisherRef>, value: i64) -> Atom {
-    publisher_put_impl(resource, value)
+fn publisher_put_integer(env: Env, resource: ResourceArc<ExPublisherRef>, value: i64) -> Term {
+    publisher_put_impl(env, resource, value)
 }
 
 #[rustler::nif]
-fn publisher_put_float(resource: ResourceArc<ExPublisherRef>, value: f64) -> Atom {
-    publisher_put_impl(resource, value)
+fn publisher_put_float(env: Env, resource: ResourceArc<ExPublisherRef>, value: f64) -> Term {
+    publisher_put_impl(env, resource, value)
 }
 
 #[rustler::nif]
-fn publisher_put_binary(resource: ResourceArc<ExPublisherRef>, value: Binary) -> Atom {
-    publisher_put_impl(resource, Value::from(value.as_slice()))
+fn publisher_put_binary<'a>(
+    env: Env<'a>,
+    resource: ResourceArc<ExPublisherRef>,
+    value: Binary<'a>,
+) -> Term<'a> {
+    publisher_put_impl(env, resource, Value::from(value.as_slice()))
 }
 
 fn publisher_put_impl<T: Into<zenoh::value::Value>>(
+    env: Env,
     resource: ResourceArc<ExPublisherRef>,
     value: T,
-) -> Atom {
+) -> Term {
     let publisher: &Publisher = &resource.0;
-    publisher
-        .put(value)
-        .res_sync()
-        .expect("publisher_put_impl failed");
-    atom::ok()
+    match publisher.put(value).res_sync() {
+        Ok(_) => atom::ok().encode(env),
+        Err(error) => (atom::error(), error.to_string()).encode(env),
+    }
 }
 
 #[rustler::nif]
-fn publisher_delete(resource: ResourceArc<ExPublisherRef>) -> Atom {
+fn publisher_delete(env: Env, resource: ResourceArc<ExPublisherRef>) -> Term {
     let publisher: &Publisher = &resource.0;
-    publisher
-        .delete()
-        .res_sync()
-        .expect("publisher_delete failed.");
-    atom::ok()
+    match publisher.delete().res_sync() {
+        Ok(_) => atom::ok().encode(env),
+        Err(error) => (atom::error(), error.to_string()).encode(env),
+    }
 }
 
 #[rustler::nif]

@@ -47,18 +47,18 @@ $ iex -S mix
 ```
 
 ```elixir
-iex(1)> session = Zenohex.open!()
-#Reference<>
-iex(2)> publisher = Zenohex.Session.declare_publisher!(session, "pub/sub")
-#Reference<>
-iex(3)> subscriber = Zenohex.Session.declare_subscriber!(session, "pub/sub")
-#Reference<>
-iex(4)> Zenohex.Publisher.put!(publisher, "Hello Zenoh Dragon")
+iex(1)> {:ok, session} = Zenohex.open()
+{:ok, #Reference<>}
+iex(2)> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "pub/sub")
+{:ok, #Reference<>}
+iex(3)> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "pub/sub")
+{:ok, #Reference<>}
+iex(4)> Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon")
 :ok
-iex(5)> Zenohex.Subscriber.recv_timeout!(subscriber, 1000)
-"Hello Zenoh Dragon"
-iex(6)> Zenohex.Subscriber.recv_timeout!(subscriber, 1000)
-:timeout
+iex(5)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+{:ok, "Hello Zenoh Dragon"}
+iex(6)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+{:error, :timeout}
 ```
 
 ## For developer
