@@ -17,7 +17,10 @@ defmodule Zenohex.MixProject do
       name: "ZenohEx",
       source_url: @source_url,
       docs: docs(),
-      aliases: [test: [&disable_zenoh_delay/1, "test"]]
+      aliases: [
+        {:test, [&disable_zenoh_delay/1, "test"]},
+        {:"test.watch", [&disable_zenoh_delay/1, "test.watch"]}
+      ]
     ]
   end
 
