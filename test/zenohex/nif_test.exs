@@ -31,8 +31,14 @@ defmodule Zenohex.NifTest do
       end
     end
 
-    test "session_get_timeout/3", %{session: session} do
-      assert Nif.session_get_timeout(session, "key_expression", 1000) == {:error, :timeout}
+    test "session_get_reply_receiver/3", %{session: session} do
+      {:ok, receiver} = Nif.session_get_reply_receiver(session, "key_expression")
+      assert is_reference(receiver)
+    end
+
+    test "session_get_reply_timeout/2", %{session: session} do
+      {:ok, receiver} = Nif.session_get_reply_receiver(session, "key_expression")
+      assert Nif.session_get_reply_timeout(receiver, 1000) == {:error, :timeout}
     end
 
     test "session_delete/2", %{session: session} do

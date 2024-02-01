@@ -8,8 +8,10 @@ defmodule Zenohex.Session do
   alias Zenohex.Subscriber
   alias Zenohex.PullSubscriber
   alias Zenohex.Queryable
+  alias Zenohex.Query
 
   @type t :: reference()
+  @type receiver :: reference()
 
   @doc ~S"""
   Create a Publisher for the given key expression.
@@ -99,23 +101,35 @@ defmodule Zenohex.Session do
   end
 
   @doc ~S"""
-  Query data from the matching queryables in the system.
+  Get reply receiver from the matching queryables in the system.
 
   ## Examples
 
       iex> {:ok, session} = Zenohex.open()
-      iex> Zenohex.Session.get_timeout(session, "key/**", 1000)
+      iex> Zenohex.Session.get_reply_receiver(session, "key/**")
+  """
+  @spec get_reply_receiver(t(), String.t(), Query.Options.t()) ::
+          {:ok, receiver()} | {:error, reason :: String.t()}
+  def get_reply_receiver(session, selector, opts \\ %Query.Options{})
+      when is_reference(session) and is_binary(selector) and is_struct(opts, Query.Options) do
+    Nif.session_get_reply_receiver(session, selector, opts)
+  end
+
+  @doc ~S"""
+  Query data from receiver.
+
+  ## Examples
+
+      iex> {:ok, session} = Zenohex.open()
+      iex> {:ok, receiver} = Zenohex.Session.get_reply_receiver(session, "key/**")
+      iex> Zenohex.Session.get_reply_timeout(receiver, 1000)
       {:error, :timeout}
   """
-  @spec get_timeout(t(), String.t(), pos_integer()) ::
-          {:ok, binary() | integer() | float()}
-          | {:error, :timeout}
-          | {:error, reason :: String.t()}
-  # FIXME 返り値がリストになるケースがあるはずなので、 Nif を含めて見直し修正すること
-  def get_timeout(session, selector, timeout_us)
-      when is_reference(session) and is_binary(selector) and is_integer(timeout_us) and
-             timeout_us > 0 do
-    Nif.session_get_timeout(session, selector, timeout_us)
+  @spec get_reply_timeout(receiver(), pos_integer()) ::
+          {:ok, binary() | integer() | float()} | {:error, :timeout} | {:error, reason :: any()}
+  def get_reply_timeout(receiver, timeout_us)
+      when is_reference(receiver) and is_integer(timeout_us) and timeout_us > 0 do
+    Nif.session_get_reply_timeout(receiver, timeout_us)
   end
 
   @doc ~S"""

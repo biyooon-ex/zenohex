@@ -20,6 +20,7 @@ defmodule Zenohex.Nif do
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
   alias Zenohex.Queryable
+  alias Zenohex.Query
 
   # When your NIF is loaded, it will override this function.
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
@@ -42,7 +43,11 @@ defmodule Zenohex.Nif do
     end
   end
 
-  def session_get_timeout(_session, _selector, _timeout_us) do
+  def session_get_reply_receiver(_session, _selector, _opts \\ %Query.Options{}) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def session_get_reply_timeout(_receiver, _timeout_us) do
     :erlang.nif_error(:nif_not_loaded)
   end
 

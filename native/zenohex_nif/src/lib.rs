@@ -11,7 +11,7 @@ use zenoh::{
     publication::Publisher, queryable::Queryable, subscriber::PullSubscriber,
     subscriber::Subscriber, Session,
 };
-use zenoh::{queryable::Query, sample::Sample};
+use zenoh::{query::Reply, queryable::Query, sample::Sample};
 
 mod atoms {
     rustler::atoms! {
@@ -20,6 +20,7 @@ mod atoms {
 }
 mod publisher;
 mod pull_subscriber;
+mod query;
 mod queryable;
 mod session;
 mod subscriber;
@@ -29,6 +30,7 @@ pub struct ExPublisherRef(Publisher<'static>);
 pub struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
 pub struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
 pub struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
+pub struct ExReplyReceiverRef(Receiver<Reply>);
 
 #[rustler::nif]
 fn add(a: i64, b: i64) -> i64 {
@@ -183,6 +185,7 @@ fn load(env: Env, _term: Term) -> bool {
     rustler::resource!(ExSubscriberRef, env);
     rustler::resource!(ExPullSubscriberRef, env);
     rustler::resource!(ExQueryableRef, env);
+    rustler::resource!(ExReplyReceiverRef, env);
     true
 }
 
@@ -200,7 +203,8 @@ rustler::init!(
         session::session_put_integer,
         session::session_put_float,
         session::session_put_binary,
-        session::session_get_timeout,
+        session::session_get_reply_receiver,
+        session::session_get_reply_timeout,
         session::session_delete,
         publisher::publisher_put_integer,
         publisher::publisher_put_float,
