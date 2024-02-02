@@ -75,11 +75,8 @@ fn session_get_reply_timeout(
     let receiver: &Receiver<Reply> = &resource.0;
     match receiver.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(reply) => match reply.sample {
-            Ok(sample) => crate::to_result(&sample.value, env),
-            Err(value) => match crate::to_result(&value, env) {
-                Ok(term) => Err(term),
-                Err(term) => Err(term),
-            },
+            Ok(sample) => Ok(crate::sample::Sample::from(env, sample).encode(env)),
+            Err(value) => Err(crate::value::Value::to_term(env, &value)),
         },
         Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }

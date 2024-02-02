@@ -9,6 +9,7 @@ defmodule Zenohex.Session do
   alias Zenohex.PullSubscriber
   alias Zenohex.Queryable
   alias Zenohex.Query
+  alias Zenohex.Sample
 
   @type t :: reference()
   @type receiver :: reference()
@@ -126,7 +127,7 @@ defmodule Zenohex.Session do
       {:error, :timeout}
   """
   @spec get_reply_timeout(receiver(), pos_integer()) ::
-          {:ok, binary() | integer() | float()} | {:error, :timeout} | {:error, reason :: any()}
+          {:ok, Sample.t()} | {:error, :timeout} | {:error, reason :: any()}
   def get_reply_timeout(receiver, timeout_us)
       when is_reference(receiver) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.session_get_reply_timeout(receiver, timeout_us)

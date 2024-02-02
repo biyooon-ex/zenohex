@@ -4,6 +4,7 @@ defmodule Zenohex.Subscriber do
   """
 
   alias Zenohex.Nif
+  alias Zenohex.Sample
 
   @opaque t :: reference()
 
@@ -28,9 +29,7 @@ defmodule Zenohex.Subscriber do
       {:error, :timeout}
   """
   @spec recv_timeout(t(), pos_integer()) ::
-          {:ok, integer() | float() | binary()}
-          | {:error, :timeout}
-          | {:error, reason :: String.t()}
+          {:ok, Sample.t()} | {:error, :timeout} | {:error, reason :: String.t()}
   def recv_timeout(subscriber, timeout_us)
       when is_reference(subscriber) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.subscriber_recv_timeout(subscriber, timeout_us)

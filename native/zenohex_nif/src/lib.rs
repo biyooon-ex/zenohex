@@ -1,10 +1,8 @@
-use std::borrow::Cow;
-use std::io::Write;
 use std::sync::Arc;
 
 use flume::Receiver;
 use rustler::types::atom;
-use rustler::{thread, Encoder, OwnedBinary};
+use rustler::{thread, Encoder};
 use rustler::{Atom, Env, ResourceArc, Term};
 use zenoh::prelude::sync::*;
 use zenoh::{
@@ -22,8 +20,10 @@ mod publisher;
 mod pull_subscriber;
 mod query;
 mod queryable;
+mod sample;
 mod session;
 mod subscriber;
+mod value;
 
 pub struct ExSessionRef(Arc<Session>);
 pub struct ExPublisherRef(Publisher<'static>);
@@ -134,48 +134,6 @@ fn declare_queryable(
     {
         Ok(queryable) => Ok(ResourceArc::new(ExQueryableRef(queryable))),
         Err(error) => Err(error.to_string()),
-    }
-}
-
-fn to_result<'a>(value: &Value, env: Env<'a>) -> Result<Term<'a>, Term<'a>> {
-    match value.encoding.prefix() {
-        KnownEncoding::Empty => unimplemented!(),
-        KnownEncoding::AppOctetStream => match Cow::try_from(value) {
-            Ok(value) => {
-                let mut binary = OwnedBinary::new(value.len()).unwrap();
-                binary.as_mut_slice().write_all(&value).unwrap();
-                Ok(binary.release(env).encode(env))
-            }
-            Err(error) => Err(error.to_string().encode(env)),
-        },
-        KnownEncoding::AppCustom => unimplemented!(),
-        KnownEncoding::TextPlain => match String::try_from(value) {
-            Ok(value) => Ok(value.encode(env)),
-            Err(error) => Err(error.to_string().encode(env)),
-        },
-        KnownEncoding::AppProperties => unimplemented!(),
-        KnownEncoding::AppJson => unimplemented!(),
-        KnownEncoding::AppSql => unimplemented!(),
-        KnownEncoding::AppInteger => match i64::try_from(value) {
-            Ok(value) => Ok(value.encode(env)),
-            Err(error) => Err(error.to_string().encode(env)),
-        },
-        KnownEncoding::AppFloat => match f64::try_from(value) {
-            Ok(value) => Ok(value.encode(env)),
-            Err(error) => Err(error.to_string().encode(env)),
-        },
-        KnownEncoding::AppXml => unimplemented!(),
-        KnownEncoding::AppXhtmlXml => unimplemented!(),
-        KnownEncoding::AppXWwwFormUrlencoded => unimplemented!(),
-        KnownEncoding::TextJson => unimplemented!(),
-        KnownEncoding::TextHtml => unimplemented!(),
-        KnownEncoding::TextXml => unimplemented!(),
-        KnownEncoding::TextCss => unimplemented!(),
-        KnownEncoding::TextCsv => unimplemented!(),
-        KnownEncoding::TextJavascript => unimplemented!(),
-        KnownEncoding::ImageJpeg => unimplemented!(),
-        KnownEncoding::ImagePng => unimplemented!(),
-        KnownEncoding::ImageGif => unimplemented!(),
     }
 }
 

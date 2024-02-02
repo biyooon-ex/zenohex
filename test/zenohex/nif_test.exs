@@ -2,6 +2,7 @@ defmodule Zenohex.NifTest do
   use ExUnit.Case, async: true
 
   alias Zenohex.Nif
+  alias Zenohex.Sample
 
   test "add/2" do
     assert Nif.add(1, 2) == 3
@@ -108,13 +109,13 @@ defmodule Zenohex.NifTest do
       {:ok, subscriber} = Nif.declare_subscriber(session, "key/expression")
 
       Nif.publisher_put_integer(publisher, 0)
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, 0}
+      assert {:ok, %Sample{value: 0}} = Nif.subscriber_recv_timeout(subscriber, 1000)
 
       Nif.publisher_put_float(publisher, 0.0)
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, 0.0}
+      assert {:ok, %Sample{value: 0.0}} = Nif.subscriber_recv_timeout(subscriber, 1000)
 
       Nif.publisher_put_binary(publisher, "binary")
-      assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, "binary"}
+      assert {:ok, %Sample{value: "binary"}} = Nif.subscriber_recv_timeout(subscriber, 1000)
       assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:error, :timeout}
     end
   end
@@ -138,10 +139,10 @@ defmodule Zenohex.NifTest do
       {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression")
 
       :ok = Nif.publisher_put_integer(publisher, 0)
-      {:ok, 0} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
+      {:ok, %Sample{value: 0}} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
       {:error, :timeout} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
       assert Nif.pull_subscriber_pull(pull_subscriber) == :ok
-      assert Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000) == {:ok, 0}
+      assert {:ok, %Sample{value: 0}} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
     end
   end
 
@@ -160,7 +161,7 @@ defmodule Zenohex.NifTest do
       test "#{test_name}", %{publisher: publisher, subscriber: subscriber} do
         binary = unquote(binary)
         Nif.publisher_put_binary(publisher, binary)
-        assert Nif.subscriber_recv_timeout(subscriber, 1000) == {:ok, binary}
+        assert {:ok, %Sample{value: ^binary}} = Nif.subscriber_recv_timeout(subscriber, 1000)
       end
     end
   end

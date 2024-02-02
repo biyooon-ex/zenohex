@@ -2,6 +2,8 @@ defmodule ZenohexTest do
   use ExUnit.Case, async: true
   doctest Zenohex
 
+  alias Zenohex.Sample
+
   test "pub/sub" do
     {:ok, session} = Zenohex.open()
     {:ok, publisher} = Zenohex.Session.declare_publisher(session, "pub/sub")
@@ -11,7 +13,7 @@ defmodule ZenohexTest do
       :ok = Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon #{i}")
 
       assert Zenohex.Subscriber.recv_timeout(subscriber, 1000) ==
-               {:ok, "Hello Zenoh Dragon #{i}"}
+               {:ok, %Sample{key_expr: "pub/sub", value: "Hello Zenoh Dragon #{i}", kind: :put}}
     end
   end
 end

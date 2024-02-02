@@ -12,7 +12,7 @@ fn subscriber_recv_timeout(
 ) -> Result<Term, Term> {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => crate::to_result(&sample.value, env),
+        Ok(sample) => Ok(crate::sample::Sample::from(env, sample).encode(env)),
         Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
 }
