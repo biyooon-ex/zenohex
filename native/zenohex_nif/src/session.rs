@@ -66,7 +66,7 @@ fn session_get_reply_receiver(
     }
 }
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyIo")]
 fn session_get_reply_timeout(
     env: Env,
     resource: ResourceArc<crate::ExReplyReceiverRef>,

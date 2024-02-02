@@ -4,7 +4,7 @@ use flume::Receiver;
 use rustler::{Encoder, Env, ResourceArc, Term};
 use zenoh::{sample::Sample, subscriber::Subscriber};
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyIo")]
 fn subscriber_recv_timeout(
     env: Env,
     resource: ResourceArc<crate::ExSubscriberRef>,

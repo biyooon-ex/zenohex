@@ -44,7 +44,7 @@ fn test_thread(env: Env) -> Atom {
     atom::ok()
 }
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {
     let config = config::peer();
     match zenoh::open(config).res_sync() {
@@ -53,7 +53,7 @@ fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {
     }
 }
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<ExSessionRef>, String> {
     let mut config = config::peer();
     let config = match config.scouting.set_delay(Some(0)) {
