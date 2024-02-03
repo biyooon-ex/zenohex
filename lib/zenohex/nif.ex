@@ -100,4 +100,12 @@ defmodule Zenohex.Nif do
   def declare_queryable(_session, _key_expr, _opts \\ %Queryable.Options{}) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  def queryable_recv_timeout(_queryable, _timeout_us) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def query_reply(_query, _sample) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end

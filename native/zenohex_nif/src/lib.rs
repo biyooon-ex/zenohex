@@ -31,6 +31,8 @@ pub struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
 pub struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
 pub struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
 pub struct ExReplyReceiverRef(Receiver<Reply>);
+pub struct ExQueryRef(Query);
+pub struct ExSampleRef(Sample);
 
 #[rustler::nif]
 fn add(a: i64, b: i64) -> i64 {
@@ -144,6 +146,8 @@ fn load(env: Env, _term: Term) -> bool {
     rustler::resource!(ExPullSubscriberRef, env);
     rustler::resource!(ExQueryableRef, env);
     rustler::resource!(ExReplyReceiverRef, env);
+    rustler::resource!(ExQueryRef, env);
+    rustler::resource!(ExSampleRef, env);
     true
 }
 
@@ -173,6 +177,8 @@ rustler::init!(
         subscriber::subscriber_recv_timeout,
         pull_subscriber::pull_subscriber_pull,
         pull_subscriber::pull_subscriber_recv_timeout,
+        queryable::queryable_recv_timeout,
+        query::query_reply,
     ],
     load = load
 );

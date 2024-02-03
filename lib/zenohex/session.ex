@@ -102,6 +102,24 @@ defmodule Zenohex.Session do
   end
 
   @doc ~S"""
+  Get data from the matching queryables in the system.
+
+  ## Examples
+
+      iex> {:ok, session} = Zenohex.open()
+      iex> Zenohex.Session.get_timeout(session, "key/**", 1000)
+      {:error, :timeout}
+  """
+  @spec get_timeout(t(), String.t(), pos_integer(), Query.Options.t()) ::
+          {:ok, Sample.t()} | {:error, :timeout} | {:error, reason :: any()}
+  def get_timeout(session, selector, timeout_us, opts \\ %Query.Options{}) do
+    case get_reply_receiver(session, selector, opts) do
+      {:ok, receiver} -> get_reply_timeout(receiver, timeout_us)
+      error -> error
+    end
+  end
+
+  @doc ~S"""
   Get reply receiver from the matching queryables in the system.
 
   ## Examples

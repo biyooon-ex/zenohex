@@ -6,7 +6,8 @@ defmodule Zenohex.Sample do
   @type t :: %__MODULE__{
           key_expr: String.t(),
           value: binary() | integer() | float(),
-          kind: :put | :delete
+          kind: :put | :delete,
+          reference: reference()
         }
-  defstruct [:key_expr, :value, :kind]
+  defstruct [:key_expr, :value, :kind, :reference]
 end

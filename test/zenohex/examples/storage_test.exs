@@ -29,17 +29,45 @@ defmodule Zenohex.Examples.StorageTest do
     confirm_delete(key_expr)
   end
 
-  defp confirm_put(key_expr, value, retry_count \\ 100) when retry_count > 0 do
+  test "get", %{session: session} do
+    key_expr = "demo/example/get"
+    value = 0
+    :ok = Session.put(session, key_expr, value)
+    confirm_put(key_expr, value)
+
+    confirm_get(session, key_expr, value)
+  end
+
+  defp confirm_put(key_expr, value, retry_count \\ 10) when retry_count > 0 do
     case Storage.Store.get(key_expr) do
-      {:ok, [sample]} -> assert sample.value == value
-      {:error, :not_found} -> confirm_put(key_expr, value, retry_count - 1)
+      {:ok, [sample]} ->
+        assert sample.value == value
+
+      {:error, :not_found} ->
+        Process.sleep(1)
+        confirm_put(key_expr, value, retry_count - 1)
     end
   end
 
-  defp confirm_delete(key_expr, retry_count \\ 100) when retry_count > 0 do
+  defp confirm_delete(key_expr, retry_count \\ 10) when retry_count > 0 do
     case Storage.Store.get(key_expr) do
-      {:error, :not_found} -> assert true
-      {:ok, [_sample]} -> confirm_delete(key_expr, retry_count - 1)
+      {:error, :not_found} ->
+        assert true
+
+      {:ok, [_sample]} ->
+        Process.sleep(1)
+        confirm_delete(key_expr, retry_count - 1)
+    end
+  end
+
+  defp confirm_get(session, key_expr, value, retry_count \\ 10) when retry_count > 0 do
+    case Session.get_timeout(session, key_expr, 1000) do
+      {:ok, sample} ->
+        assert sample.value == value
+
+      {:error, :timeout} ->
+        Process.sleep(1)
+        confirm_get(session, key_expr, value, retry_count - 1)
     end
   end
 end

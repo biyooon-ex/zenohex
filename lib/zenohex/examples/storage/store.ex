@@ -35,4 +35,8 @@ defmodule Zenohex.Examples.Storage.Store do
       end
     )
   end
+
+  def dump() do
+    Agent.get(__MODULE__, fn map -> map end)
+  end
 end

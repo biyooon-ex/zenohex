@@ -13,7 +13,8 @@ defmodule Zenohex.Examples.Storage do
 
     children = [
       {Storage.Store, %{}},
-      {Storage.Subscriber, args}
+      {Storage.Subscriber, args},
+      {Storage.Queryable, args}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
