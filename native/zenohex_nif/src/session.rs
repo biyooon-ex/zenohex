@@ -2,7 +2,79 @@ use std::{sync::Arc, time::Duration};
 
 use flume::Receiver;
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{prelude::sync::SyncResolve, query::Reply, value::Value, Session};
+use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
+
+#[rustler::nif]
+fn declare_publisher(
+    resource: ResourceArc<crate::ExSessionRef>,
+    key_expr: String,
+    opts: crate::publisher::PublisherOptions,
+) -> Result<ResourceArc<crate::ExPublisherRef>, String> {
+    let session: &Arc<Session> = &resource.0;
+    match session
+        .declare_publisher(key_expr)
+        .congestion_control(opts.congestion_control.into())
+        .priority(opts.priority.into())
+        .res_sync()
+    {
+        Ok(publisher) => Ok(ResourceArc::new(crate::ExPublisherRef(publisher))),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+#[rustler::nif]
+fn declare_subscriber(
+    resource: ResourceArc<crate::ExSessionRef>,
+    key_expr: String,
+    opts: crate::subscriber::SubscriberOptions,
+) -> Result<ResourceArc<crate::ExSubscriberRef>, String> {
+    let session: &Arc<Session> = &resource.0;
+    match session
+        .declare_subscriber(key_expr)
+        .reliability(opts.reliability.into())
+        .res_sync()
+    {
+        Ok(subscriber) => Ok(ResourceArc::new(crate::ExSubscriberRef(subscriber))),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+#[rustler::nif]
+fn declare_pull_subscriber(
+    resource: ResourceArc<crate::ExSessionRef>,
+    key_expr: String,
+    opts: crate::subscriber::SubscriberOptions,
+) -> Result<ResourceArc<crate::ExPullSubscriberRef>, String> {
+    let session: &Arc<Session> = &resource.0;
+    match session
+        .declare_subscriber(key_expr)
+        .reliability(opts.reliability.into())
+        .pull_mode()
+        .res_sync()
+    {
+        Ok(pull_subscriber) => Ok(ResourceArc::new(crate::ExPullSubscriberRef(
+            pull_subscriber,
+        ))),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+#[rustler::nif]
+fn declare_queryable(
+    resource: ResourceArc<crate::ExSessionRef>,
+    key_expr: String,
+    opts: crate::queryable::QueryableOptions,
+) -> Result<ResourceArc<crate::ExQueryableRef>, String> {
+    let session: &Arc<Session> = &resource.0;
+    match session
+        .declare_queryable(key_expr)
+        .complete(opts.complete)
+        .res_sync()
+    {
+        Ok(queryable) => Ok(ResourceArc::new(crate::ExQueryableRef(queryable))),
+        Err(error) => Err(error.to_string()),
+    }
+}
 
 #[rustler::nif]
 fn session_put_integer(

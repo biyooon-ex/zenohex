@@ -1,15 +1,11 @@
 use std::sync::Arc;
 
 use flume::Receiver;
-use rustler::types::atom;
-use rustler::{thread, Encoder};
-use rustler::{Atom, Env, ResourceArc, Term};
-use zenoh::prelude::sync::*;
+use rustler::{thread, types::atom, Atom, Encoder, Env, ResourceArc, Term};
 use zenoh::{
-    publication::Publisher, queryable::Queryable, subscriber::PullSubscriber,
-    subscriber::Subscriber, Session,
+    prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
+    sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
 };
-use zenoh::{query::Reply, queryable::Query, sample::Sample};
 
 mod atoms {
     rustler::atoms! {
@@ -69,76 +65,6 @@ fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<ExSessionRef>, Stri
     }
 }
 
-#[rustler::nif]
-fn declare_publisher(
-    resource: ResourceArc<ExSessionRef>,
-    key_expr: String,
-    opts: publisher::PublisherOptions,
-) -> Result<ResourceArc<ExPublisherRef>, String> {
-    let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_publisher(key_expr)
-        .congestion_control(opts.congestion_control.into())
-        .priority(opts.priority.into())
-        .res_sync()
-    {
-        Ok(publisher) => Ok(ResourceArc::new(ExPublisherRef(publisher))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-#[rustler::nif]
-fn declare_subscriber(
-    resource: ResourceArc<ExSessionRef>,
-    key_expr: String,
-    opts: subscriber::SubscriberOptions,
-) -> Result<ResourceArc<ExSubscriberRef>, String> {
-    let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_subscriber(key_expr)
-        .reliability(opts.reliability.into())
-        .res_sync()
-    {
-        Ok(subscriber) => Ok(ResourceArc::new(ExSubscriberRef(subscriber))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-#[rustler::nif]
-fn declare_pull_subscriber(
-    resource: ResourceArc<ExSessionRef>,
-    key_expr: String,
-    opts: subscriber::SubscriberOptions,
-) -> Result<ResourceArc<ExPullSubscriberRef>, String> {
-    let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_subscriber(key_expr)
-        .reliability(opts.reliability.into())
-        .pull_mode()
-        .res_sync()
-    {
-        Ok(pull_subscriber) => Ok(ResourceArc::new(ExPullSubscriberRef(pull_subscriber))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-#[rustler::nif]
-fn declare_queryable(
-    resource: ResourceArc<ExSessionRef>,
-    key_expr: String,
-    opts: queryable::QueryableOptions,
-) -> Result<ResourceArc<ExQueryableRef>, String> {
-    let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_queryable(key_expr)
-        .complete(opts.complete)
-        .res_sync()
-    {
-        Ok(queryable) => Ok(ResourceArc::new(ExQueryableRef(queryable))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
 fn load(env: Env, _term: Term) -> bool {
     rustler::resource!(ExSessionRef, env);
     rustler::resource!(ExPublisherRef, env);
@@ -158,10 +84,10 @@ rustler::init!(
         test_thread,
         zenoh_open,
         zenoh_scouting_delay_zero_session,
-        declare_publisher,
-        declare_subscriber,
-        declare_pull_subscriber,
-        declare_queryable,
+        session::declare_publisher,
+        session::declare_subscriber,
+        session::declare_pull_subscriber,
+        session::declare_queryable,
         session::session_put_integer,
         session::session_put_float,
         session::session_put_binary,
