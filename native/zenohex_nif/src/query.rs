@@ -1,7 +1,7 @@
 use rustler::{types::atom, Encoder, Env, ResourceArc, Term};
 use zenoh::prelude::sync::SyncResolve;
 
-use crate::ExQueryRef;
+use crate::{ExQueryRef, ExSampleRef};
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
@@ -29,8 +29,12 @@ impl Query<'_> {
 #[rustler::nif(schedule = "DirtyIo")]
 fn query_reply<'a>(env: Env<'a>, query: Query<'a>, sample: crate::sample::Sample<'a>) -> Term<'a> {
     let query: &zenoh::queryable::Query = &query.reference.0;
-    let sample: &zenoh::sample::Sample = &sample.reference.0;
-    match query.reply(Ok(sample.clone())).res_sync() {
+    let sample: zenoh::sample::Sample =
+        match Option::<ResourceArc<ExSampleRef>>::from(sample.reference) {
+            Some(resource) => resource.0.clone(),
+            None => todo!(), // TODO: Zenoh 外のデータから Sample を作る場合に実装する
+        };
+    match query.reply(Ok(sample)).res_sync() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }

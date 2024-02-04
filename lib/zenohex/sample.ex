@@ -7,7 +7,7 @@ defmodule Zenohex.Sample do
           key_expr: String.t(),
           value: binary() | integer() | float(),
           kind: :put | :delete,
-          reference: reference()
+          reference: reference() | :undefined
         }
   defstruct [:key_expr, :value, :kind, :reference]
 end
