@@ -1,4 +1,4 @@
-use rustler::{types::atom, Encoder, Env, ResourceArc, Term};
+use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
 use zenoh::prelude::sync::SyncResolve;
 
 use crate::{ExQueryRef, ExSampleRef};
@@ -8,7 +8,7 @@ use crate::{ExQueryRef, ExSampleRef};
 pub struct Query<'a> {
     key_expr: String,
     parameters: String,
-    value: Term<'a>,
+    value: ErlOption<Term<'a>>,
     reference: ResourceArc<ExQueryRef>,
 }
 
@@ -18,8 +18,8 @@ impl Query<'_> {
             key_expr: query.key_expr().to_string(),
             parameters: query.parameters().to_string(),
             value: match query.value() {
-                Some(value) => crate::value::Value::to_term(env, value),
-                None => atom::nil().encode(env),
+                Some(value) => ErlOption::some(crate::value::Value::to_term(env, value)),
+                None => ErlOption::none(),
             },
             reference: ResourceArc::new(ExQueryRef(query)),
         }

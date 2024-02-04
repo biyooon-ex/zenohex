@@ -9,7 +9,7 @@ defmodule Zenohex.Query do
   @type t :: %__MODULE__{
           key_expr: String.t(),
           parameters: String.t(),
-          value: binary() | integer() | float() | nil,
+          value: binary() | integer() | float() | :undefined,
           reference: reference()
         }
   defstruct [:key_expr, :parameters, :value, :reference]
