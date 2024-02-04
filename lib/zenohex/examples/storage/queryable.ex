@@ -28,8 +28,9 @@ defmodule Zenohex.Examples.Storage.Queryable do
           {:ok, [sample]} ->
             :ok = Query.reply(query, sample)
 
-            # NOTE: It seems that when the query is dropped, the socket is closed and the data is flushed.
-            # Therefore, it seems necessary to explicitly perform GC of the process and drop the query.
+            # NOTE: `send_redponse_final` is invoked When QueryInnter dropped.
+            # So we need to do GC, which release ResourceArc<ExQueryRef>, to finish the reply.
+            # ref. https://github.com/eclipse-zenoh/zenoh/blob/0.10.1-rc/zenoh/src/queryable.rs#L55-L69
             :erlang.garbage_collect()
         end
 
