@@ -4,16 +4,6 @@ defmodule Zenohex.NifTest do
   alias Zenohex.Nif
   alias Zenohex.Sample
 
-  test "add/2" do
-    assert Nif.add(1, 2) == 3
-  end
-
-  test "test_thread/0" do
-    pid = self()
-    assert Nif.test_thread() == :ok
-    assert_receive ^pid
-  end
-
   setup_all do
     {:ok, session} = Nif.zenoh_open()
     %{session: session}

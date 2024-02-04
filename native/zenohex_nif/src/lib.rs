@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use flume::Receiver;
-use rustler::{thread, types::atom, Atom, Encoder, Env, ResourceArc, Term};
+use rustler::{Env, ResourceArc, Term};
 use zenoh::{
     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
     sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
@@ -29,18 +29,6 @@ pub struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
 pub struct ExReplyReceiverRef(Receiver<Reply>);
 pub struct ExQueryRef(Query);
 pub struct ExSampleRef(Sample);
-
-#[rustler::nif]
-fn add(a: i64, b: i64) -> i64 {
-    a + b
-}
-
-#[rustler::nif]
-fn test_thread(env: Env) -> Atom {
-    let pid = env.pid();
-    thread::spawn::<thread::ThreadSpawner, _>(env, move |thread_env| pid.encode(thread_env));
-    atom::ok()
-}
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {
@@ -80,8 +68,6 @@ fn load(env: Env, _term: Term) -> bool {
 rustler::init!(
     "Elixir.Zenohex.Nif",
     [
-        add,
-        test_thread,
         zenoh_open,
         zenoh_scouting_delay_zero_session,
         session::declare_publisher,
