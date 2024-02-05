@@ -66,13 +66,13 @@ fn publisher_priority(
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Publisher.Options"]
-pub struct PublisherOptions {
+pub(crate) struct PublisherOptions {
     pub(crate) congestion_control: CongestionControl,
     pub(crate) priority: Priority,
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum CongestionControl {
+pub(crate) enum CongestionControl {
     Drop,
     Block,
 }
@@ -87,7 +87,7 @@ impl From<CongestionControl> for zenoh::publication::CongestionControl {
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum Priority {
+pub(crate) enum Priority {
     RealTime,
     InteractiveHigh,
     InteractiveLow,

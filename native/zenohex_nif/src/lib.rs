@@ -21,14 +21,14 @@ mod session;
 mod subscriber;
 mod value;
 
-pub struct ExSessionRef(Arc<Session>);
-pub struct ExPublisherRef(Publisher<'static>);
-pub struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
-pub struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
-pub struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
-pub struct ExReplyReceiverRef(Receiver<Reply>);
-pub struct ExQueryRef(Query);
-pub struct ExSampleRef(Sample);
+struct ExSessionRef(Arc<Session>);
+struct ExPublisherRef(Publisher<'static>);
+struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
+struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
+struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
+struct ExReplyReceiverRef(Receiver<Reply>);
+struct ExQueryRef(Query);
+struct ExSampleRef(Sample);
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {

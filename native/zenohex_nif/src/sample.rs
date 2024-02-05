@@ -4,7 +4,7 @@ use crate::ExSampleRef;
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Sample"]
-pub struct Sample<'a> {
+pub(crate) struct Sample<'a> {
     pub(crate) key_expr: String,
     pub(crate) value: Term<'a>,
     pub(crate) kind: SampleKind,
@@ -23,7 +23,7 @@ impl Sample<'_> {
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum SampleKind {
+pub(crate) enum SampleKind {
     Put,
     Delete,
 }

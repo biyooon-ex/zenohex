@@ -21,6 +21,6 @@ fn queryable_recv_timeout(
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Queryable.Options"]
-pub struct QueryableOptions {
+pub(crate) struct QueryableOptions {
     pub(crate) complete: bool,
 }

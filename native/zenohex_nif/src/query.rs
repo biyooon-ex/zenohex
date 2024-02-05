@@ -5,7 +5,7 @@ use crate::{ExQueryRef, ExSampleRef};
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
-pub struct Query<'a> {
+pub(crate) struct Query<'a> {
     key_expr: String,
     parameters: String,
     value: ErlOption<Term<'a>>,
@@ -42,13 +42,13 @@ fn query_reply<'a>(env: Env<'a>, query: Query<'a>, sample: crate::sample::Sample
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query.Options"]
-pub struct QueryOptions {
+pub(crate) struct QueryOptions {
     pub(crate) target: QueryTarget,
     pub(crate) consolidation: ConsolidationMode,
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum QueryTarget {
+pub(crate) enum QueryTarget {
     BestMatching,
     All,
     AllComplete,
@@ -65,7 +65,7 @@ impl From<QueryTarget> for zenoh::query::QueryTarget {
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum ConsolidationMode {
+pub(crate) enum ConsolidationMode {
     Auto,
     None,
     Monotonic,

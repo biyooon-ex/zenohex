@@ -19,12 +19,12 @@ fn subscriber_recv_timeout(
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Subscriber.Options"]
-pub struct SubscriberOptions {
+pub(crate) struct SubscriberOptions {
     pub(crate) reliability: Reliability,
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub enum Reliability {
+pub(crate) enum Reliability {
     BestEffort,
     Reliable,
 }
