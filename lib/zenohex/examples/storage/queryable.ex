@@ -25,8 +25,11 @@ defmodule Zenohex.Examples.Storage.Queryable do
           {:error, :not_found} ->
             nil
 
-          {:ok, [sample]} ->
-            :ok = Query.reply(query, sample)
+          {:ok, samples} ->
+            Enum.each(samples, fn sample ->
+              :ok = Query.reply(query, sample)
+            end)
+
             :ok = Query.finish_reply(query)
             # following line is not needed, this is just example of double call
             {:error, "ResponseFinal has already been sent"} = Query.finish_reply(query)

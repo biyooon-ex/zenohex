@@ -170,4 +170,11 @@ defmodule Zenohex.NifTest do
       assert is_reference(queryable)
     end
   end
+
+  describe "key_expr" do
+    test "key_expr_intersects/2" do
+      assert Nif.key_expr_intersects("key/expression/**", "key/expression/demo")
+      refute Nif.key_expr_intersects("key/expression/**", "key/value")
+    end
+  end
 end

@@ -5,6 +5,8 @@ defmodule Zenohex.Examples.Storage.Store do
 
   require Logger
 
+  alias Zenohex.KeyExpr
+
   def start_link(initial_state) do
     Agent.start_link(fn -> initial_state end, name: __MODULE__)
   end
@@ -28,9 +30,12 @@ defmodule Zenohex.Examples.Storage.Store do
     Agent.get(
       __MODULE__,
       fn map ->
-        case Map.get(map, key_expr) do
-          nil -> {:error, :not_found}
-          sample -> {:ok, [sample]}
+        samples = collect_samples(map, key_expr)
+
+        if samples == [] do
+          {:error, :not_found}
+        else
+          {:ok, samples}
         end
       end
     )
@@ -38,5 +43,16 @@ defmodule Zenohex.Examples.Storage.Store do
 
   def dump() do
     Agent.get(__MODULE__, fn map -> map end)
+  end
+
+  defp collect_samples(map, key_expr) do
+    Map.keys(map)
+    |> Enum.filter(&KeyExpr.intersects?(key_expr, &1))
+    |> Enum.reduce([], fn key, acc ->
+      case Map.get(map, key) do
+        nil -> acc
+        sample -> [sample | acc]
+      end
+    end)
   end
 end

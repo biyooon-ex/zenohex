@@ -12,6 +12,7 @@ mod atoms {
         timeout,
     }
 }
+mod keyexpr;
 mod publisher;
 mod pull_subscriber;
 mod query;
@@ -92,6 +93,7 @@ rustler::init!(
         queryable::queryable_recv_timeout,
         query::query_reply,
         query::query_finish_reply,
+        keyexpr::key_expr_intersects,
     ],
     load = load
 );

@@ -105,4 +105,8 @@ defmodule Zenohex.Nif do
   def query_finish_reply(_query) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  def key_expr_intersects(_l, _r) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end
