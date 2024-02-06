@@ -12,7 +12,7 @@ fn subscriber_recv_timeout(
 ) -> Result<Term, Term> {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(sample) => Ok(crate::sample::Sample::from(env, sample).encode(env)),
+        Ok(sample) => Ok(crate::sample::ExSample::from(env, sample).encode(env)),
         Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
 }
@@ -20,20 +20,20 @@ fn subscriber_recv_timeout(
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Subscriber.Options"]
 pub(crate) struct SubscriberOptions {
-    pub(crate) reliability: Reliability,
+    pub(crate) reliability: ExReliability,
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub(crate) enum Reliability {
+pub(crate) enum ExReliability {
     BestEffort,
     Reliable,
 }
 
-impl From<Reliability> for zenoh::subscriber::Reliability {
-    fn from(value: Reliability) -> Self {
+impl From<ExReliability> for zenoh::subscriber::Reliability {
+    fn from(value: ExReliability) -> Self {
         match value {
-            Reliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
-            Reliability::Reliable => zenoh::subscriber::Reliability::Reliable,
+            ExReliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
+            ExReliability::Reliable => zenoh::subscriber::Reliability::Reliable,
         }
     }
 }

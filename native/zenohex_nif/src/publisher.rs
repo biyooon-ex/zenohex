@@ -45,7 +45,7 @@ fn publisher_delete(env: Env, resource: ResourceArc<PublisherRef>) -> Term {
 #[rustler::nif]
 fn publisher_congestion_control(
     resource: ResourceArc<PublisherRef>,
-    value: CongestionControl,
+    value: ExCongestionControl,
 ) -> ResourceArc<PublisherRef> {
     let publisher: &Publisher = &resource.0;
     let publisher: Publisher = publisher.clone().congestion_control(value.into());
@@ -56,7 +56,7 @@ fn publisher_congestion_control(
 #[rustler::nif]
 fn publisher_priority(
     resource: ResourceArc<PublisherRef>,
-    value: Priority,
+    value: ExPriority,
 ) -> ResourceArc<PublisherRef> {
     let publisher: &Publisher = &resource.0;
     let publisher: Publisher = publisher.clone().priority(value.into());
@@ -66,28 +66,28 @@ fn publisher_priority(
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Publisher.Options"]
-pub(crate) struct PublisherOptions {
-    pub(crate) congestion_control: CongestionControl,
-    pub(crate) priority: Priority,
+pub(crate) struct ExPublisherOptions {
+    pub(crate) congestion_control: ExCongestionControl,
+    pub(crate) priority: ExPriority,
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub(crate) enum CongestionControl {
+pub(crate) enum ExCongestionControl {
     Drop,
     Block,
 }
 
-impl From<CongestionControl> for zenoh::publication::CongestionControl {
-    fn from(value: CongestionControl) -> Self {
+impl From<ExCongestionControl> for zenoh::publication::CongestionControl {
+    fn from(value: ExCongestionControl) -> Self {
         match value {
-            CongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
-            CongestionControl::Block => zenoh::publication::CongestionControl::Block,
+            ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
+            ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
         }
     }
 }
 
 #[derive(rustler::NifUnitEnum)]
-pub(crate) enum Priority {
+pub(crate) enum ExPriority {
     RealTime,
     InteractiveHigh,
     InteractiveLow,
@@ -97,16 +97,16 @@ pub(crate) enum Priority {
     Background,
 }
 
-impl From<Priority> for zenoh::publication::Priority {
-    fn from(value: Priority) -> Self {
+impl From<ExPriority> for zenoh::publication::Priority {
+    fn from(value: ExPriority) -> Self {
         match value {
-            Priority::RealTime => zenoh::publication::Priority::RealTime,
-            Priority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
-            Priority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
-            Priority::DataHigh => zenoh::publication::Priority::DataHigh,
-            Priority::Data => zenoh::publication::Priority::Data,
-            Priority::DataLow => zenoh::publication::Priority::DataLow,
-            Priority::Background => zenoh::publication::Priority::Background,
+            ExPriority::RealTime => zenoh::publication::Priority::RealTime,
+            ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
+            ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
+            ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
+            ExPriority::Data => zenoh::publication::Priority::Data,
+            ExPriority::DataLow => zenoh::publication::Priority::DataLow,
+            ExPriority::Background => zenoh::publication::Priority::Background,
         }
     }
 }

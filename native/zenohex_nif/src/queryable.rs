@@ -14,13 +14,13 @@ fn queryable_recv_timeout(
 ) -> Result<Term, Term> {
     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
     match queryable.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(query) => Ok(crate::query::Query::from(env, query).encode(env)),
+        Ok(query) => Ok(crate::query::ExQuery::from(env, query).encode(env)),
         Err(_recv_timeout_error) => Err(atoms::timeout().encode(env)),
     }
 }
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Queryable.Options"]
-pub(crate) struct QueryableOptions {
+pub(crate) struct ExQueryableOptions {
     pub(crate) complete: bool,
 }

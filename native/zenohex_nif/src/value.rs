@@ -3,10 +3,10 @@ use std::{borrow::Cow, io::Write};
 use rustler::{Encoder, Env, OwnedBinary, Term};
 use zenoh::prelude::KnownEncoding;
 
-pub(crate) struct Value;
+pub(crate) struct ExValue;
 
-impl Value {
-    pub(crate) fn to_term<'a>(env: Env<'a>, value: &zenoh::value::Value) -> Term<'a> {
+impl ExValue {
+    pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::value::Value) -> Term<'a> {
         match value.encoding.prefix() {
             KnownEncoding::Empty => unimplemented!(),
             KnownEncoding::AppOctetStream => match Cow::try_from(value) {

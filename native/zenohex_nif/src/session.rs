@@ -8,7 +8,7 @@ use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
 fn declare_publisher(
     resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
-    opts: crate::publisher::PublisherOptions,
+    opts: crate::publisher::ExPublisherOptions,
 ) -> Result<ResourceArc<crate::PublisherRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
@@ -61,7 +61,7 @@ fn declare_pull_subscriber(
 fn declare_queryable(
     resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
-    opts: crate::queryable::QueryableOptions,
+    opts: crate::queryable::ExQueryableOptions,
 ) -> Result<ResourceArc<crate::QueryableRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
@@ -121,7 +121,7 @@ fn session_put_impl<T: Into<zenoh::value::Value>>(
 fn session_get_reply_receiver(
     resource: ResourceArc<crate::SessionRef>,
     selector: String,
-    opts: crate::query::QueryOptions,
+    opts: crate::query::ExQueryOptions,
 ) -> Result<ResourceArc<crate::ReplyReceiverRef>, String> {
     let session: &Arc<Session> = &resource.0;
     // TODO: with_value の実装は用途が出てきたら検討
@@ -145,8 +145,8 @@ fn session_get_reply_timeout(
     let receiver: &Receiver<Reply> = &resource.0;
     match receiver.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(reply) => match reply.sample {
-            Ok(sample) => Ok(crate::sample::Sample::from(env, sample).encode(env)),
-            Err(value) => Err(crate::value::Value::to_term(env, &value)),
+            Ok(sample) => Ok(crate::sample::ExSample::from(env, sample).encode(env)),
+            Err(value) => Err(crate::value::ExValue::from(env, &value).encode(env)),
         },
         Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
     }
