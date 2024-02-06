@@ -174,7 +174,9 @@ defmodule Zenohex.NifTest do
   describe "key_expr" do
     test "key_expr_intersects/2" do
       assert Nif.key_expr_intersects("key/expression/**", "key/expression/demo")
+      assert Nif.key_expr_intersects("key/expression/demo", "key/expression/**")
       refute Nif.key_expr_intersects("key/expression/**", "key/value")
+      refute Nif.key_expr_intersects("key/value", "key/expression/**")
     end
   end
 end

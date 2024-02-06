@@ -47,7 +47,7 @@ defmodule Zenohex.Examples.Storage.Store do
 
   defp collect_samples(map, key_expr) do
     Map.keys(map)
-    |> Enum.filter(&KeyExpr.intersects?(key_expr, &1))
+    |> Enum.filter(&KeyExpr.intersects?(&1, key_expr))
     |> Enum.reduce([], fn key, acc ->
       case Map.get(map, key) do
         nil -> acc
