@@ -4,12 +4,12 @@ use flume::Receiver;
 use rustler::{Encoder, Env, ResourceArc, Term};
 use zenoh::queryable::{Query, Queryable};
 
-use crate::{atoms, ExQueryableRef};
+use crate::{atoms, QueryableRef};
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn queryable_recv_timeout(
     env: Env,
-    resource: ResourceArc<ExQueryableRef>,
+    resource: ResourceArc<QueryableRef>,
     timeout_us: u64,
 ) -> Result<Term, Term> {
     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;

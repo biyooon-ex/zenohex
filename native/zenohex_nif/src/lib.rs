@@ -21,26 +21,26 @@ mod session;
 mod subscriber;
 mod value;
 
-struct ExSessionRef(Arc<Session>);
-struct ExPublisherRef(Publisher<'static>);
-struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
-struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
-struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
-struct ExReplyReceiverRef(Receiver<Reply>);
-struct ExQueryRef(RwLock<Option<Query>>);
-struct ExSampleRef(Sample);
+struct SessionRef(Arc<Session>);
+struct PublisherRef(Publisher<'static>);
+struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
+struct PullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
+struct QueryableRef(Queryable<'static, Receiver<Query>>);
+struct ReplyReceiverRef(Receiver<Reply>);
+struct QueryRef(RwLock<Option<Query>>);
+struct SampleRef(Sample);
 
 #[rustler::nif(schedule = "DirtyIo")]
-fn zenoh_open() -> Result<ResourceArc<ExSessionRef>, String> {
+fn zenoh_open() -> Result<ResourceArc<SessionRef>, String> {
     let config = config::peer();
     match zenoh::open(config).res_sync() {
-        Ok(session) => Ok(ResourceArc::new(ExSessionRef(session.into_arc()))),
+        Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
         Err(error) => Err(error.to_string()),
     }
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
-fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<ExSessionRef>, String> {
+fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<SessionRef>, String> {
     let mut config = config::peer();
     let config = match config.scouting.set_delay(Some(0)) {
         Ok(_) => config,
@@ -48,20 +48,20 @@ fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<ExSessionRef>, Stri
     };
 
     match zenoh::open(config).res_sync() {
-        Ok(session) => Ok(ResourceArc::new(ExSessionRef(session.into_arc()))),
+        Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
         Err(error) => Err(error.to_string()),
     }
 }
 
 fn load(env: Env, _term: Term) -> bool {
-    rustler::resource!(ExSessionRef, env);
-    rustler::resource!(ExPublisherRef, env);
-    rustler::resource!(ExSubscriberRef, env);
-    rustler::resource!(ExPullSubscriberRef, env);
-    rustler::resource!(ExQueryableRef, env);
-    rustler::resource!(ExReplyReceiverRef, env);
-    rustler::resource!(ExQueryRef, env);
-    rustler::resource!(ExSampleRef, env);
+    rustler::resource!(SessionRef, env);
+    rustler::resource!(PublisherRef, env);
+    rustler::resource!(SubscriberRef, env);
+    rustler::resource!(PullSubscriberRef, env);
+    rustler::resource!(QueryableRef, env);
+    rustler::resource!(ReplyReceiverRef, env);
+    rustler::resource!(QueryRef, env);
+    rustler::resource!(SampleRef, env);
     true
 }
 

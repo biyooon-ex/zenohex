@@ -7,7 +7,7 @@ use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscrib
 #[rustler::nif(schedule = "DirtyIo")]
 fn pull_subscriber_recv_timeout(
     env: Env,
-    resource: ResourceArc<crate::ExPullSubscriberRef>,
+    resource: ResourceArc<crate::PullSubscriberRef>,
     timeout_us: u64,
 ) -> Result<Term, Term> {
     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
@@ -18,7 +18,7 @@ fn pull_subscriber_recv_timeout(
 }
 
 #[rustler::nif]
-fn pull_subscriber_pull(env: Env, resource: ResourceArc<crate::ExPullSubscriberRef>) -> Term {
+fn pull_subscriber_pull(env: Env, resource: ResourceArc<crate::PullSubscriberRef>) -> Term {
     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
     match pull_subscriber.pull().res_sync() {
         Ok(_) => atom::ok().encode(env),

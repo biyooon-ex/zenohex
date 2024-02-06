@@ -7,7 +7,7 @@ use zenoh::{sample::Sample, subscriber::Subscriber};
 #[rustler::nif(schedule = "DirtyIo")]
 fn subscriber_recv_timeout(
     env: Env,
-    resource: ResourceArc<crate::ExSubscriberRef>,
+    resource: ResourceArc<crate::SubscriberRef>,
     timeout_us: u64,
 ) -> Result<Term, Term> {
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;

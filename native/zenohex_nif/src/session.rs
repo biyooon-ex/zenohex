@@ -6,10 +6,10 @@ use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
 
 #[rustler::nif]
 fn declare_publisher(
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     opts: crate::publisher::PublisherOptions,
-) -> Result<ResourceArc<crate::ExPublisherRef>, String> {
+) -> Result<ResourceArc<crate::PublisherRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
         .declare_publisher(key_expr)
@@ -17,34 +17,34 @@ fn declare_publisher(
         .priority(opts.priority.into())
         .res_sync()
     {
-        Ok(publisher) => Ok(ResourceArc::new(crate::ExPublisherRef(publisher))),
+        Ok(publisher) => Ok(ResourceArc::new(crate::PublisherRef(publisher))),
         Err(error) => Err(error.to_string()),
     }
 }
 
 #[rustler::nif]
 fn declare_subscriber(
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     opts: crate::subscriber::SubscriberOptions,
-) -> Result<ResourceArc<crate::ExSubscriberRef>, String> {
+) -> Result<ResourceArc<crate::SubscriberRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
         .declare_subscriber(key_expr)
         .reliability(opts.reliability.into())
         .res_sync()
     {
-        Ok(subscriber) => Ok(ResourceArc::new(crate::ExSubscriberRef(subscriber))),
+        Ok(subscriber) => Ok(ResourceArc::new(crate::SubscriberRef(subscriber))),
         Err(error) => Err(error.to_string()),
     }
 }
 
 #[rustler::nif]
 fn declare_pull_subscriber(
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     opts: crate::subscriber::SubscriberOptions,
-) -> Result<ResourceArc<crate::ExPullSubscriberRef>, String> {
+) -> Result<ResourceArc<crate::PullSubscriberRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
         .declare_subscriber(key_expr)
@@ -52,26 +52,24 @@ fn declare_pull_subscriber(
         .pull_mode()
         .res_sync()
     {
-        Ok(pull_subscriber) => Ok(ResourceArc::new(crate::ExPullSubscriberRef(
-            pull_subscriber,
-        ))),
+        Ok(pull_subscriber) => Ok(ResourceArc::new(crate::PullSubscriberRef(pull_subscriber))),
         Err(error) => Err(error.to_string()),
     }
 }
 
 #[rustler::nif]
 fn declare_queryable(
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     opts: crate::queryable::QueryableOptions,
-) -> Result<ResourceArc<crate::ExQueryableRef>, String> {
+) -> Result<ResourceArc<crate::QueryableRef>, String> {
     let session: &Arc<Session> = &resource.0;
     match session
         .declare_queryable(key_expr)
         .complete(opts.complete)
         .res_sync()
     {
-        Ok(queryable) => Ok(ResourceArc::new(crate::ExQueryableRef(queryable))),
+        Ok(queryable) => Ok(ResourceArc::new(crate::QueryableRef(queryable))),
         Err(error) => Err(error.to_string()),
     }
 }
@@ -79,7 +77,7 @@ fn declare_queryable(
 #[rustler::nif]
 fn session_put_integer(
     env: Env,
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     value: i64,
 ) -> Term {
@@ -89,7 +87,7 @@ fn session_put_integer(
 #[rustler::nif]
 fn session_put_float(
     env: Env,
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     value: f64,
 ) -> Term {
@@ -99,7 +97,7 @@ fn session_put_float(
 #[rustler::nif]
 fn session_put_binary<'a>(
     env: Env<'a>,
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     value: Binary<'a>,
 ) -> Term<'a> {
@@ -108,7 +106,7 @@ fn session_put_binary<'a>(
 
 fn session_put_impl<T: Into<zenoh::value::Value>>(
     env: Env,
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
     value: T,
 ) -> Term {
@@ -121,10 +119,10 @@ fn session_put_impl<T: Into<zenoh::value::Value>>(
 
 #[rustler::nif]
 fn session_get_reply_receiver(
-    resource: ResourceArc<crate::ExSessionRef>,
+    resource: ResourceArc<crate::SessionRef>,
     selector: String,
     opts: crate::query::QueryOptions,
-) -> Result<ResourceArc<crate::ExReplyReceiverRef>, String> {
+) -> Result<ResourceArc<crate::ReplyReceiverRef>, String> {
     let session: &Arc<Session> = &resource.0;
     // TODO: with_value の実装は用途が出てきたら検討
     match session
@@ -133,7 +131,7 @@ fn session_get_reply_receiver(
         .consolidation(opts.consolidation)
         .res_sync()
     {
-        Ok(receiver) => Ok(ResourceArc::new(crate::ExReplyReceiverRef(receiver))),
+        Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
         Err(error) => Err(error.to_string()),
     }
 }
@@ -141,7 +139,7 @@ fn session_get_reply_receiver(
 #[rustler::nif(schedule = "DirtyIo")]
 fn session_get_reply_timeout(
     env: Env,
-    resource: ResourceArc<crate::ExReplyReceiverRef>,
+    resource: ResourceArc<crate::ReplyReceiverRef>,
     timeout_us: u64,
 ) -> Result<Term, Term> {
     let receiver: &Receiver<Reply> = &resource.0;
@@ -155,7 +153,7 @@ fn session_get_reply_timeout(
 }
 
 #[rustler::nif]
-fn session_delete(env: Env, resource: ResourceArc<crate::ExSessionRef>, key_expr: String) -> Term {
+fn session_delete(env: Env, resource: ResourceArc<crate::SessionRef>, key_expr: String) -> Term {
     let session: &Arc<Session> = &resource.0;
     match session.delete(key_expr).res_sync() {
         Ok(_) => atom::ok().encode(env),

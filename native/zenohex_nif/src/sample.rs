@@ -1,6 +1,6 @@
 use rustler::{Env, ErlOption, ResourceArc, Term};
 
-use crate::ExSampleRef;
+use crate::SampleRef;
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Sample"]
@@ -8,7 +8,7 @@ pub(crate) struct Sample<'a> {
     pub(crate) key_expr: String,
     pub(crate) value: Term<'a>,
     pub(crate) kind: SampleKind,
-    pub(crate) reference: ErlOption<ResourceArc<ExSampleRef>>,
+    pub(crate) reference: ErlOption<ResourceArc<SampleRef>>,
 }
 
 impl Sample<'_> {
@@ -17,7 +17,7 @@ impl Sample<'_> {
             key_expr: sample.key_expr.to_string(),
             value: crate::value::Value::to_term(env, &sample.value),
             kind: sample.kind.into(),
-            reference: ErlOption::some(ResourceArc::new(ExSampleRef(sample))),
+            reference: ErlOption::some(ResourceArc::new(SampleRef(sample))),
         }
     }
 }

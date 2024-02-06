@@ -3,7 +3,7 @@ use std::sync::RwLock;
 use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
 use zenoh::prelude::sync::SyncResolve;
 
-use crate::{ExQueryRef, ExSampleRef};
+use crate::{QueryRef, SampleRef};
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
@@ -11,7 +11,7 @@ pub(crate) struct Query<'a> {
     key_expr: String,
     parameters: String,
     value: ErlOption<Term<'a>>,
-    reference: ResourceArc<ExQueryRef>,
+    reference: ResourceArc<QueryRef>,
 }
 
 impl Query<'_> {
@@ -23,7 +23,7 @@ impl Query<'_> {
                 Some(value) => ErlOption::some(crate::value::Value::to_term(env, value)),
                 None => ErlOption::none(),
             },
-            reference: ResourceArc::new(ExQueryRef(RwLock::new(Some(query)))),
+            reference: ResourceArc::new(QueryRef(RwLock::new(Some(query)))),
         }
     }
 }
@@ -46,7 +46,7 @@ fn query_reply<'a>(env: Env<'a>, query: Query<'a>, sample: crate::sample::Sample
         }
     };
     let sample: zenoh::sample::Sample =
-        match Option::<ResourceArc<ExSampleRef>>::from(sample.reference) {
+        match Option::<ResourceArc<SampleRef>>::from(sample.reference) {
             Some(resource) => resource.0.clone(),
             None => todo!(), // TODO: Zenoh 外のデータから Sample を作る場合に実装する
         };

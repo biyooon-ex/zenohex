@@ -1,21 +1,21 @@
-use crate::ExPublisherRef;
+use crate::PublisherRef;
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
 use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
 
 #[rustler::nif]
-fn publisher_put_integer(env: Env, resource: ResourceArc<ExPublisherRef>, value: i64) -> Term {
+fn publisher_put_integer(env: Env, resource: ResourceArc<PublisherRef>, value: i64) -> Term {
     publisher_put_impl(env, resource, value)
 }
 
 #[rustler::nif]
-fn publisher_put_float(env: Env, resource: ResourceArc<ExPublisherRef>, value: f64) -> Term {
+fn publisher_put_float(env: Env, resource: ResourceArc<PublisherRef>, value: f64) -> Term {
     publisher_put_impl(env, resource, value)
 }
 
 #[rustler::nif]
 fn publisher_put_binary<'a>(
     env: Env<'a>,
-    resource: ResourceArc<ExPublisherRef>,
+    resource: ResourceArc<PublisherRef>,
     value: Binary<'a>,
 ) -> Term<'a> {
     publisher_put_impl(env, resource, Value::from(value.as_slice()))
@@ -23,7 +23,7 @@ fn publisher_put_binary<'a>(
 
 fn publisher_put_impl<T: Into<zenoh::value::Value>>(
     env: Env,
-    resource: ResourceArc<ExPublisherRef>,
+    resource: ResourceArc<PublisherRef>,
     value: T,
 ) -> Term {
     let publisher: &Publisher = &resource.0;
@@ -34,7 +34,7 @@ fn publisher_put_impl<T: Into<zenoh::value::Value>>(
 }
 
 #[rustler::nif]
-fn publisher_delete(env: Env, resource: ResourceArc<ExPublisherRef>) -> Term {
+fn publisher_delete(env: Env, resource: ResourceArc<PublisherRef>) -> Term {
     let publisher: &Publisher = &resource.0;
     match publisher.delete().res_sync() {
         Ok(_) => atom::ok().encode(env),
@@ -44,24 +44,24 @@ fn publisher_delete(env: Env, resource: ResourceArc<ExPublisherRef>) -> Term {
 
 #[rustler::nif]
 fn publisher_congestion_control(
-    resource: ResourceArc<ExPublisherRef>,
+    resource: ResourceArc<PublisherRef>,
     value: CongestionControl,
-) -> ResourceArc<ExPublisherRef> {
+) -> ResourceArc<PublisherRef> {
     let publisher: &Publisher = &resource.0;
     let publisher: Publisher = publisher.clone().congestion_control(value.into());
 
-    ResourceArc::new(ExPublisherRef(publisher))
+    ResourceArc::new(PublisherRef(publisher))
 }
 
 #[rustler::nif]
 fn publisher_priority(
-    resource: ResourceArc<ExPublisherRef>,
+    resource: ResourceArc<PublisherRef>,
     value: Priority,
-) -> ResourceArc<ExPublisherRef> {
+) -> ResourceArc<PublisherRef> {
     let publisher: &Publisher = &resource.0;
     let publisher: Publisher = publisher.clone().priority(value.into());
 
-    ResourceArc::new(ExPublisherRef(publisher))
+    ResourceArc::new(PublisherRef(publisher))
 }
 
 #[derive(rustler::NifStruct)]
