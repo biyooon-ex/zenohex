@@ -27,11 +27,9 @@ defmodule Zenohex.Examples.Storage.Queryable do
 
           {:ok, [sample]} ->
             :ok = Query.reply(query, sample)
-
-            # NOTE: `send_redponse_final` is invoked When QueryInnter dropped.
-            # So we need to do GC, which release ResourceArc<ExQueryRef>, to finish the reply.
-            # ref. https://github.com/eclipse-zenoh/zenoh/blob/0.10.1-rc/zenoh/src/queryable.rs#L55-L69
-            :erlang.garbage_collect()
+            :ok = Query.finish_reply(query)
+            # following line is not needed, this is just example of double call
+            {:error, "ResponseFinal has already been sent"} = Query.finish_reply(query)
         end
 
       {:error, :timeout} ->

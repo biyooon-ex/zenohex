@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
 use flume::Receiver;
 use rustler::{Env, ResourceArc, Term};
@@ -27,7 +27,7 @@ struct ExSubscriberRef(Subscriber<'static, Receiver<Sample>>);
 struct ExPullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
 struct ExQueryableRef(Queryable<'static, Receiver<Query>>);
 struct ExReplyReceiverRef(Receiver<Reply>);
-struct ExQueryRef(Query);
+struct ExQueryRef(RwLock<Option<Query>>);
 struct ExSampleRef(Sample);
 
 #[rustler::nif(schedule = "DirtyIo")]
@@ -91,6 +91,7 @@ rustler::init!(
         pull_subscriber::pull_subscriber_recv_timeout,
         queryable::queryable_recv_timeout,
         query::query_reply,
+        query::query_finish_reply,
     ],
     load = load
 );

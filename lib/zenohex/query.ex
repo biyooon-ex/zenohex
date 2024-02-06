@@ -29,4 +29,9 @@ defmodule Zenohex.Query do
   def reply(query, sample) when is_struct(query, __MODULE__) and is_struct(sample, Sample) do
     Nif.query_reply(query, sample)
   end
+
+  @spec finish_reply(t()) :: :ok | {:error, reason :: String.t()}
+  def finish_reply(query) when is_struct(query, __MODULE__) do
+    Nif.query_finish_reply(query)
+  end
 end

@@ -101,4 +101,8 @@ defmodule Zenohex.Nif do
   def query_reply(_query, _sample) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  def query_finish_reply(_query) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end
