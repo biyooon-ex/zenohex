@@ -50,9 +50,9 @@ fn query_reply<'a>(
         }
     };
     let sample: zenoh::sample::Sample =
-        match Option::<ResourceArc<SampleRef>>::from(sample.reference) {
+        match Option::<ResourceArc<SampleRef>>::from(sample.reference.clone()) {
             Some(resource) => resource.0.clone(),
-            None => todo!(), // TODO: Zenoh 外のデータから Sample を作る場合に実装する
+            None => sample.into(),
         };
     match query.reply(Ok(sample)).res_sync() {
         Ok(_) => atom::ok().encode(env),

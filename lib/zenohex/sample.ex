@@ -9,5 +9,5 @@ defmodule Zenohex.Sample do
           kind: :put | :delete,
           reference: reference() | :undefined
         }
-  defstruct [:key_expr, :value, :kind, :reference]
+  defstruct key_expr: "", value: "", kind: :put, reference: :undefined
 end
