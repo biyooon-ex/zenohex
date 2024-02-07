@@ -26,8 +26,10 @@ defmodule Zenohex.Examples.PublisherTest do
          }}
       )
 
-      assert PublisherServer.put("put") == :ok
-      assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: "put"}
+      for i <- 0..100 do
+        assert PublisherServer.put(i) == :ok
+        assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
+      end
     end
   end
 
