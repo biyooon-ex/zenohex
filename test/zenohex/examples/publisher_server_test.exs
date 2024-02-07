@@ -2,20 +2,51 @@ defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.PublisherServer
+  alias Zenohex.Examples.SubscriberServer
+  alias Zenohex.Sample
 
   setup do
     {:ok, session} = Zenohex.open()
     key_expr = "key/expression/pub"
     start_supervised!({PublisherServer, %{session: session, key_expr: key_expr}})
-    :ok
+
+    %{session: session}
   end
 
-  test "put/1" do
-    assert PublisherServer.put("put") == :ok
+  describe "put/1" do
+    test "with subscriber", %{session: session} do
+      me = self()
+
+      start_supervised!(
+        {SubscriberServer,
+         %{
+           session: session,
+           key_expr: "key/expression/**",
+           callback: fn sample -> send(me, sample) end
+         }}
+      )
+
+      assert PublisherServer.put("put") == :ok
+      assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: "put"}
+    end
   end
 
-  test "delete/0" do
-    assert PublisherServer.delete() == :ok
+  describe "delete/0" do
+    test "with subscriber", %{session: session} do
+      me = self()
+
+      start_supervised!(
+        {SubscriberServer,
+         %{
+           session: session,
+           key_expr: "key/expression/**",
+           callback: fn sample -> send(me, sample) end
+         }}
+      )
+
+      assert PublisherServer.delete() == :ok
+      assert_receive %Sample{key_expr: "key/expression/pub", kind: :delete}
+    end
   end
 
   test "congestion_control/1" do
