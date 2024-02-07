@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use flume::Receiver;
+use flume::{Receiver, RecvTimeoutError};
 use rustler::{Encoder, Env, ResourceArc, Term};
 use zenoh::{sample::Sample, subscriber::Subscriber};
 
@@ -13,7 +13,8 @@ fn subscriber_recv_timeout(
     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
     match subscriber.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(sample) => Ok(crate::sample::ExSample::from(env, sample).encode(env)),
-        Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Timeout) => Err(crate::atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Disconnected) => Err(crate::atoms::disconnected().encode(env)),
     }
 }
 

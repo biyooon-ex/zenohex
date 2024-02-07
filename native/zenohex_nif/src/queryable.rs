@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use flume::Receiver;
+use flume::{Receiver, RecvTimeoutError};
 use rustler::{Encoder, Env, ResourceArc, Term};
 use zenoh::queryable::{Query, Queryable};
 
@@ -15,7 +15,8 @@ fn queryable_recv_timeout(
     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
     match queryable.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(query) => Ok(crate::query::ExQuery::from(env, query).encode(env)),
-        Err(_recv_timeout_error) => Err(atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Timeout) => Err(atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Disconnected) => Err(atoms::disconnected().encode(env)),
     }
 }
 

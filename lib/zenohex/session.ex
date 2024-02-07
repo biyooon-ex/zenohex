@@ -108,10 +108,13 @@ defmodule Zenohex.Session do
 
       iex> {:ok, session} = Zenohex.open()
       iex> Zenohex.Session.get_timeout(session, "key/**", 1000)
-      {:error, :timeout}
+      {:error, :disconnected}
   """
   @spec get_timeout(t(), String.t(), pos_integer(), Query.Options.t()) ::
-          {:ok, Sample.t()} | {:error, :timeout} | {:error, reason :: any()}
+          {:ok, Sample.t()}
+          | {:error, :timeout}
+          | {:error, :disconnected}
+          | {:error, reason :: any()}
   def get_timeout(session, selector, timeout_us, opts \\ %Query.Options{}) do
     case get_reply_receiver(session, selector, opts) do
       {:ok, receiver} -> get_reply_timeout(receiver, timeout_us)
@@ -142,10 +145,13 @@ defmodule Zenohex.Session do
       iex> {:ok, session} = Zenohex.open()
       iex> {:ok, receiver} = Zenohex.Session.get_reply_receiver(session, "key/**")
       iex> Zenohex.Session.get_reply_timeout(receiver, 1000)
-      {:error, :timeout}
+      {:error, :disconnected}
   """
   @spec get_reply_timeout(receiver(), pos_integer()) ::
-          {:ok, Sample.t()} | {:error, :timeout} | {:error, reason :: any()}
+          {:ok, Sample.t()}
+          | {:error, :timeout}
+          | {:error, :disconnected}
+          | {:error, reason :: any()}
   def get_reply_timeout(receiver, timeout_us)
       when is_reference(receiver) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.session_get_reply_timeout(receiver, timeout_us)

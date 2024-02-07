@@ -1,6 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
-use flume::Receiver;
+use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
 use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
 
@@ -148,7 +148,8 @@ fn session_get_reply_timeout(
             Ok(sample) => Ok(crate::sample::ExSample::from(env, sample).encode(env)),
             Err(value) => Err(crate::value::ExValue::from(env, &value).encode(env)),
         },
-        Err(_recv_timeout_error) => Err(crate::atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Timeout) => Err(crate::atoms::timeout().encode(env)),
+        Err(RecvTimeoutError::Disconnected) => Err(crate::atoms::disconnected().encode(env)),
     }
 }
 

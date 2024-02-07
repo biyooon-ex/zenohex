@@ -10,6 +10,7 @@ use zenoh::{
 mod atoms {
     rustler::atoms! {
         timeout,
+        disconnected,
     }
 }
 mod keyexpr;
