@@ -21,7 +21,8 @@ defmodule Zenohex.Examples.Storage.Store do
   @impl true
   def delete(key_expr) do
     Agent.update(__MODULE__, fn map ->
-      Map.delete(map, key_expr)
+      find_keys(map, key_expr)
+      |> Enum.reduce(map, &Map.delete(&2, &1))
     end)
   end
 
@@ -30,7 +31,14 @@ defmodule Zenohex.Examples.Storage.Store do
     Agent.get(
       __MODULE__,
       fn map ->
-        samples = collect_samples(map, key_expr)
+        samples =
+          find_keys(map, key_expr)
+          |> Enum.reduce([], fn key, acc ->
+            case Map.get(map, key) do
+              nil -> acc
+              sample -> [sample | acc]
+            end
+          end)
 
         if samples == [] do
           {:error, :not_found}
@@ -45,14 +53,7 @@ defmodule Zenohex.Examples.Storage.Store do
     Agent.get(__MODULE__, fn map -> map end)
   end
 
-  defp collect_samples(map, key_expr) do
-    Map.keys(map)
-    |> Enum.filter(&KeyExpr.intersects?(&1, key_expr))
-    |> Enum.reduce([], fn key, acc ->
-      case Map.get(map, key) do
-        nil -> acc
-        sample -> [sample | acc]
-      end
-    end)
+  defp find_keys(map, key_expr) do
+    Map.keys(map) |> Enum.filter(&KeyExpr.intersects?(&1, key_expr))
   end
 end
