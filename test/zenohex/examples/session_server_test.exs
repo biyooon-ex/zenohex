@@ -68,7 +68,10 @@ defmodule Zenohex.Examples.SessionServerTest do
          %{
            session: SessionServer.session(),
            key_expr: "key/expression/**",
-           callback: fn query -> Query.reply(query, %Sample{key_expr: "key/expression/reply"}) end
+           callback: fn query ->
+             :ok = Query.reply(query, %Sample{key_expr: "key/expression/reply"})
+             :ok = Query.finish_reply(query)
+           end
          }}
       )
 
