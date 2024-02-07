@@ -21,6 +21,10 @@ defmodule Zenohex.Examples.SessionServer do
     GenServer.call(__MODULE__, {:set_disconnected_cb, callback})
   end
 
+  def delete(key_expr) do
+    GenServer.call(__MODULE__, {:delete, key_expr})
+  end
+
   def get(selector, callback) do
     GenServer.call(__MODULE__, {:get, selector, callback})
   end
@@ -49,6 +53,11 @@ defmodule Zenohex.Examples.SessionServer do
 
   def handle_call({:set_disconnected_cb, callback}, _from, state) do
     {:reply, :ok, %{state | disconnected_cb: callback}}
+  end
+
+  def handle_call({:delete, key_expr}, _from, state) do
+    :ok = Session.delete(state.session, key_expr)
+    {:reply, :ok, state}
   end
 
   def handle_call({:get, selector, callback}, _from, state) do
