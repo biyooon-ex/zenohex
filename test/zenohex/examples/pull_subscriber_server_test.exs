@@ -1,7 +1,7 @@
 defmodule Zenohex.Examples.PullSubscriberServerTest do
   use ExUnit.Case
 
-  alias Zenohex.Examples.PullSubscriberServer
+  alias Zenohex.Examples.PullSubscriber
   alias Zenohex.Session
   alias Zenohex.Sample
 
@@ -13,7 +13,7 @@ defmodule Zenohex.Examples.PullSubscriberServerTest do
     callback = fn sample -> send(me, sample) end
 
     start_supervised!(
-      {PullSubscriberServer, %{session: session, key_expr: key_expr, callback: callback}}
+      {PullSubscriber.Server, %{session: session, key_expr: key_expr, callback: callback}}
     )
 
     Session.put(session, "key/expression/put", "put")
@@ -29,14 +29,14 @@ defmodule Zenohex.Examples.PullSubscriberServerTest do
     callback = fn sample -> send(me, sample) end
 
     start_supervised!(
-      {PullSubscriberServer, %{session: session, key_expr: key_expr, callback: callback}}
+      {PullSubscriber.Server, %{session: session, key_expr: key_expr, callback: callback}}
     )
 
     Session.put(session, "key/expression/put", "put")
 
     assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
     refute_receive(%Sample{key_expr: "key/expression/put", value: "put"})
-    PullSubscriberServer.pull()
+    PullSubscriber.Server.pull()
     assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
   end
 end
