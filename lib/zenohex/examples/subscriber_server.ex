@@ -32,9 +32,6 @@ defmodule Zenohex.Examples.SubscriberServer do
       {:error, :timeout} ->
         send(self(), :loop)
 
-      {:error, :disconnected} ->
-        raise("unreachable!")
-
       {:error, error} ->
         Logger.error(inspect(error))
     end

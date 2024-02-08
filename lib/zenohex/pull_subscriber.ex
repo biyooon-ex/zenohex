@@ -37,7 +37,6 @@ defmodule Zenohex.PullSubscriber do
   @spec recv_timeout(t(), pos_integer()) ::
           {:ok, Sample.t()}
           | {:error, :timeout}
-          | {:error, :disconnected}
           | {:error, reason :: any()}
   def recv_timeout(pull_subscriber, timeout_us \\ 1000)
       when is_reference(pull_subscriber) and is_integer(timeout_us) and timeout_us > 0 do
