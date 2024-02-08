@@ -1,6 +1,8 @@
 defmodule Zenohex.Query do
   @moduledoc """
   Documentation for `#{__MODULE__}`.
+
+  Structs received by a `Zenohex.Queryable.recv_timeout/1`.
   """
 
   alias Zenohex.Nif

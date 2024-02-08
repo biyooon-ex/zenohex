@@ -1,6 +1,12 @@
 defmodule Zenohex.Sample do
   @moduledoc """
   Documentation for `#{__MODULE__}`.
+
+  Structs received by
+
+    * `Zenohex.Session.get_timeout/3` and `Zenohex.Session.get_reply_timeout/1`
+    * `Zenohex.Subscriber.recv_timeout/1`
+    * `Zenohex.PullSubscriber.recv_timeout/1`
   """
 
   @type t :: %__MODULE__{
