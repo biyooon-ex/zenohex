@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.StorageBehaviour do
+defmodule Zenohex.Examples.Storage.StoreBehaviour do
   @moduledoc false
 
   alias Zenohex.Sample
