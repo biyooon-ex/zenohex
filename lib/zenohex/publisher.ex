@@ -10,6 +10,8 @@ defmodule Zenohex.Publisher do
   defmodule Options do
     @moduledoc """
     Documentation for `#{__MODULE__}`.
+
+    Used by `Zenohex.Session.declare_publisher/3`.
     """
 
     @type t :: %__MODULE__{congestion_control: congestion_control(), priority: priority()}

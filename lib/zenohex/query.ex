@@ -17,6 +17,8 @@ defmodule Zenohex.Query do
   defmodule Options do
     @moduledoc """
     Documentation for `#{__MODULE__}`.
+
+    Used by `Zenohex.Session.get_timeout/4` and `Zenohex.Session.get_reply_receiver/3`.
     """
 
     @type t :: %__MODULE__{target: target(), consolidation: consolidation()}

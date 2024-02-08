@@ -64,7 +64,18 @@ defmodule Zenohex.MixProject do
   end
 
   defp docs() do
-    [extras: ["README.md", "LICENSE"], main: "readme"]
+    [
+      extras: ["README.md", "LICENSE"],
+      main: "readme",
+      groups_for_modules: [
+        Options: [
+          Zenohex.Publisher.Options,
+          Zenohex.Query.Options,
+          Zenohex.Queryable.Options,
+          Zenohex.Subscriber.Options
+        ]
+      ]
+    ]
   end
 
   defp disable_zenoh_delay(_args) do

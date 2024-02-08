@@ -11,6 +11,8 @@ defmodule Zenohex.Queryable do
   defmodule Options do
     @moduledoc """
     Documentation for `#{__MODULE__}`.
+
+    Used by `Zenohex.Session.declare_queryable/3`.
     """
 
     @type t :: %__MODULE__{complete: complete()}
