@@ -69,7 +69,7 @@ defmodule Zenohex.Examples.SessionServer do
   end
 
   def handle_info(:get_reply, state) do
-    case Session.get_reply_timeout(state.receiver, 1000) do
+    case Session.get_reply_timeout(state.receiver) do
       {:ok, sample} ->
         state.callback.(sample)
         send(self(), :get_reply)

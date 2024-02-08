@@ -20,12 +20,13 @@ defmodule Zenohex.Queryable do
 
   @doc """
   Receive query.
+  Normally users don't need to change the default timeout_us.
 
   ## Examples
 
       iex> {:ok, session} = Zenohex.open()
       iex> {:ok, queryable} = Zenohex.Session.declare_queryable(session, "key/expression")
-      iex> Zenohex.Queryable.recv_timeout(queryable, 1000)
+      iex> Zenohex.Queryable.recv_timeout(queryable)
       {:error, :timeout}
   """
   @spec recv_timeout(t(), pos_integer()) ::
@@ -33,7 +34,7 @@ defmodule Zenohex.Queryable do
           | {:error, :timeout}
           | {:error, :disconnected}
           | {:error, reason :: any()}
-  def recv_timeout(queryable, timeout_us)
+  def recv_timeout(queryable, timeout_us \\ 1000)
       when is_reference(queryable) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.queryable_recv_timeout(queryable, timeout_us)
   end

@@ -24,7 +24,7 @@ defmodule Zenohex.Examples.SubscriberServer do
   end
 
   def handle_info(:loop, state) do
-    case Subscriber.recv_timeout(state.subscriber, 1000) do
+    case Subscriber.recv_timeout(state.subscriber) do
       {:ok, sample} ->
         state.callback.(sample)
         send(self(), :loop)

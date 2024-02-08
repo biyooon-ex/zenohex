@@ -13,7 +13,7 @@ defmodule ZenohexTest do
       :ok = Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon #{i}")
 
       {:ok, %Sample{key_expr: "pub/sub", value: value, kind: :put}} =
-        Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+        Zenohex.Subscriber.recv_timeout(subscriber)
 
       assert value == "Hello Zenoh Dragon #{i}"
     end

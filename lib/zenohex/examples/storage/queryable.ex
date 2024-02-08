@@ -21,7 +21,7 @@ defmodule Zenohex.Examples.Storage.Queryable do
   end
 
   def handle_info(:loop, state) do
-    case Queryable.recv_timeout(state.queryable, 1000) do
+    case Queryable.recv_timeout(state.queryable) do
       {:ok, query} ->
         case store(query) do
           {:error, :not_found} ->

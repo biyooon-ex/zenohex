@@ -139,12 +139,13 @@ defmodule Zenohex.Session do
 
   @doc ~S"""
   Query data from receiver.
+  Normally users don't need to change the default timeout_us.
 
   ## Examples
 
       iex> {:ok, session} = Zenohex.open()
       iex> {:ok, receiver} = Zenohex.Session.get_reply_receiver(session, "key/**")
-      iex> Zenohex.Session.get_reply_timeout(receiver, 1000)
+      iex> Zenohex.Session.get_reply_timeout(receiver)
       {:error, :disconnected}
   """
   @spec get_reply_timeout(receiver(), pos_integer()) ::
@@ -152,7 +153,7 @@ defmodule Zenohex.Session do
           | {:error, :timeout}
           | {:error, :disconnected}
           | {:error, reason :: any()}
-  def get_reply_timeout(receiver, timeout_us)
+  def get_reply_timeout(receiver, timeout_us \\ 1000)
       when is_reference(receiver) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.session_get_reply_timeout(receiver, timeout_us)
   end

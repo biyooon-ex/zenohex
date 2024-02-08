@@ -24,7 +24,7 @@ defmodule Zenohex.Examples.QueryableServer do
   end
 
   def handle_info(:loop, state) do
-    case Queryable.recv_timeout(state.queryable, 1000) do
+    case Queryable.recv_timeout(state.queryable) do
       {:ok, query} ->
         state.callback.(query)
         send(self(), :loop)
