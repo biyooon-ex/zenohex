@@ -42,3 +42,6 @@ jobs:
 
       - name: compile & test
         run: mix test --warnings-as-errors
+
+      - name: credo
+        run: mix credo --all
