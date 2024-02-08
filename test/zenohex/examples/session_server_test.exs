@@ -3,7 +3,7 @@ defmodule Zenohex.Examples.SessionServerTest do
 
   alias Zenohex.Examples.SessionServer
   alias Zenohex.Examples.Subscriber
-  alias Zenohex.Examples.QueryableServer
+  alias Zenohex.Examples.Queryable
   alias Zenohex.Query
   alias Zenohex.Sample
 
@@ -64,7 +64,7 @@ defmodule Zenohex.Examples.SessionServerTest do
 
     test "with queryable" do
       start_supervised!(
-        {QueryableServer,
+        {Queryable.Server,
          %{
            session: SessionServer.session(),
            key_expr: "key/expression/**",

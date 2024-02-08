@@ -3,7 +3,7 @@ defmodule Zenohex.Examples.QueryableServerTest do
 
   require Logger
 
-  alias Zenohex.Examples.QueryableServer
+  alias Zenohex.Examples.Queryable
   alias Zenohex.Session
   alias Zenohex.Query
 
@@ -15,7 +15,7 @@ defmodule Zenohex.Examples.QueryableServerTest do
     callback = fn query -> send(me, query) end
 
     start_supervised!(
-      {QueryableServer, %{session: session, key_expr: key_expr, callback: callback}}
+      {Queryable.Server, %{session: session, key_expr: key_expr, callback: callback}}
     )
 
     Session.get_timeout(session, key_expr, 1000)
