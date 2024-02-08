@@ -102,12 +102,13 @@ defmodule Zenohex.Session do
   end
 
   @doc ~S"""
-  Get data from the matching queryables in the system.
+  Get one data from the matching queryables in the system.  
+  To get multiple data, use `get_reply_receiver/2` and `get_reply_timeout/1` instead.
 
   ## Examples
 
       iex> {:ok, session} = Zenohex.open()
-      iex> Zenohex.Session.get_timeout(session, "key/**", 1000)
+      iex> Zenohex.Session.get_timeout(session, "key/expression", 1000)
       {:error, :disconnected}
   """
   @spec get_timeout(t(), String.t(), pos_integer(), Query.Options.t()) ::
