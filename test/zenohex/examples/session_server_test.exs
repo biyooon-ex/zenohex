@@ -1,19 +1,19 @@
 defmodule Zenohex.Examples.SessionServerTest do
   use ExUnit.Case
 
-  alias Zenohex.Examples.SessionServer
+  alias Zenohex.Examples.Session
   alias Zenohex.Examples.Subscriber
   alias Zenohex.Examples.Queryable
   alias Zenohex.Query
   alias Zenohex.Sample
 
   setup do
-    start_supervised!({SessionServer, nil})
+    start_supervised!({Session.Server, nil})
     :ok
   end
 
   test "session/2" do
-    assert is_reference(SessionServer.session())
+    assert is_reference(Session.Server.session())
   end
 
   describe "put/2" do
@@ -23,13 +23,13 @@ defmodule Zenohex.Examples.SessionServerTest do
       start_supervised!(
         {Subscriber.Server,
          %{
-           session: SessionServer.session(),
+           session: Session.Server.session(),
            key_expr: "key/expression/**",
            callback: fn sample -> send(me, sample) end
          }}
       )
 
-      assert SessionServer.put("key/expression/put", "value") == :ok
+      assert Session.Server.put("key/expression/put", "value") == :ok
       assert_receive %Sample{key_expr: "key/expression/put", value: "value"}
     end
   end
@@ -41,13 +41,13 @@ defmodule Zenohex.Examples.SessionServerTest do
       start_supervised!(
         {Subscriber.Server,
          %{
-           session: SessionServer.session(),
+           session: Session.Server.session(),
            key_expr: "key/expression/**",
            callback: fn sample -> send(me, sample) end
          }}
       )
 
-      assert SessionServer.delete("key/expression/delete") == :ok
+      assert Session.Server.delete("key/expression/delete") == :ok
       assert_receive %Sample{key_expr: "key/expression/delete", kind: :delete}
     end
   end
@@ -56,9 +56,9 @@ defmodule Zenohex.Examples.SessionServerTest do
     test "without queryable" do
       me = self()
       callback = fn sample -> send(me, sample) end
-      :ok = SessionServer.set_disconnected_cb(fn -> send(me, :disconnected) end)
+      :ok = Session.Server.set_disconnected_cb(fn -> send(me, :disconnected) end)
 
-      assert SessionServer.get("key/expression/**", callback) == :ok
+      assert Session.Server.get("key/expression/**", callback) == :ok
       assert_receive :disconnected
     end
 
@@ -66,7 +66,7 @@ defmodule Zenohex.Examples.SessionServerTest do
       start_supervised!(
         {Queryable.Server,
          %{
-           session: SessionServer.session(),
+           session: Session.Server.session(),
            key_expr: "key/expression/**",
            callback: fn query ->
              :ok = Query.reply(query, %Sample{key_expr: "key/expression/reply"})
@@ -78,7 +78,7 @@ defmodule Zenohex.Examples.SessionServerTest do
       me = self()
       callback = fn sample -> send(me, sample) end
 
-      assert SessionServer.get("key/expression/**", callback) == :ok
+      assert Session.Server.get("key/expression/**", callback) == :ok
       assert_receive %Sample{}
     end
   end

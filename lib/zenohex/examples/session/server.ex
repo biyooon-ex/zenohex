@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.SessionServer do
+defmodule Zenohex.Examples.Session.Server do
   @moduledoc false
 
   use GenServer
