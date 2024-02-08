@@ -31,14 +31,7 @@ defmodule Zenohex.Examples.Storage.Store do
     Agent.get(
       __MODULE__,
       fn map ->
-        samples =
-          find_keys(map, key_expr)
-          |> Enum.reduce([], fn key, acc ->
-            case Map.get(map, key) do
-              nil -> acc
-              sample -> [sample | acc]
-            end
-          end)
+        samples = collect_samples(map, key_expr)
 
         if samples == [] do
           {:error, :not_found}
@@ -55,5 +48,15 @@ defmodule Zenohex.Examples.Storage.Store do
 
   defp find_keys(map, key_expr) do
     Map.keys(map) |> Enum.filter(&KeyExpr.intersects?(&1, key_expr))
+  end
+
+  defp collect_samples(map, key_expr) do
+    find_keys(map, key_expr)
+    |> Enum.reduce([], fn key, acc ->
+      case Map.get(map, key) do
+        nil -> acc
+        sample -> [sample | acc]
+      end
+    end)
   end
 end
