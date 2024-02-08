@@ -23,7 +23,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.declare_publisher(session, "key/expression")
   """
   @spec declare_publisher(t(), String.t(), Publisher.Options.t()) ::
-          {:ok, Publisher.t()} | {:error, reason :: String.t()}
+          {:ok, Publisher.t()} | {:error, reason :: any()}
   def declare_publisher(session, key_expr, opts \\ %Publisher.Options{})
       when is_reference(session) and is_binary(key_expr) and is_struct(opts, Publisher.Options) do
     Nif.declare_publisher(session, key_expr, opts)
@@ -38,7 +38,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.declare_subscriber(session, "key/expression")
   """
   @spec declare_subscriber(t(), String.t(), Subscriber.Options.t()) ::
-          {:ok, Subscriber.t()} | {:error, reason :: String.t()}
+          {:ok, Subscriber.t()} | {:error, reason :: any()}
   def declare_subscriber(session, key_expr, opts \\ %Subscriber.Options{})
       when is_reference(session) and is_binary(key_expr) and is_struct(opts, Subscriber.Options) do
     Nif.declare_subscriber(session, key_expr, opts)
@@ -53,7 +53,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.declare_pull_subscriber(session, "key/expression")
   """
   @spec declare_pull_subscriber(t(), String.t(), Subscriber.Options.t()) ::
-          {:ok, PullSubscriber.t()} | {:error, reason :: String.t()}
+          {:ok, PullSubscriber.t()} | {:error, reason :: any()}
   def declare_pull_subscriber(session, key_expr, opts \\ %Subscriber.Options{})
       when is_reference(session) and is_binary(key_expr) and is_struct(opts, Subscriber.Options) do
     Nif.declare_pull_subscriber(session, key_expr, opts)
@@ -68,7 +68,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.declare_queryable(session, "key/expression")
   """
   @spec declare_queryable(t(), String.t(), Queryable.Options.t()) ::
-          {:ok, Queryable.t()} | {:error, reason :: String.t()}
+          {:ok, Queryable.t()} | {:error, reason :: any()}
   def declare_queryable(session, key_expr, opts \\ %Queryable.Options{})
       when is_reference(session) and is_binary(key_expr) and is_struct(opts, Queryable.Options) do
     Nif.declare_queryable(session, key_expr, opts)
@@ -85,7 +85,7 @@ defmodule Zenohex.Session do
       iex> :ok = Zenohex.Session.put(session, "key/expression", 0.0)
   """
   @spec put(t(), String.t(), binary() | integer() | float()) ::
-          :ok | {:error, reason :: String.t()}
+          :ok | {:error, reason :: any()}
   def put(session, key_expr, value)
       when is_reference(session) and is_binary(key_expr) and is_binary(value) do
     Nif.session_put_binary(session, key_expr, value)
@@ -131,7 +131,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.get_reply_receiver(session, "key/**")
   """
   @spec get_reply_receiver(t(), String.t(), Query.Options.t()) ::
-          {:ok, receiver()} | {:error, reason :: String.t()}
+          {:ok, receiver()} | {:error, reason :: any()}
   def get_reply_receiver(session, selector, opts \\ %Query.Options{})
       when is_reference(session) and is_binary(selector) and is_struct(opts, Query.Options) do
     Nif.session_get_reply_receiver(session, selector, opts)
@@ -166,7 +166,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.delete(session, "key/expression")
       :ok
   """
-  @spec delete(t(), String.t()) :: :ok | {:error, reason :: String.t()}
+  @spec delete(t(), String.t()) :: :ok | {:error, reason :: any()}
   def delete(session, key_expr) when is_reference(session) and is_binary(key_expr) do
     Nif.session_delete(session, key_expr)
   end

@@ -18,7 +18,7 @@ defmodule Zenohex.PullSubscriber do
       iex> Zenohex.PullSubscriber.pull(pull_subscriber)
       :ok
   """
-  @spec pull(t()) :: :ok | {:error, reason :: String.t()}
+  @spec pull(t()) :: :ok | {:error, reason :: any()}
   def pull(pull_subscriber) when is_reference(pull_subscriber) do
     Nif.pull_subscriber_pull(pull_subscriber)
   end
@@ -37,7 +37,7 @@ defmodule Zenohex.PullSubscriber do
           {:ok, Sample.t()}
           | {:error, :timeout}
           | {:error, :disconnected}
-          | {:error, reason :: String.t()}
+          | {:error, reason :: any()}
   def recv_timeout(pull_subscriber, timeout_us)
       when is_reference(pull_subscriber) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.pull_subscriber_recv_timeout(pull_subscriber, timeout_us)

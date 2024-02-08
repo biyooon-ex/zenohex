@@ -32,7 +32,7 @@ defmodule Zenohex.Queryable do
           {:ok, Query.t()}
           | {:error, :timeout}
           | {:error, :disconnected}
-          | {:error, reason :: String.t()}
+          | {:error, reason :: any()}
   def recv_timeout(queryable, timeout_us)
       when is_reference(queryable) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.queryable_recv_timeout(queryable, timeout_us)

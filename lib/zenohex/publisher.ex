@@ -37,7 +37,7 @@ defmodule Zenohex.Publisher do
       iex> :ok = Zenohex.Publisher.put(publisher, 0)
       iex> :ok = Zenohex.Publisher.put(publisher, 0.0)
   """
-  @spec put(t(), binary() | integer() | float()) :: :ok | {:error, reason :: String.t()}
+  @spec put(t(), binary() | integer() | float()) :: :ok | {:error, reason :: any()}
   def put(publisher, value) when is_binary(value) do
     Nif.publisher_put_binary(publisher, value)
   end
@@ -59,7 +59,7 @@ defmodule Zenohex.Publisher do
       iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
       iex> :ok = Zenohex.Publisher.delete(publisher)
   """
-  @spec delete(t()) :: :ok | {:error, reason :: String.t()}
+  @spec delete(t()) :: :ok | {:error, reason :: any()}
   def delete(publisher) do
     Nif.publisher_delete(publisher)
   end

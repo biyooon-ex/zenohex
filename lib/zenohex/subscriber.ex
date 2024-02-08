@@ -32,7 +32,7 @@ defmodule Zenohex.Subscriber do
           {:ok, Sample.t()}
           | {:error, :timeout}
           | {:error, :disconnected}
-          | {:error, reason :: String.t()}
+          | {:error, reason :: any()}
   def recv_timeout(subscriber, timeout_us)
       when is_reference(subscriber) and is_integer(timeout_us) and timeout_us > 0 do
     Nif.subscriber_recv_timeout(subscriber, timeout_us)

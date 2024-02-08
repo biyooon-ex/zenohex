@@ -25,12 +25,12 @@ defmodule Zenohex.Query do
     defstruct target: :best_matching, consolidation: :auto
   end
 
-  @spec reply(t(), Sample.t()) :: :ok | {:error, reason :: String.t()}
+  @spec reply(t(), Sample.t()) :: :ok | {:error, reason :: any()}
   def reply(query, sample) when is_struct(query, __MODULE__) and is_struct(sample, Sample) do
     Nif.query_reply(query, sample)
   end
 
-  @spec finish_reply(t()) :: :ok | {:error, reason :: String.t()}
+  @spec finish_reply(t()) :: :ok | {:error, reason :: any()}
   def finish_reply(query) when is_struct(query, __MODULE__) do
     Nif.query_finish_reply(query)
   end
