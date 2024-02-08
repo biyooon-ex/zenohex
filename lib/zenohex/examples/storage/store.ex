@@ -1,5 +1,5 @@
 defmodule Zenohex.Examples.Storage.Store do
-  @behaviour Zenohex.StorageBehaviour
+  @behaviour Zenohex.Examples.StorageBehaviour
 
   use Agent
 
