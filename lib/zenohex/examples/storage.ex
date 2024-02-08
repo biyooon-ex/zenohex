@@ -1,4 +1,6 @@
 defmodule Zenohex.Examples.Storage do
+  @moduledoc false
+
   use Supervisor
 
   alias Zenohex.Examples.Storage

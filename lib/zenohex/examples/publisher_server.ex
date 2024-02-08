@@ -1,4 +1,6 @@
 defmodule Zenohex.Examples.PublisherServer do
+  @moduledoc false
+
   use GenServer
 
   alias Zenohex.Session

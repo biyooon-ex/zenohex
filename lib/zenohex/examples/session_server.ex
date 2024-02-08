@@ -1,4 +1,6 @@
 defmodule Zenohex.Examples.SessionServer do
+  @moduledoc false
+
   use GenServer
 
   require Logger

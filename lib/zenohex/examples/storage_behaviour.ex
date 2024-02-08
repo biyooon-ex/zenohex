@@ -1,4 +1,6 @@
 defmodule Zenohex.Examples.StorageBehaviour do
+  @moduledoc false
+
   alias Zenohex.Sample
 
   @callback put(key_expr :: String.t(), sample :: Sample.t()) :: :ok | {:error, reason :: any()}
