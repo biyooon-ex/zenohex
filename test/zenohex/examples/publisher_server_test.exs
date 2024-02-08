@@ -2,7 +2,7 @@ defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.PublisherServer
-  alias Zenohex.Examples.SubscriberServer
+  alias Zenohex.Examples.Subscriber
   alias Zenohex.Sample
 
   setup do
@@ -18,7 +18,7 @@ defmodule Zenohex.Examples.PublisherTest do
       me = self()
 
       start_supervised!(
-        {SubscriberServer,
+        {Subscriber.Server,
          %{
            session: session,
            key_expr: "key/expression/**",
@@ -38,7 +38,7 @@ defmodule Zenohex.Examples.PublisherTest do
       me = self()
 
       start_supervised!(
-        {SubscriberServer,
+        {Subscriber.Server,
          %{
            session: session,
            key_expr: "key/expression/**",

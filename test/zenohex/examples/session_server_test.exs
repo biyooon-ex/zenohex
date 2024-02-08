@@ -2,7 +2,7 @@ defmodule Zenohex.Examples.SessionServerTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.SessionServer
-  alias Zenohex.Examples.SubscriberServer
+  alias Zenohex.Examples.Subscriber
   alias Zenohex.Examples.QueryableServer
   alias Zenohex.Query
   alias Zenohex.Sample
@@ -21,7 +21,7 @@ defmodule Zenohex.Examples.SessionServerTest do
       me = self()
 
       start_supervised!(
-        {SubscriberServer,
+        {Subscriber.Server,
          %{
            session: SessionServer.session(),
            key_expr: "key/expression/**",
@@ -39,7 +39,7 @@ defmodule Zenohex.Examples.SessionServerTest do
       me = self()
 
       start_supervised!(
-        {SubscriberServer,
+        {Subscriber.Server,
          %{
            session: SessionServer.session(),
            key_expr: "key/expression/**",
