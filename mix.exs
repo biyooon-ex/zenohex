@@ -17,6 +17,7 @@ defmodule Zenohex.MixProject do
       name: "ZenohEx",
       source_url: @source_url,
       docs: docs(),
+      test_coverage: test_coverage(),
       aliases: [
         {:test, [&disable_zenoh_delay/1, "test"]},
         {:"test.watch", [&disable_zenoh_delay/1, "test.watch"]}
@@ -75,6 +76,12 @@ defmodule Zenohex.MixProject do
           Zenohex.Subscriber.Options
         ]
       ]
+    ]
+  end
+
+  defp test_coverage() do
+    [
+      ignore_modules: [Zenohex.Nif]
     ]
   end
 

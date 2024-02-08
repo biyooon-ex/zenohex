@@ -40,8 +40,10 @@ jobs:
         working-directory: native/zenohex_nif
         run: cargo fmt --all -- --check
 
-      - name: compile & test
-        run: mix test --warnings-as-errors
+      - name: test & coverage
+        run: |
+          mix test --warnings-as-errors
+          mix test --cover
 
       - name: credo
         run: mix credo --all
