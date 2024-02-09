@@ -18,7 +18,7 @@ defmodule Zenohex.Examples.PublisherTest do
       me = self()
 
       start_supervised!(
-        {Subscriber.Server,
+        {Subscriber,
          %{
            session: session,
            key_expr: "key/expression/**",
@@ -38,7 +38,7 @@ defmodule Zenohex.Examples.PublisherTest do
       me = self()
 
       start_supervised!(
-        {Subscriber.Server,
+        {Subscriber,
          %{
            session: session,
            key_expr: "key/expression/**",

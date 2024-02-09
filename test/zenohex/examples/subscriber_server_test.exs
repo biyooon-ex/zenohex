@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.SubscriberServerTest do
+defmodule Zenohex.Examples.SubscriberTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.Subscriber
@@ -12,9 +12,7 @@ defmodule Zenohex.Examples.SubscriberServerTest do
     me = self()
     callback = fn sample -> send(me, sample) end
 
-    start_supervised!(
-      {Subscriber.Server, %{session: session, key_expr: key_expr, callback: callback}}
-    )
+    start_supervised!({Subscriber, %{session: session, key_expr: key_expr, callback: callback}})
 
     Session.put(session, "key/expression/put", "put")
 
