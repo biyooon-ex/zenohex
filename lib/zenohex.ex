@@ -13,7 +13,7 @@ defmodule Zenohex do
 
       iex> Zenohex.open()
   """
-  @spec open :: {:ok, Session.t()} | {:error, reason :: any()}
+  @spec open() :: {:ok, Session.t()} | {:error, reason :: any()}
   def open() do
     if System.get_env("SCOUTING_DELAY") == "0" do
       Nif.zenoh_scouting_delay_zero_session()
