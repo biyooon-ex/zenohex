@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.PullSubscriber.Server do
+defmodule Zenohex.Examples.PullSubscriber.Impl do
   @moduledoc false
 
   use GenServer
