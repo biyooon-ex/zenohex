@@ -21,4 +21,17 @@ defmodule Zenohex do
       Nif.zenoh_open()
     end
   end
+
+  @doc ~S"""
+  Open a zenoh Session.
+
+  ## Examples
+
+      iex> Zenohex.open!()
+  """
+  @spec open!() :: Session.t()
+  def open!() do
+    {:ok, session} = open()
+    session
+  end
 end
