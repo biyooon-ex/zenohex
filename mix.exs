@@ -74,6 +74,14 @@ defmodule Zenohex.MixProject do
           Zenohex.Query.Options,
           Zenohex.Queryable.Options,
           Zenohex.Subscriber.Options
+        ],
+        Examples: [
+          Zenohex.Examples.Publisher,
+          Zenohex.Examples.Subscriber,
+          Zenohex.Examples.PullSubscriber,
+          Zenohex.Examples.Session,
+          Zenohex.Examples.Queryable,
+          Zenohex.Examples.Storage
         ]
       ]
     ]
