@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.PublisherServerTest do
+defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.Publisher
@@ -8,7 +8,7 @@ defmodule Zenohex.Examples.PublisherServerTest do
   setup do
     {:ok, session} = Zenohex.open()
     key_expr = "key/expression/pub"
-    start_supervised!({Publisher.Server, %{session: session, key_expr: key_expr}})
+    start_supervised!({Publisher, %{session: session, key_expr: key_expr}})
 
     %{session: session}
   end
@@ -27,7 +27,7 @@ defmodule Zenohex.Examples.PublisherServerTest do
       )
 
       for i <- 0..100 do
-        assert Publisher.Server.put(i) == :ok
+        assert Publisher.put(i) == :ok
         assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
       end
     end
@@ -46,18 +46,18 @@ defmodule Zenohex.Examples.PublisherServerTest do
          }}
       )
 
-      assert Publisher.Server.delete() == :ok
+      assert Publisher.delete() == :ok
       assert_receive %Sample{key_expr: "key/expression/pub", kind: :delete}
     end
   end
 
   test "congestion_control/1" do
-    assert Publisher.Server.congestion_control(:block) == :ok
-    assert Publisher.Server.put("put") == :ok
+    assert Publisher.congestion_control(:block) == :ok
+    assert Publisher.put("put") == :ok
   end
 
   test "priority/1" do
-    assert Publisher.Server.priority(:real_time) == :ok
-    assert Publisher.Server.put("put") == :ok
+    assert Publisher.priority(:real_time) == :ok
+    assert Publisher.put("put") == :ok
   end
 end
