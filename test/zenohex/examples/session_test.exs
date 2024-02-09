@@ -25,9 +25,6 @@ defmodule Zenohex.Examples.SessionTest do
          }}
       )
 
-      # FIXME
-      Process.sleep(10)
-
       assert Session.put("key/expression/put", "value") == :ok
       assert_receive %Sample{key_expr: "key/expression/put", value: "value"}
     end
@@ -45,9 +42,6 @@ defmodule Zenohex.Examples.SessionTest do
            callback: fn sample -> send(me, sample) end
          }}
       )
-
-      # FIXME
-      Process.sleep(10)
 
       assert Session.delete("key/expression/delete") == :ok
       assert_receive %Sample{key_expr: "key/expression/delete", kind: :delete}
@@ -76,9 +70,6 @@ defmodule Zenohex.Examples.SessionTest do
            end
          }}
       )
-
-      # FIXME
-      Process.sleep(10)
 
       me = self()
       callback = fn sample -> send(me, sample) end

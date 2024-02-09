@@ -16,14 +16,21 @@ defmodule Zenohex.Examples.Queryable.Impl do
     session = Map.fetch!(args, :session)
     key_expr = Map.fetch!(args, :key_expr)
     callback = Map.fetch!(args, :callback)
+
     {:ok, queryable} = Session.declare_queryable(session, key_expr)
+    state = %{queryable: queryable, callback: callback}
+    recv_timeout(state)
 
-    send(self(), :loop)
-
-    {:ok, %{queryable: queryable, callback: callback}}
+    {:ok, state}
   end
 
   def handle_info(:loop, state) do
+    recv_timeout(state)
+
+    {:noreply, state}
+  end
+
+  defp recv_timeout(state) do
     case Queryable.recv_timeout(state.queryable) do
       {:ok, query} ->
         state.callback.(query)
@@ -35,7 +42,5 @@ defmodule Zenohex.Examples.Queryable.Impl do
       {:error, error} ->
         Logger.error(inspect(error))
     end
-
-    {:noreply, state}
   end
 end

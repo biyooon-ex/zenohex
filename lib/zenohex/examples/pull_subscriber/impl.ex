@@ -22,12 +22,24 @@ defmodule Zenohex.Examples.PullSubscriber.Impl do
     callback = Map.fetch!(args, :callback)
 
     {:ok, pull_subscriber} = Session.declare_pull_subscriber(session, key_expr)
-    send(self(), :loop)
+    state = %{pull_subscriber: pull_subscriber, callback: callback}
+    recv_timeout(state)
 
-    {:ok, %{pull_subscriber: pull_subscriber, callback: callback}}
+    {:ok, state}
   end
 
   def handle_info(:loop, state) do
+    recv_timeout(state)
+
+    {:noreply, state}
+  end
+
+  def handle_call(:pull, _from, state) do
+    :ok = PullSubscriber.pull(state.pull_subscriber)
+    {:reply, :ok, state}
+  end
+
+  defp recv_timeout(state) do
     case PullSubscriber.recv_timeout(state.pull_subscriber) do
       {:ok, sample} ->
         state.callback.(sample)
@@ -39,12 +51,5 @@ defmodule Zenohex.Examples.PullSubscriber.Impl do
       {:error, error} ->
         Logger.error(inspect(error))
     end
-
-    {:noreply, state}
-  end
-
-  def handle_call(:pull, _from, state) do
-    :ok = PullSubscriber.pull(state.pull_subscriber)
-    {:reply, :ok, state}
   end
 end
