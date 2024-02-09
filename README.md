@@ -17,7 +17,7 @@ by adding `zenohex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:zenohex, "~> 0.1.5"}
+    {:zenohex, "~> 0.2.0"}
   ]
 end
 ```
@@ -40,7 +40,7 @@ https://www.rust-lang.org/tools/install
 
 ## Getting Started
 
-### Pub/Sub example
+### Low layer Pub/Sub example
 
 ```sh
 $ iex -S mix
@@ -60,6 +60,21 @@ iex(5)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
 iex(6)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
 {:error, :timeout}
 ```
+
+### Practical examples
+
+We implemented following practical examples under the [lib/zenohex/examples](lib/zenohex/examples) with moduledoc.
+
+(from hexdocs please refer to MODULES tab's EXAMPLE section)
+
+- [Publisher](lib/zenohex/examples/publisher.ex)
+- [Subscriber](lib/zenohex/examples/subscriber.ex)
+- [PullSubscriber](lib/zenohex/examples/pull_subscriber.ex)
+- [Session](lib/zenohex/examples/session.ex)
+- [Queryable](lib/zenohex/examples/queryable.ex)
+- [Storage](lib/zenohex/examples/storage.ex)
+
+Use them as reference for your implementation.
 
 ## For developer
 
