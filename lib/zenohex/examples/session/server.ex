@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.Session.Server do
+defmodule Zenohex.Examples.Session.Impl do
   @moduledoc false
 
   use GenServer
@@ -9,10 +9,6 @@ defmodule Zenohex.Examples.Session.Server do
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
-  end
-
-  def session() do
-    GenServer.call(__MODULE__, :session)
   end
 
   def put(key_expr, value) do
@@ -31,21 +27,15 @@ defmodule Zenohex.Examples.Session.Server do
     GenServer.call(__MODULE__, {:get, selector, callback})
   end
 
-  def init(_args) do
-    {:ok, session} = Zenohex.open()
-
+  def init(args) do
     {:ok,
      %{
-       session: session,
+       session: Map.fetch!(args, :session),
        selector: nil,
        receiver: nil,
        callback: nil,
        disconnected_cb: fn -> nil end
      }}
-  end
-
-  def handle_call(:session, _from, state) do
-    {:reply, state.session, state}
   end
 
   def handle_call({:put, key_expr, value}, _from, state) do

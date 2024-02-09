@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.Queryable.Server do
+defmodule Zenohex.Examples.Queryable.Impl do
   @moduledoc false
 
   use GenServer

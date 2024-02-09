@@ -1,4 +1,4 @@
-defmodule Zenohex.Examples.QueryableServerTest do
+defmodule Zenohex.Examples.QueryableTest do
   use ExUnit.Case
 
   require Logger
@@ -14,9 +14,7 @@ defmodule Zenohex.Examples.QueryableServerTest do
     me = self()
     callback = fn query -> send(me, query) end
 
-    start_supervised!(
-      {Queryable.Server, %{session: session, key_expr: key_expr, callback: callback}}
-    )
+    start_supervised!({Queryable, %{session: session, key_expr: key_expr, callback: callback}})
 
     Session.get_timeout(session, key_expr, 1000)
 
