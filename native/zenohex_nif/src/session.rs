@@ -123,8 +123,10 @@ fn session_get_reply_receiver(
     selector: String,
     opts: crate::query::ExQueryOptions,
 ) -> Result<ResourceArc<crate::ReplyReceiverRef>, String> {
+    // NOTE: 引数に ExQuery を使うことが妥当と思うが、
+    // zenoh の v1.0.0 前にそれらを考えるのが時期焦燥と判断し一旦このままとする
+    // TODO: with_value 対応も v1.0.0 が出たら検討する
     let session: &Arc<Session> = &resource.0;
-    // TODO: with_value の実装は用途が出てきたら検討
     match session
         .get(selector)
         .target(opts.target.into())
