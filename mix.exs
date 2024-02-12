@@ -69,6 +69,10 @@ defmodule Zenohex.MixProject do
       extras: ["README.md", "LICENSE"],
       main: "readme",
       groups_for_modules: [
+        Configs: [
+          Zenohex.Config,
+          Zenohex.Config.Scouting
+        ],
         Options: [
           Zenohex.Publisher.Options,
           Zenohex.Query.Options,

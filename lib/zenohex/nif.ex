@@ -21,12 +21,11 @@ defmodule Zenohex.Nif do
   alias Zenohex.Subscriber
   alias Zenohex.Queryable
   alias Zenohex.Query
+  alias Zenohex.Config
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 
-  def zenoh_open(), do: err()
-
-  def zenoh_scouting_delay_zero_session(), do: err()
+  def zenoh_open(_config \\ %Config{}), do: err()
 
   for type <- ["integer", "float", "binary"] do
     def unquote(:"session_put_#{type}")(_session, _key_expr, _value), do: err()

@@ -13,6 +13,7 @@ mod atoms {
         disconnected,
     }
 }
+mod config;
 mod keyexpr;
 mod publisher;
 mod pull_subscriber;
@@ -33,22 +34,8 @@ struct QueryRef(RwLock<Option<Query>>);
 struct SampleRef(Sample);
 
 #[rustler::nif(schedule = "DirtyIo")]
-fn zenoh_open() -> Result<ResourceArc<SessionRef>, String> {
-    let config = config::peer();
-    match zenoh::open(config).res_sync() {
-        Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-#[rustler::nif(schedule = "DirtyIo")]
-fn zenoh_scouting_delay_zero_session() -> Result<ResourceArc<SessionRef>, String> {
-    let mut config = config::peer();
-    let config = match config.scouting.set_delay(Some(0)) {
-        Ok(_) => config,
-        Err(_) => return Err("set_delay failed".to_string()),
-    };
-
+fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>, String> {
+    let config: zenoh::prelude::config::Config = config.into();
     match zenoh::open(config).res_sync() {
         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
         Err(error) => Err(error.to_string()),
@@ -71,7 +58,6 @@ rustler::init!(
     "Elixir.Zenohex.Nif",
     [
         zenoh_open,
-        zenoh_scouting_delay_zero_session,
         session::declare_publisher,
         session::declare_subscriber,
         session::declare_pull_subscriber,

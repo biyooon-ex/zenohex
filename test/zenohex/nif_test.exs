@@ -2,10 +2,12 @@ defmodule Zenohex.NifTest do
   use ExUnit.Case, async: true
 
   alias Zenohex.Nif
+  alias Zenohex.Config
+  alias Zenohex.Config.Scouting
   alias Zenohex.Sample
 
   setup_all do
-    {:ok, session} = Nif.zenoh_open()
+    {:ok, session} = Nif.zenoh_open(%Config{scouting: %Scouting{delay: 0}})
     %{session: session}
   end
 
