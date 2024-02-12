@@ -80,4 +80,11 @@ Use them as reference for your implementation.
 
 ### How to release
 
-Follow [Recommended flow](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
+1. Change versions, `mix.exs`, `native/zenohex_nif/Cargo.toml`
+2. Run test, this step changes `native/zenohex_nif/Cargo.lock` version
+3. Commit them and put the version tag, like v0.2.0
+4. Puth the tag, like `git push origin v0.2.0`. this step triggers the `.github/workflows/nif_precompile.yml`
+5. After the artifacts are made, run `mix rustler_precompiled.download Zenohex.Nif --all` to update `checksum-Elixir.Zenohex.Nif.exs` and commit it.
+6. Then publish to Hex
+
+(These steps just follows [Recommended flow](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).)
