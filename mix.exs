@@ -71,6 +71,7 @@ defmodule Zenohex.MixProject do
       groups_for_modules: [
         Configs: [
           Zenohex.Config,
+          Zenohex.Config.Connect,
           Zenohex.Config.Scouting
         ],
         Options: [
