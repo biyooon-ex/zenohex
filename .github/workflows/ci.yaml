@@ -3,25 +3,49 @@ name: CI
 env:
   OTP_VERSION: 26.1.2
   ELIXIR_VERSION: 1.15.7
+  MIX_ENV: test
 
 # based https://github.com/erlef/setup-beam
 
 on:
   push:
     branches:
-      - 'pojiro/0.2.0-dev'
+      - "pojiro/0.2.0-dev"
 
 jobs:
-  test:
+  build-deps:
     runs-on: ubuntu-latest
-
-    env:
-      MIX_ENV: test
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache@v4
+        id: save-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+
+      - name: build deps
+        if: steps.save-deps-cache.outputs.cache-hit != 'true'
+        run: mix do deps.get, deps.compile
+
+  code-analysis:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
         with:
           otp-version: ${{env.OTP_VERSION}}
           elixir-version: ${{env.ELIXIR_VERSION}}
@@ -30,8 +54,14 @@ jobs:
         with:
           components: rustfmt
 
-      - name: get deps
-        run: mix do deps.get, deps.compile
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
 
       - name: format
         run: mix format --check-formatted
@@ -40,10 +70,53 @@ jobs:
         working-directory: native/zenohex_nif
         run: cargo fmt --all -- --check
 
-      - name: test & coverage
-        run: |
-          mix test --warnings-as-errors
-          mix test --cover
-
       - name: credo
         run: mix credo --all
+
+      - name: restore plts cache
+        id: restore-plts-cache
+        uses: actions/cache/restore@v4
+        with:
+          key: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+          path: priv/plts
+
+      - name: create plts
+        if: steps.restore-plts-cache.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      - name: save plts cache
+        id: save-plts-cache
+        uses: actions/cache/save@v4
+        if: steps.restore-plts-cache.outputs.cache-hit != 'true'
+        with:
+          key: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          path: priv/plts
+
+      - name: dialyzer
+        run: mix dialyzer --format github
+
+  test:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: test
+        run: mix test --warnings-as-errors --cover
