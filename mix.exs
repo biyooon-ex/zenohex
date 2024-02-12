@@ -18,6 +18,7 @@ defmodule Zenohex.MixProject do
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
+      dialyzer: dialyzer(),
       aliases: [
         {:test, [&disable_zenoh_delay/1, "test"]},
         {:"test.watch", [&disable_zenoh_delay/1, "test.watch"]}
@@ -95,6 +96,13 @@ defmodule Zenohex.MixProject do
   defp test_coverage() do
     [
       ignore_modules: [Zenohex.Nif]
+    ]
+  end
+
+  defp dialyzer() do
+    [
+      plt_file: {:no_warn, "priv/plts/project.plt"},
+      plt_core_path: "priv/plts/core.plt"
     ]
   end
 
