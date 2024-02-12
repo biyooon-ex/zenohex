@@ -14,7 +14,7 @@ defmodule Zenohex.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       # Docs
-      name: "ZenohEx",
+      name: "Zenohex",
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
