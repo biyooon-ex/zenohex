@@ -1,4 +1,4 @@
 defmodule Zenohex.PublisherTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   doctest Zenohex.Publisher
 end

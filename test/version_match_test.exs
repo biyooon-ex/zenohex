@@ -1,5 +1,5 @@
 defmodule Zenohex.VersionMatchTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   describe "CI" do
     test "version match" do

@@ -1,4 +1,4 @@
 defmodule Zenohex.QueryableTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   doctest Zenohex.Queryable
 end

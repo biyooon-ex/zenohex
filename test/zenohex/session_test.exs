@@ -1,4 +1,4 @@
 defmodule Zenohex.SessionTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   doctest Zenohex.Session
 end

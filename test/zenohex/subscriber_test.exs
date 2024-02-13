@@ -1,4 +1,4 @@
 defmodule Zenohex.SubscriberTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   doctest Zenohex.Subscriber
 end

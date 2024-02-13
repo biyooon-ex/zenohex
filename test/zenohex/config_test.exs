@@ -1,5 +1,5 @@
 defmodule Zenohex.ConfigTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
 
   alias Zenohex.Config
   alias Zenohex.Config.Connect
