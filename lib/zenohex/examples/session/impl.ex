@@ -5,8 +5,6 @@ defmodule Zenohex.Examples.Session.Impl do
 
   require Logger
 
-  alias Zenohex.Session
-
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -47,7 +45,7 @@ defmodule Zenohex.Examples.Session.Impl do
   end
 
   def handle_call({:put, key_expr, value}, _from, state) do
-    ret = Session.put(state.session, key_expr, value)
+    ret = Zenohex.Session.put(state.session, key_expr, value)
     {:reply, ret, state}
   end
 
@@ -56,18 +54,18 @@ defmodule Zenohex.Examples.Session.Impl do
   end
 
   def handle_call({:delete, key_expr}, _from, state) do
-    :ok = Session.delete(state.session, key_expr)
+    :ok = Zenohex.Session.delete(state.session, key_expr)
     {:reply, :ok, state}
   end
 
   def handle_call({:get, selector, callback}, _from, state) do
-    {:ok, receiver} = Session.get_reply_receiver(state.session, selector)
+    {:ok, receiver} = Zenohex.Session.get_reply_receiver(state.session, selector)
     send(self(), :get_reply)
     {:reply, :ok, %{state | selector: selector, receiver: receiver, callback: callback}}
   end
 
   def handle_info(:get_reply, state) do
-    case Session.get_reply_timeout(state.receiver) do
+    case Zenohex.Session.get_reply_timeout(state.receiver) do
       {:ok, sample} ->
         state.callback.(sample)
         send(self(), :get_reply)
