@@ -11,6 +11,10 @@ defmodule Zenohex.Examples.Session.Impl do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
+  def session() do
+    GenServer.call(__MODULE__, :session)
+  end
+
   def put(key_expr, value) do
     GenServer.call(__MODULE__, {:put, key_expr, value})
   end
@@ -36,6 +40,10 @@ defmodule Zenohex.Examples.Session.Impl do
        callback: nil,
        disconnected_cb: fn -> nil end
      }}
+  end
+
+  def handle_call(:session, _from, state) do
+    {:reply, state.session, state}
   end
 
   def handle_call({:put, key_expr, value}, _from, state) do

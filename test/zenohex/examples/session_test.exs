@@ -9,17 +9,25 @@ defmodule Zenohex.Examples.SessionTest do
 
   setup do
     start_supervised!({Session, %{}})
-    :ok
+
+    # NOTE: Use the same session for Subscriber or Queryable, to run unit tests even if you only have a loopback interface.
+    #
+    #       - If you only have a loopback interface(lo), the test will always fail if you use different sessions.
+    #         Because the peer cannot scout the another peer on lo.
+    #       - Even if you have a network interface other than loopback,
+    #         using different sessions may cause the test to fail depending on the scouting.
+
+    %{session: Session.session()}
   end
 
   describe "put/2" do
-    test "with subscriber" do
+    test "with subscriber", %{session: session} do
       me = self()
 
       start_supervised!(
         {Subscriber,
          %{
-           session: Zenohex.open!(),
+           session: session,
            key_expr: "key/expression/**",
            callback: fn sample -> send(me, sample) end
          }}
@@ -31,13 +39,13 @@ defmodule Zenohex.Examples.SessionTest do
   end
 
   describe "delete/1" do
-    test "with subscriber" do
+    test "with subscriber", %{session: session} do
       me = self()
 
       start_supervised!(
         {Subscriber,
          %{
-           session: Zenohex.open!(),
+           session: session,
            key_expr: "key/expression/**",
            callback: fn sample -> send(me, sample) end
          }}
@@ -58,11 +66,11 @@ defmodule Zenohex.Examples.SessionTest do
       assert_receive :disconnected
     end
 
-    test "with queryable" do
+    test "with queryable", %{session: session} do
       start_supervised!(
         {Queryable,
          %{
-           session: Zenohex.open!(),
+           session: session,
            key_expr: "key/expression/**",
            callback: fn query ->
              :ok = Query.reply(query, %Sample{key_expr: "key/expression/reply"})
