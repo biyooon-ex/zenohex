@@ -16,8 +16,6 @@ defmodule Zenohex.Nif do
 
   # for Nerves
   @compile {:autoload, false}
-  # suppress dialyzer error, remove this when https://github.com/rusterlium/rustler/pull/570 is released
-  @dialyzer :no_match
 
   alias Zenohex.Publisher
   alias Zenohex.Subscriber

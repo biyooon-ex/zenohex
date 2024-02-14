@@ -41,7 +41,7 @@ defmodule Zenohex.MixProject do
   defp deps do
     [
       {:rustler_precompiled, "~> 0.7.1"},
-      {:rustler, ">= 0.30.0", optional: true},
+      {:rustler, ">= 0.31.0", optional: true},
       {:ex_doc, "~> 0.31.0", only: :dev},
       {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
