@@ -5,9 +5,6 @@ defmodule Zenohex.Examples.Subscriber.Impl do
 
   require Logger
 
-  alias Zenohex.Session
-  alias Zenohex.Subscriber
-
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -17,7 +14,7 @@ defmodule Zenohex.Examples.Subscriber.Impl do
     key_expr = Map.fetch!(args, :key_expr)
     callback = Map.fetch!(args, :callback)
 
-    {:ok, subscriber} = Session.declare_subscriber(session, key_expr)
+    {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, key_expr)
     state = %{subscriber: subscriber, callback: callback}
 
     recv_timeout(state)
@@ -31,7 +28,7 @@ defmodule Zenohex.Examples.Subscriber.Impl do
   end
 
   defp recv_timeout(state) do
-    case Subscriber.recv_timeout(state.subscriber) do
+    case Zenohex.Subscriber.recv_timeout(state.subscriber) do
       {:ok, sample} ->
         state.callback.(sample)
         send(self(), :loop)

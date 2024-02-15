@@ -4,8 +4,6 @@ defmodule Zenohex.Examples.SessionTest do
   alias Zenohex.Examples.Session
   alias Zenohex.Examples.Subscriber
   alias Zenohex.Examples.Queryable
-  alias Zenohex.Query
-  alias Zenohex.Sample
   alias Zenohex.Config
   alias Zenohex.Config.Scouting
 
@@ -31,7 +29,7 @@ defmodule Zenohex.Examples.SessionTest do
       )
 
       assert Session.put("key/expression/put", "value") == :ok
-      assert_receive %Sample{key_expr: "key/expression/put", value: "value"}
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/put", value: "value"}
     end
   end
 
@@ -49,7 +47,7 @@ defmodule Zenohex.Examples.SessionTest do
       )
 
       assert Session.delete("key/expression/delete") == :ok
-      assert_receive %Sample{key_expr: "key/expression/delete", kind: :delete}
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/delete", kind: :delete}
     end
   end
 
@@ -70,8 +68,8 @@ defmodule Zenohex.Examples.SessionTest do
            session: session,
            key_expr: "key/expression/**",
            callback: fn query ->
-             :ok = Query.reply(query, %Sample{key_expr: "key/expression/reply"})
-             :ok = Query.finish_reply(query)
+             :ok = Zenohex.Query.reply(query, %Zenohex.Sample{key_expr: "key/expression/reply"})
+             :ok = Zenohex.Query.finish_reply(query)
            end
          }}
       )
@@ -80,7 +78,7 @@ defmodule Zenohex.Examples.SessionTest do
       callback = fn sample -> send(me, sample) end
 
       assert Session.get("key/expression/**", callback) == :ok
-      assert_receive %Sample{}
+      assert_receive %Zenohex.Sample{}
     end
   end
 end

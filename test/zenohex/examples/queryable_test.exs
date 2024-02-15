@@ -4,8 +4,6 @@ defmodule Zenohex.Examples.QueryableTest do
   require Logger
 
   alias Zenohex.Examples.Queryable
-  alias Zenohex.Session
-  alias Zenohex.Query
 
   test "start_link/1" do
     {:ok, session} = Zenohex.open()
@@ -16,8 +14,8 @@ defmodule Zenohex.Examples.QueryableTest do
 
     start_supervised!({Queryable, %{session: session, key_expr: key_expr, callback: callback}})
 
-    Session.get_timeout(session, key_expr, 1000)
+    Zenohex.Session.get_timeout(session, key_expr, 1000)
 
-    assert_receive(%Query{})
+    assert_receive(%Zenohex.Query{})
   end
 end

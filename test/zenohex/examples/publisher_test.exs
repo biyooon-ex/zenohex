@@ -3,7 +3,6 @@ defmodule Zenohex.Examples.PublisherTest do
 
   alias Zenohex.Examples.Publisher
   alias Zenohex.Examples.Subscriber
-  alias Zenohex.Sample
 
   setup do
     {:ok, session} = Zenohex.open()
@@ -28,7 +27,7 @@ defmodule Zenohex.Examples.PublisherTest do
 
       for i <- 0..100 do
         assert Publisher.put(i) == :ok
-        assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
+        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
       end
     end
   end
@@ -47,7 +46,7 @@ defmodule Zenohex.Examples.PublisherTest do
       )
 
       assert Publisher.delete() == :ok
-      assert_receive %Sample{key_expr: "key/expression/pub", kind: :delete}
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :delete}
     end
   end
 

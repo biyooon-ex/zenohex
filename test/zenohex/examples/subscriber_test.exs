@@ -2,8 +2,6 @@ defmodule Zenohex.Examples.SubscriberTest do
   use ExUnit.Case
 
   alias Zenohex.Examples.Subscriber
-  alias Zenohex.Session
-  alias Zenohex.Sample
 
   test "start_link/1" do
     {:ok, session} = Zenohex.open()
@@ -14,8 +12,8 @@ defmodule Zenohex.Examples.SubscriberTest do
 
     start_supervised!({Subscriber, %{session: session, key_expr: key_expr, callback: callback}})
 
-    Session.put(session, "key/expression/put", "put")
+    Zenohex.Session.put(session, "key/expression/put", "put")
 
-    assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
+    assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
   end
 end

@@ -5,9 +5,6 @@ defmodule Zenohex.Examples.PullSubscriber.Impl do
 
   require Logger
 
-  alias Zenohex.Session
-  alias Zenohex.PullSubscriber
-
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -21,16 +18,26 @@ defmodule Zenohex.Examples.PullSubscriber.Impl do
     key_expr = Map.fetch!(args, :key_expr)
     callback = Map.fetch!(args, :callback)
 
-    {:ok, pull_subscriber} = Session.declare_pull_subscriber(session, key_expr)
+    {:ok, pull_subscriber} = Zenohex.Session.declare_pull_subscriber(session, key_expr)
     state = %{pull_subscriber: pull_subscriber, callback: callback}
 
-    send(self(), :loop)
+    recv_timeout(state)
 
     {:ok, state}
   end
 
   def handle_info(:loop, state) do
-    case PullSubscriber.recv_timeout(state.pull_subscriber) do
+    recv_timeout(state)
+    {:noreply, state}
+  end
+
+  def handle_call(:pull, _from, state) do
+    :ok = Zenohex.PullSubscriber.pull(state.pull_subscriber)
+    {:reply, :ok, state}
+  end
+
+  defp recv_timeout(state) do
+    case Zenohex.PullSubscriber.recv_timeout(state.pull_subscriber) do
       {:ok, sample} ->
         state.callback.(sample)
         send(self(), :loop)
@@ -41,12 +48,5 @@ defmodule Zenohex.Examples.PullSubscriber.Impl do
       {:error, error} ->
         Logger.error(inspect(error))
     end
-
-    {:noreply, state}
-  end
-
-  def handle_call(:pull, _from, state) do
-    :ok = PullSubscriber.pull(state.pull_subscriber)
-    {:reply, :ok, state}
   end
 end
