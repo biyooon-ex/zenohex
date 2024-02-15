@@ -20,12 +20,18 @@ defmodule Zenohex.Examples.Queryable.Impl do
     {:ok, queryable} = Session.declare_queryable(session, key_expr)
     state = %{queryable: queryable, callback: callback}
 
-    send(self(), :loop)
+    recv_timeout(state)
 
     {:ok, state}
   end
 
   def handle_info(:loop, state) do
+    recv_timeout(state)
+
+    {:noreply, state}
+  end
+
+  def recv_timeout(state) do
     case Queryable.recv_timeout(state.queryable) do
       {:ok, query} ->
         state.callback.(query)
@@ -37,7 +43,5 @@ defmodule Zenohex.Examples.Queryable.Impl do
       {:error, error} ->
         Logger.error(inspect(error))
     end
-
-    {:noreply, state}
   end
 end

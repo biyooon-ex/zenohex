@@ -6,18 +6,15 @@ defmodule Zenohex.Examples.SessionTest do
   alias Zenohex.Examples.Queryable
   alias Zenohex.Query
   alias Zenohex.Sample
+  alias Zenohex.Config
+  alias Zenohex.Config.Scouting
 
   setup do
-    start_supervised!({Session, %{}})
+    start_supervised!(
+      {Session, %{session: Zenohex.open!(%Config{scouting: %Scouting{delay: 0}})}}
+    )
 
-    # NOTE: Use the same session for Subscriber or Queryable, to run unit tests even if you only have a loopback interface.
-    #
-    #       - If you only have a loopback interface(lo), the test will always fail if you use different sessions.
-    #         Because the peer cannot scout the another peer on lo.
-    #       - Even if you have a network interface other than loopback,
-    #         using different sessions may cause the test to fail depending on the scouting.
-
-    %{session: Session.session()}
+    %{session: Zenohex.open!(%Config{scouting: %Scouting{delay: 30}})}
   end
 
   describe "put/2" do
