@@ -17,7 +17,7 @@ by adding `zenohex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:zenohex, "~> 0.2.0"}
+    {:zenohex, "~> 0.2.0-rc.2"}
   ]
 end
 ```
@@ -82,8 +82,8 @@ Use them as reference for your implementation.
 
 1. Change versions, `mix.exs`, `native/zenohex_nif/Cargo.toml`
 2. Run test, this step changes `native/zenohex_nif/Cargo.lock` version
-3. Commit them and put the version tag, like v0.2.0
-4. Puth the tag, like `git push origin v0.2.0`. this step triggers the `.github/workflows/nif_precompile.yml`
+3. Commit them and put the version tag, like v0.2.0-rc.2
+4. Puth the tag, like `git push origin v0.2.0-rc.2`. this step triggers the `.github/workflows/nif_precompile.yml`
 5. After the artifacts are made, run `mix rustler_precompiled.download Zenohex.Nif --all` to update `checksum-Elixir.Zenohex.Nif.exs` and commit it.
 6. Then publish to Hex
 
