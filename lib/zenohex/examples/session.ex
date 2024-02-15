@@ -54,10 +54,6 @@ defmodule Zenohex.Examples.Session do
     Supervisor.start_link(__MODULE__, %{session: session}, name: __MODULE__)
   end
 
-  @doc "Get session."
-  @spec session() :: Zenohex.Session.t()
-  defdelegate session(), to: Session.Impl
-
   @doc "Put data."
   @spec put(String.t(), integer() | float() | binary()) :: :ok
   defdelegate put(key_expr, value), to: Session.Impl
