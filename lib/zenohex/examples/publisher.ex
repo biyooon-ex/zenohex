@@ -50,7 +50,7 @@ defmodule Zenohex.Examples.Publisher do
   Start Publisher.
   """
   def start_link(args \\ %{}) when is_map(args) do
-    session = Map.get(args, :session, Zenohex.open!())
+    session = Map.get(args, :session) || Zenohex.open!()
     key_expr = Map.get(args, :key_expr, "zenohex/examples/pub")
     Supervisor.start_link(__MODULE__, %{session: session, key_expr: key_expr}, name: __MODULE__)
   end

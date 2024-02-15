@@ -50,7 +50,7 @@ defmodule Zenohex.Examples.Session do
   Start Session.
   """
   def start_link(args \\ %{}) when is_map(args) do
-    session = Map.get(args, :session, Zenohex.open!())
+    session = Map.get(args, :session) || Zenohex.open!()
     Supervisor.start_link(__MODULE__, %{session: session}, name: __MODULE__)
   end
 
