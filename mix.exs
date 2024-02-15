@@ -111,14 +111,13 @@ defmodule Zenohex.MixProject do
       """
       =================================================================
       HEY, ZENOHEX DEVELOPER. TO REDUCE TESTING TIME,
-      WE COMPILE WITH API_OPEN_SESSION_DELAY=0 AND SET SCOUTING DELAY 0
+      WE COMPILE WITH API_OPEN_SESSION_DELAY=0
       =================================================================
       """
       |> String.trim_trailing()
       |> Mix.shell().info()
 
     :ok = System.put_env("API_OPEN_SESSION_DELAY", "0")
-    :ok = System.put_env("SCOUTING_DELAY", "0")
 
     Mix.Task.run("compile", ["--force"])
   end
