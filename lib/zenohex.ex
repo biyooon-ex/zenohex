@@ -17,8 +17,8 @@ defmodule Zenohex do
   """
   @spec open(Config.t()) :: {:ok, Session.t()} | {:error, reason :: any()}
   def open(config \\ %Config{}) do
-    if System.get_env("SCOUTING_DELAY") == "0" do
-      Nif.zenoh_open(%Config{scouting: %Scouting{delay: 0}})
+    if delay = System.get_env("SCOUTING_DELAY") do
+      Nif.zenoh_open(%Config{scouting: %Scouting{delay: String.to_integer(delay)}})
     else
       Nif.zenoh_open(config)
     end
