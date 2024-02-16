@@ -46,7 +46,7 @@ defmodule Zenohex.Examples.PullSubscriber do
   Start PullSubscriber.
   """
   def start_link(args \\ %{}) when is_map(args) do
-    session = Map.get(args, :session, Zenohex.open!())
+    session = Map.get(args, :session) || Zenohex.open!()
     key_expr = Map.get(args, :key_expr, "zenohex/examples/**")
     callback = Map.get(args, :callback, &Logger.debug(inspect(&1)))
 

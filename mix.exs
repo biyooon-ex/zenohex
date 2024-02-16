@@ -13,6 +13,7 @@ defmodule Zenohex.MixProject do
       package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       # Docs
       name: "Zenohex",
       source_url: @source_url,
@@ -20,8 +21,8 @@ defmodule Zenohex.MixProject do
       test_coverage: test_coverage(),
       dialyzer: dialyzer(),
       aliases: [
-        {:test, [&disable_zenoh_delay/1, "test"]},
-        {:"test.watch", [&disable_zenoh_delay/1, "test.watch"]}
+        {:test, [&suggest/1, "test"]},
+        {:"test.watch", [&suggest/1, "test.watch"]}
       ]
     ]
   end
@@ -32,6 +33,9 @@ defmodule Zenohex.MixProject do
       extra_applications: [:logger]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
@@ -106,20 +110,29 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp disable_zenoh_delay(_args) do
-    :ok =
+  defp suggest(_args) do
+    if is_nil(System.get_env("API_OPEN_SESSION_DELAY")) do
       """
-      =================================================================
-      HEY, ZENOHEX DEVELOPER. TO REDUCE TESTING TIME,
-      WE COMPILE WITH API_OPEN_SESSION_DELAY=0 AND SET SCOUTING DELAY 0
-      =================================================================
+      ====================================================================
+      HEY, ZENOHEX DEVELOPER. IF YOU WANNA REDUCE TEST TIME, DO FOLLOWINGS
+      export API_OPEN_SESSION_DELAY=0 && mix compile --force
+      AND YOU CAN ALSO ADJUST SCOUTING TIME, DO FOLLOWINGS
+      ====================================================================
       """
       |> String.trim_trailing()
       |> Mix.shell().info()
+    end
 
-    :ok = System.put_env("API_OPEN_SESSION_DELAY", "0")
-    :ok = System.put_env("SCOUTING_DELAY", "0")
-
-    Mix.Task.run("compile", ["--force"])
+    if is_nil(System.get_env("SCOUTING_DELAY")) do
+      """
+      ====================================================================
+      HEY, ZENOHEX DEVELOPER. IF YOU WANNA REDUCE TEST TIME,
+      YOU CAN ADJUST SCOUTING DELAY, LIKE FOLLOWINGS
+      SCOUTING_DELAY=30 mix test
+      ====================================================================
+      """
+      |> String.trim_trailing()
+      |> Mix.shell().info()
+    end
   end
 end

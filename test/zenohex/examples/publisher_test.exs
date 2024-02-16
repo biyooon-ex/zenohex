@@ -1,16 +1,18 @@
 defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
+
   alias Zenohex.Examples.Publisher
   alias Zenohex.Examples.Subscriber
-  alias Zenohex.Sample
 
   setup do
     {:ok, session} = Zenohex.open()
     key_expr = "key/expression/pub"
+
     start_supervised!({Publisher, %{session: session, key_expr: key_expr}})
 
-    %{session: session}
+    %{session: maybe_different_session(session)}
   end
 
   describe "put/1" do
@@ -28,7 +30,7 @@ defmodule Zenohex.Examples.PublisherTest do
 
       for i <- 0..100 do
         assert Publisher.put(i) == :ok
-        assert_receive %Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
+        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
       end
     end
   end
@@ -47,7 +49,15 @@ defmodule Zenohex.Examples.PublisherTest do
       )
 
       assert Publisher.delete() == :ok
-      assert_receive %Sample{key_expr: "key/expression/pub", kind: :delete}
+
+      if System.get_env("USE_DIFFERENT_SESSION") do
+        # Zenoh 0.10.1-rc has the bug, https://github.com/eclipse-zenoh/zenoh/issues/633
+        # This bug causes that `delete` creates the Sample whose kind is :put.
+        # FIXME: when update Zenoh from 0.10.1-rc to over
+        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put}
+      else
+        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :delete}
+      end
     end
   end
 

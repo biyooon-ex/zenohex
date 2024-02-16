@@ -7,8 +7,6 @@ defmodule Zenohex.Examples.Storage.Store do
 
   require Logger
 
-  alias Zenohex.KeyExpr
-
   def start_link(initial_state) do
     Agent.start_link(fn -> initial_state end, name: __MODULE__)
   end
@@ -49,7 +47,7 @@ defmodule Zenohex.Examples.Storage.Store do
   end
 
   defp find_keys(map, key_expr) do
-    Map.keys(map) |> Enum.filter(&KeyExpr.intersects?(&1, key_expr))
+    Map.keys(map) |> Enum.filter(&Zenohex.KeyExpr.intersects?(&1, key_expr))
   end
 
   defp collect_samples(map, key_expr) do

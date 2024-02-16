@@ -5,9 +5,6 @@ defmodule Zenohex.Examples.Queryable.Impl do
 
   require Logger
 
-  alias Zenohex.Session
-  alias Zenohex.Queryable
-
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -17,16 +14,22 @@ defmodule Zenohex.Examples.Queryable.Impl do
     key_expr = Map.fetch!(args, :key_expr)
     callback = Map.fetch!(args, :callback)
 
-    {:ok, queryable} = Session.declare_queryable(session, key_expr)
+    {:ok, queryable} = Zenohex.Session.declare_queryable(session, key_expr)
     state = %{queryable: queryable, callback: callback}
 
-    send(self(), :loop)
+    recv_timeout(state)
 
     {:ok, state}
   end
 
   def handle_info(:loop, state) do
-    case Queryable.recv_timeout(state.queryable) do
+    recv_timeout(state)
+
+    {:noreply, state}
+  end
+
+  def recv_timeout(state) do
+    case Zenohex.Queryable.recv_timeout(state.queryable) do
       {:ok, query} ->
         state.callback.(query)
         send(self(), :loop)
@@ -37,7 +40,5 @@ defmodule Zenohex.Examples.Queryable.Impl do
       {:error, error} ->
         Logger.error(inspect(error))
     end
-
-    {:noreply, state}
   end
 end

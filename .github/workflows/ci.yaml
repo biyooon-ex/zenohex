@@ -9,8 +9,8 @@ env:
 
 on:
   push:
-    branches:
-      - "pojiro/0.2.0-dev"
+    branches: main
+  pull_request:
 
 jobs:
   build-deps:
@@ -71,7 +71,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: credo
-        run: mix credo --all
+        run: mix credo --ignore fixme
 
       - name: restore plts cache
         id: restore-plts-cache
@@ -96,7 +96,7 @@ jobs:
       - name: dialyzer
         run: mix dialyzer --format github
 
-  test:
+  test-with-one-session:
     needs: build-deps
     runs-on: ubuntu-latest
 
@@ -120,3 +120,28 @@ jobs:
 
       - name: test
         run: mix test --warnings-as-errors --cover
+
+  test-with-two-session:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: test
+        run: USE_DIFFERENT_SESSION="" mix test --warnings-as-errors --cover

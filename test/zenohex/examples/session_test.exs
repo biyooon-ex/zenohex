@@ -1,23 +1,18 @@
 defmodule Zenohex.Examples.SessionTest do
   use ExUnit.Case
 
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
+
   alias Zenohex.Examples.Session
   alias Zenohex.Examples.Subscriber
   alias Zenohex.Examples.Queryable
-  alias Zenohex.Query
-  alias Zenohex.Sample
 
   setup do
-    start_supervised!({Session, %{}})
+    {:ok, session} = Zenohex.open()
 
-    # NOTE: Use the same session for Subscriber or Queryable, to run unit tests even if you only have a loopback interface.
-    #
-    #       - If you only have a loopback interface(lo), the test will always fail if you use different sessions.
-    #         Because the peer cannot scout the another peer on lo.
-    #       - Even if you have a network interface other than loopback,
-    #         using different sessions may cause the test to fail depending on the scouting.
+    start_supervised!({Session, %{session: session}})
 
-    %{session: Session.session()}
+    %{session: maybe_different_session(session)}
   end
 
   describe "put/2" do
@@ -34,7 +29,7 @@ defmodule Zenohex.Examples.SessionTest do
       )
 
       assert Session.put("key/expression/put", "value") == :ok
-      assert_receive %Sample{key_expr: "key/expression/put", value: "value"}
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/put", value: "value"}
     end
   end
 
@@ -52,7 +47,7 @@ defmodule Zenohex.Examples.SessionTest do
       )
 
       assert Session.delete("key/expression/delete") == :ok
-      assert_receive %Sample{key_expr: "key/expression/delete", kind: :delete}
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/delete", kind: :delete}
     end
   end
 
@@ -73,8 +68,8 @@ defmodule Zenohex.Examples.SessionTest do
            session: session,
            key_expr: "key/expression/**",
            callback: fn query ->
-             :ok = Query.reply(query, %Sample{key_expr: "key/expression/reply"})
-             :ok = Query.finish_reply(query)
+             :ok = Zenohex.Query.reply(query, %Zenohex.Sample{key_expr: "key/expression/reply"})
+             :ok = Zenohex.Query.finish_reply(query)
            end
          }}
       )
@@ -83,7 +78,7 @@ defmodule Zenohex.Examples.SessionTest do
       callback = fn sample -> send(me, sample) end
 
       assert Session.get("key/expression/**", callback) == :ok
-      assert_receive %Sample{}
+      assert_receive %Zenohex.Sample{}
     end
   end
 end

@@ -1,14 +1,13 @@
 defmodule Zenohex.Examples.PullSubscriberTest do
   use ExUnit.Case
 
-  alias Zenohex.Examples.PullSubscriber
-  alias Zenohex.Session
-  alias Zenohex.Sample
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
 
-  test "start_link/1" do
+  alias Zenohex.Examples.PullSubscriber
+
+  setup do
     {:ok, session} = Zenohex.open()
     key_expr = "key/expression/**"
-
     me = self()
     callback = fn sample -> send(me, sample) end
 
@@ -16,27 +15,24 @@ defmodule Zenohex.Examples.PullSubscriberTest do
       {PullSubscriber, %{session: session, key_expr: key_expr, callback: callback}}
     )
 
-    Session.put(session, "key/expression/put", "put")
-
-    assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
+    %{session: maybe_different_session(session)}
   end
 
-  test "pull/0" do
-    {:ok, session} = Zenohex.open()
-    key_expr = "key/expression/**"
+  # WHY: skip this test when using different session
+  # When using same session, Zenoh pull subscriber can get Sample before pulling.
+  # But using different session, Zenoh pull subscriber can not.
+  # This might be a Zenoh bug.
+  @tag System.get_env("USE_DIFFERENT_SESSION") && :skip
+  test "start_link/1", %{session: session} do
+    Zenohex.Session.put(session, "key/expression/put", "put")
 
-    me = self()
-    callback = fn sample -> send(me, sample) end
+    assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
+  end
 
-    start_supervised!(
-      {PullSubscriber, %{session: session, key_expr: key_expr, callback: callback}}
-    )
+  test "pull/0", %{session: session} do
+    Zenohex.Session.put(session, "key/expression/put", "put")
 
-    Session.put(session, "key/expression/put", "put")
-
-    assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
-    refute_receive(%Sample{key_expr: "key/expression/put", value: "put"})
     PullSubscriber.pull()
-    assert_receive(%Sample{key_expr: "key/expression/put", value: "put"})
+    assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
   end
 end
