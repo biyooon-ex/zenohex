@@ -22,7 +22,7 @@ defmodule Zenohex.Examples.PullSubscriberTest do
   # When using same session, Zenoh pull subscriber can get Sample before pulling.
   # But using different session, Zenoh pull subscriber can not.
   # This might be a Zenoh bug.
-  @tag System.get_env("USE_DIFFERENT_SESSION") && :skip
+  @tag System.get_env("USE_DIFFERENT_SESSION") == "1" && :skip
   test "start_link/1", %{session: session} do
     Zenohex.Session.put(session, "key/expression/put", "put")
 

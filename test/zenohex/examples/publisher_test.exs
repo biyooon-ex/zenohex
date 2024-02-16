@@ -50,7 +50,7 @@ defmodule Zenohex.Examples.PublisherTest do
 
       assert Publisher.delete() == :ok
 
-      if System.get_env("USE_DIFFERENT_SESSION") do
+      if System.get_env("USE_DIFFERENT_SESSION") == "1" do
         # Zenoh 0.10.1-rc has the bug, https://github.com/eclipse-zenoh/zenoh/issues/633
         # This bug causes that `delete` creates the Sample whose kind is :put.
         # FIXME: when update Zenoh from 0.10.1-rc to over
