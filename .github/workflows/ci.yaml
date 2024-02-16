@@ -9,8 +9,8 @@ env:
 
 on:
   push:
-    branches:
-      - "pojiro/0.2.0-dev"
+    branches: main
+  pull_request:
 
 jobs:
   build-deps:
