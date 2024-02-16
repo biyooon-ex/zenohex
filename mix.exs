@@ -54,7 +54,9 @@ defmodule Zenohex.MixProject do
     [
       name: "zenohex",
       files: [
-        "lib",
+        "lib/zenohex.ex",
+        "lib/zenohex/config",
+        "lib/zenohex/*.ex",
         "native/zenohex_nif/.cargo",
         "native/zenohex_nif/src",
         "native/zenohex_nif/Cargo*",
