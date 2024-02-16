@@ -84,8 +84,6 @@ defmodule Zenohex.MixProject do
           Zenohex.Query.Options,
           Zenohex.Queryable.Options,
           Zenohex.Subscriber.Options
-        ],
-        Examples: [
         ]
       ]
     ]
