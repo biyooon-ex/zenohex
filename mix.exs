@@ -116,7 +116,6 @@ defmodule Zenohex.MixProject do
       ====================================================================
       HEY, ZENOHEX DEVELOPER. IF YOU WANNA REDUCE TEST TIME, DO FOLLOWINGS
       export API_OPEN_SESSION_DELAY=0 && mix compile --force
-      AND YOU CAN ALSO ADJUST SCOUTING TIME, DO FOLLOWINGS
       ====================================================================
       """
       |> String.trim_trailing()
