@@ -85,7 +85,38 @@ iex> Publisher.put("subscribed?")
 11:51:53.959 [debug] %Zenohex.Sample{key_expr: "zenohex/examples/pub", value: "subscribed?", kind: :put, reference: #Reference<0.1373489635.746717252.118288>}
 ```
 
-### PullSubscriber
+## PullSubscriber
+
+This PullSubscriber is made of `Supervisor` and `GenServer`.
+If you would like to see the codes, check the followings.
+
+- Supervisor
+  - [lib/zenohex/examples/pull_subscriber.ex](/lib/zenohex/examples/pull_subscriber.ex)
+- GenServer
+  - [lib/zenohex/examples/pull_subscriber/impl.ex](/lib/zenohex/examples/pull_subscriber/impl.ex)
+
+### Start PullSubscriber
+
+```elixir
+iex> alias Zenohex.Examples.PullSubscriber
+# if not specify session, key_expr and callback, they are made internally. key_expr is "zenohex/examples/**",callback is &Logger.debug(inspect(&1))
+iex> PullSubscriber.start_link()
+# you can also inject your session, key_expr and callback from outside
+iex> PullSubscriber.start_link(%{session: your_session, key_expr: "your_key/expression/**", callback: &IO.inspect/1})
+```
+
+### Pull data
+
+```elixir
+iex> alias Zenohex.Examples.Publisher
+iex> Publisher.start_link()
+iex> Publisher.put("subscribed?")
+:ok
+iex> PullSubscriber.pull()
+:ok
+
+12:16:47.306 [debug] %Zenohex.Sample{key_expr: "zenohex/examples/pub", value: "subscribed?", kind: :put, reference: #Reference<0.662543409.1019347013.179304>}
+```
 
 ### Queryable
 
