@@ -118,7 +118,36 @@ iex> PullSubscriber.pull()
 12:16:47.306 [debug] %Zenohex.Sample{key_expr: "zenohex/examples/pub", value: "subscribed?", kind: :put, reference: #Reference<0.662543409.1019347013.179304>}
 ```
 
-### Queryable
+## Queryable
+
+This Queryable is made of `Supervisor` and `GenServer`.
+If you would like to see the codes, check the followings.
+
+- Supervisor
+  - [lib/zenohex/examples/queryable.ex](/lib/zenohex/examples/queryable.ex)
+- GenServer
+  - [lib/zenohex/examples/queryable/impl.ex](/lib/zenohex/examples/queryable/impl.ex)
+
+### Start Queryable
+
+```elixir
+iex> alias Zenohex.Examples.Queryable
+# if not specify session, key_expr and callback, they are made internally. key_expr is "zenohex/examples/**", callback is &Logger.debug(inspect(&1))
+iex> Queryable.start_link()
+# you can also inject your session, key_expr and callback from outside
+iex> Queryable.start_link(%{session: your_session, key_expr: "your_key/expression/**", callback: &IO.inspect/1})
+```
+
+### Queried?
+
+```elixir
+iex> alias Zenohex.Examples.Session
+iex> Session.start_link()
+iex> Session.get("zenohex/examples/get", &IO.inspect/1)
+:ok
+
+15:20:17.870 [debug] %Zenohex.Query{key_expr: "zenohex/examples/get", parameters: "", value: :undefined, reference: #Reference<0.3076585362.3463839816.144434>}
+```
 
 ### Session
 

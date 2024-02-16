@@ -87,7 +87,6 @@ defmodule Zenohex.MixProject do
         ],
         Examples: [
           Zenohex.Examples.Session,
-          Zenohex.Examples.Queryable,
           Zenohex.Examples.Storage
         ]
       ]
