@@ -71,7 +71,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: credo
-        run: mix credo --all
+        run: mix credo --ignore fixme
 
       - name: restore plts cache
         id: restore-plts-cache

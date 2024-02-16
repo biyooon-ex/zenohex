@@ -17,10 +17,12 @@ defmodule Zenohex do
   """
   @spec open(Config.t()) :: {:ok, Session.t()} | {:error, reason :: any()}
   def open(config \\ %Config{}) do
-    if is_nil(delay = System.get_env("SCOUTING_DELAY")) do
-      Nif.zenoh_open(config)
-    else
-      Nif.zenoh_open(%Config{config | scouting: %Scouting{delay: String.to_integer(delay)}})
+    case System.get_env("SCOUTING_DELAY") do
+      nil ->
+        Nif.zenoh_open(config)
+
+      delay ->
+        Nif.zenoh_open(%Config{config | scouting: %Scouting{delay: String.to_integer(delay)}})
     end
   end
 
