@@ -18,6 +18,11 @@ defmodule Zenohex.Examples.PullSubscriberTest do
     %{session: maybe_different_session(session)}
   end
 
+  # WHY: skip this test when using different session
+  # When using same session, Zenoh pull subscriber can get Sample before pulling.
+  # But using different session, Zenoh pull subscriber can not.
+  # This might be a Zenoh bug.
+  @tag System.get_env("USE_DIFFERENT_SESSION") && :skip
   test "start_link/1", %{session: session} do
     Zenohex.Session.put(session, "key/expression/put", "put")
 
@@ -27,8 +32,6 @@ defmodule Zenohex.Examples.PullSubscriberTest do
   test "pull/0", %{session: session} do
     Zenohex.Session.put(session, "key/expression/put", "put")
 
-    assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
-    refute_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
     PullSubscriber.pull()
     assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
   end
