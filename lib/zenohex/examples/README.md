@@ -191,4 +191,47 @@ iex> callback = &IO.inspect/1
 iex> Session.get("zenoh/example/session/get", callback)
 ```
 
-### Storage
+## Storage
+
+This Storage is made of `Supervisor` and `GenServer`.
+If you would like to see the codes, check the followings.
+
+- Supervisor
+  - [lib/zenohex/examples/storage.ex](/lib/zenohex/examples/storage.ex)
+- GenServer
+  - [lib/zenohex/examples/storage/store.ex](/lib/zenohex/examples/storage/store.ex)
+  - [lib/zenohex/examples/storage/subscriber.ex](/lib/zenohex/examples/storage/subscriber.ex)
+  - [lib/zenohex/examples/storage/queryable.ex](/lib/zenohex/examples/storage/queryable.ex)
+
+In this example, we made store with `Agent`. We think we can use also `:ets`, `:dets` and `:mnesia`.
+
+### Start Storage
+
+```elixir
+iex> alias Zenohex.Examples.Storage
+# if not specify session, key_expr and callback, they are made internally. key_expr is "zenohex/examples/**"
+iex> Storage.start_link()
+# you can also inject your session, key_expr and callback from outside
+iex> Storage.start_link(%{session: your_session, key_expr: "your_key/expression/**"})
+```
+
+### Session put/get/delete data with Storage
+
+```elixir
+iex> alias Zenohex.Examples.Session
+iex> Session.start_link()
+iex> Session.put("zenoh/examples/storage", _value = "put")
+:ok
+iex> Session.get("zenoh/examples/storage", _callback = &IO.inspect/1)
+:ok
+%Zenohex.Sample{
+  key_expr: "zenohex/examples/storage",
+  value: "put",
+  kind: :put,
+  reference: #Reference<0.2244884903.1591869505.81651>
+}
+iex> Session.delete("zenoh/examples/storage")
+:ok
+iex> Session.get("zenoh/examples/storage", &IO.inspect/1)
+:ok
+```

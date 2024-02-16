@@ -86,7 +86,6 @@ defmodule Zenohex.MixProject do
           Zenohex.Subscriber.Options
         ],
         Examples: [
-          Zenohex.Examples.Storage
         ]
       ]
     ]
