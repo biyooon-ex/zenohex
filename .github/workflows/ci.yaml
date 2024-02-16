@@ -121,7 +121,7 @@ jobs:
       - name: test
         run: mix test --warnings-as-errors --cover
 
-  test-with-two-session:
+  test-with-another-session:
     needs: build-deps
     runs-on: ubuntu-latest
 
@@ -144,4 +144,4 @@ jobs:
           restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
 
       - name: test
-        run: USE_DIFFERENT_SESSION="" mix test --warnings-as-errors --cover
+        run: USE_DIFFERENT_SESSION="1" mix test --warnings-as-errors --cover
