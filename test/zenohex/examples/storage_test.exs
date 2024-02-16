@@ -1,13 +1,16 @@
 defmodule Zenohex.Examples.StorageTest do
   use ExUnit.Case
 
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
+
   alias Zenohex.Examples.Storage
 
   setup do
     {:ok, session} = Zenohex.open()
+
     start_supervised!({Storage, %{session: session, key_expr: "demo/example/**"}})
 
-    %{session: session}
+    %{session: maybe_different_session(session)}
   end
 
   test "put", %{session: session} do

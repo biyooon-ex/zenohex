@@ -1,18 +1,18 @@
 defmodule Zenohex.Examples.SessionTest do
   use ExUnit.Case
 
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
+
   alias Zenohex.Examples.Session
   alias Zenohex.Examples.Subscriber
   alias Zenohex.Examples.Queryable
-  alias Zenohex.Config
-  alias Zenohex.Config.Scouting
 
   setup do
-    start_supervised!(
-      {Session, %{session: Zenohex.open!(%Config{scouting: %Scouting{delay: 0}})}}
-    )
+    {:ok, session} = Zenohex.open()
 
-    %{session: Zenohex.open!(%Config{scouting: %Scouting{delay: 30}})}
+    start_supervised!({Session, %{session: session}})
+
+    %{session: maybe_different_session(session)}
   end
 
   describe "put/2" do

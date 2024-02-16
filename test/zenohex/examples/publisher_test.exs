@@ -1,15 +1,18 @@
 defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
+  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
+
   alias Zenohex.Examples.Publisher
   alias Zenohex.Examples.Subscriber
 
   setup do
     {:ok, session} = Zenohex.open()
     key_expr = "key/expression/pub"
+
     start_supervised!({Publisher, %{session: session, key_expr: key_expr}})
 
-    %{session: session}
+    %{session: maybe_different_session(session)}
   end
 
   describe "put/1" do
