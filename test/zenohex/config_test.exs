@@ -5,7 +5,7 @@ defmodule Zenohex.ConfigTest do
   alias Zenohex.Config.Connect
   alias Zenohex.Config.Scouting
 
-  test "" do
+  test "Zenohex.open(config)" do
     config = %Config{
       connect: %Connect{endpoints: ["tcp/localhost:7447"]},
       scouting: %Scouting{delay: 200}
