@@ -54,7 +54,36 @@ iex> Publisher.priority(:real_time)
 
 see. Supported options, [Zenohex.Publisher.Options](/lib/zenohex/publisher.ex)
 
-### Subscriber
+## Subscriber
+
+This Subscriber is made of `Supervisor` and `GenServer`.
+If you would like to see the codes, check the followings.
+
+- Supervisor
+  - [lib/zenohex/examples/subscriber.ex](/lib/zenohex/examples/subscriber.ex)
+- GenServer
+  - [lib/zenohex/examples/subscriber/impl.ex](/lib/zenohex/examples/subscriber/impl.ex)
+
+### Start Subscriber
+
+```elixir
+iex> alias Zenohex.Examples.Subscriber
+# if not specify session, key_expr and callback, they are made internally. key_expr is "zenohex/examples/**",callback is &Logger.debug(inspect(&1))
+iex> Subscriber.start_link()
+# you can also inject your session, key_expr and callback from outside
+iex> Subscriber.start_link(%{session: your_session, key_expr: "your_key/expression/**", callback: &IO.inspect/1})
+```
+
+### Subscribed?
+
+```elixir
+iex> alias Zenohex.Examples.Publisher
+iex> Publisher.start_link()
+iex> Publisher.put("subscribed?")
+:ok
+
+11:51:53.959 [debug] %Zenohex.Sample{key_expr: "zenohex/examples/pub", value: "subscribed?", kind: :put, reference: #Reference<0.1373489635.746717252.118288>}
+```
 
 ### PullSubscriber
 
