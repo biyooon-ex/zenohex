@@ -149,6 +149,46 @@ iex> Session.get("zenohex/examples/get", &IO.inspect/1)
 15:20:17.870 [debug] %Zenohex.Query{key_expr: "zenohex/examples/get", parameters: "", value: :undefined, reference: #Reference<0.3076585362.3463839816.144434>}
 ```
 
-### Session
+## Session
+
+This Session is made of `Supervisor` and `GenServer`.
+If you would like to see the codes, check the followings.
+
+- Supervisor
+  - [lib/zenohex/examples/session.ex](/lib/zenohex/examples/session.ex)
+- GenServer
+  - [lib/zenohex/examples/session/impl.ex](/lib/zenohex/examples/session/impl.ex)
+
+### Start Session
+
+```elixir
+iex> alias Zenohex.Examples.Session
+# if not specify session, it is made internally
+iex> Session.start_link()
+# you can also inject your session and key_expr from outside
+iex> Session.start_link(%{session: your_session})
+```
+
+### Put data
+
+```elixir
+iex> Session.put("zenoh/example/session/put", 42)    # integer
+iex> Session.put("zenoh/example/session/put", 42.42) # float
+iex> Session.put("zenoh/example/session/put", "42")  # binary
+```
+
+### Delete data
+
+```elixir
+iex> Session.delete("zenoh/example/session/put")
+iex> Session.delete("zenoh/example/session/**")
+```
+
+### Get data
+
+```elixir
+iex> callback = &IO.inspect/1
+iex> Session.get("zenoh/example/session/get", callback)
+```
 
 ### Storage
