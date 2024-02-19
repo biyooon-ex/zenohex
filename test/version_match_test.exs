@@ -23,7 +23,7 @@ defmodule Zenohex.VersionMatchTest do
         end)
 
       ciyaml_versions_map =
-        File.read!(".github/workflows/ci.yaml")
+        File.read!(".github/workflows/ci.yml")
         |> String.split("\n")
         |> Enum.reduce(%{}, fn line, acc ->
           cond do
