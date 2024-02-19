@@ -63,18 +63,9 @@ iex(6)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
 
 ### Practical examples
 
-We implemented following practical examples under the [lib/zenohex/examples](lib/zenohex/examples) with moduledoc.
+We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples).
 
-(from hexdocs please refer to MODULES tab's EXAMPLE section)
-
-- [Publisher](lib/zenohex/examples/publisher.ex)
-- [Subscriber](lib/zenohex/examples/subscriber.ex)
-- [PullSubscriber](lib/zenohex/examples/pull_subscriber.ex)
-- [Session](lib/zenohex/examples/session.ex)
-- [Queryable](lib/zenohex/examples/queryable.ex)
-- [Storage](lib/zenohex/examples/storage.ex)
-
-Use them as reference for your implementation.
+Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples/README.md) to use them as your implementation's reference.
 
 ## For developer
 
