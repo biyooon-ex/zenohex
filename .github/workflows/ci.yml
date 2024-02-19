@@ -51,10 +51,6 @@ jobs:
           otp-version: ${{env.OTP_VERSION}}
           elixir-version: ${{env.ELIXIR_VERSION}}
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
       - uses: actions/cache/restore@v4
         id: restore-deps-cache
         with:
