@@ -8,8 +8,6 @@ env:
 # based https://github.com/erlef/setup-beam
 
 on:
-  push:
-    branches: main
   pull_request:
 
 jobs:
