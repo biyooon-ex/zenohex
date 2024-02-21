@@ -1,0 +1,144 @@
+name: CI
+
+env:
+  OTP_VERSION: 26.1.2
+  ELIXIR_VERSION: 1.15.7
+  MIX_ENV: test
+
+# based https://github.com/erlef/setup-beam
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache@v4
+        id: save-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+
+      - name: build deps
+        if: steps.save-deps-cache.outputs.cache-hit != 'true'
+        run: mix do deps.get, deps.compile
+
+  code-analysis:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: format
+        run: mix format --check-formatted
+
+      - name: cargo fmt
+        working-directory: native/zenohex_nif
+        run: cargo fmt --all -- --check
+
+      - name: credo
+        run: mix credo --ignore fixme
+
+      - name: restore plts cache
+        id: restore-plts-cache
+        uses: actions/cache/restore@v4
+        with:
+          key: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+          path: priv/plts
+
+      - name: create plts
+        if: steps.restore-plts-cache.outputs.cache-hit != 'true'
+        run: mix dialyzer --plt
+
+      - name: save plts cache
+        id: save-plts-cache
+        uses: actions/cache/save@v4
+        if: steps.restore-plts-cache.outputs.cache-hit != 'true'
+        with:
+          key: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          path: priv/plts
+
+      - name: dialyzer
+        run: mix dialyzer --format github
+
+  test-with-one-session:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: test
+        run: mix test --warnings-as-errors --cover
+
+  test-with-another-session:
+    needs: build-deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{env.OTP_VERSION}}
+          elixir-version: ${{env.ELIXIR_VERSION}}
+
+      - uses: actions/cache/restore@v4
+        id: restore-deps-cache
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: test
+        run: USE_DIFFERENT_SESSION="1" mix test --warnings-as-errors --cover

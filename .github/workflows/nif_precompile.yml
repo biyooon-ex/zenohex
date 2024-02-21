@@ -12,20 +12,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nif: ["2.16", "2.15"]
+        nif: ["2.15"]
         job:
-          - { target: arm-unknown-linux-gnueabihf , os: ubuntu-20.04 , use-cross: true }
-          - { target: aarch64-unknown-linux-gnu   , os: ubuntu-20.04 , use-cross: true }
-          - { target: aarch64-apple-darwin        , os: macos-11      }
-          - { target: x86_64-apple-darwin         , os: macos-11      }
-          - { target: x86_64-unknown-linux-gnu    , os: ubuntu-20.04  }
-          - { target: x86_64-unknown-linux-musl   , os: ubuntu-20.04 , use-cross: true }
-          - { target: x86_64-pc-windows-gnu       , os: windows-2019  }
-          - { target: x86_64-pc-windows-msvc      , os: windows-2019  }
+          - { target: aarch64-apple-darwin        , os: macos-12      }
+          - { target: aarch64-unknown-linux-gnu   , os: ubuntu-22.04 , use-cross: true }
+          - { target: aarch64-unknown-linux-musl  , os: ubuntu-22.04 , use-cross: true }
+          - { target: arm-unknown-linux-gnueabihf , os: ubuntu-22.04 , use-cross: true }
+          - { target: x86_64-apple-darwin         , os: macos-12      }
+          - { target: x86_64-pc-windows-gnu       , os: windows-2022  }
+          - { target: x86_64-pc-windows-msvc      , os: windows-2022  }
+          - { target: x86_64-unknown-linux-gnu    , os: ubuntu-22.04  }
+          - { target: x86_64-unknown-linux-musl   , os: ubuntu-22.04 , use-cross: true }
 
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Extract project version
       shell: bash
@@ -42,12 +43,12 @@ jobs:
       id: build-crate
       uses: philss/rustler-precompiled-action@v1.0.0
       with:
-        project-name: nifzenoh
+        project-name: zenohex_nif
         project-version: ${{ env.PROJECT_VERSION }}
         target: ${{ matrix.job.target }}
         nif-version: ${{ matrix.nif }}
         use-cross: ${{ matrix.job.use-cross }}
-        project-dir: "native/nifzenoh"
+        project-dir: "native/zenohex_nif"
 
     - name: Artifact upload
       uses: actions/upload-artifact@v3

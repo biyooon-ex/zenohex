@@ -6,8 +6,8 @@
 
 Zenohex is the [zenoh](https://zenoh.io/) client library for elixir.
 
-Currently zenohex uses version 0.10.1-rc of zenoh.
-If you want to communicate with Rust version of Zenoh, please use the same version. 
+**Currently zenohex uses version 0.10.1-rc of zenoh.  
+If you want to communicate with other Zenoh clients or routers, please use the same version.**
 
 ## Installation
 
@@ -17,7 +17,7 @@ by adding `zenohex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:zenohex, "~> 0.1.5"}
+    {:zenohex, "~> 0.2.0-rc.2"}
   ]
 end
 ```
@@ -27,40 +27,55 @@ and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/zenohex>.
 
 ### Install rust (Optional)
+
 Since version 0.1.3, Zenohex uses rustler precompiled and does not require Rust to be installed.
 
-If you need to build rust NIFs code, please set the environment variable and install rust.
+If you want to build rust NIFs code, please add following to your config file.
+
+```elixir
+config :rustler_precompiled, :force_build, zenohex: true
 ```
-export RUSTLER_PRECOMPILATION_EXAMPLE_BUILD=1
-```
+
 https://www.rust-lang.org/tools/install
 
 ## Getting Started
 
-### Publisher example
-#### terminal 1 (Subscriber)
-```
-iex -S mix
-iex> NifZenoh.tester_sub "demo/example/zenoh-rs-pub"
+### Low layer Pub/Sub example
+
+```sh
+$ iex -S mix
 ```
 
-#### terminal 2 (Publisher)
-```
-iex -S mix
-iex> session = Zenohex.open
-iex> {:ok, publisher} = Session.declare_publisher(session, "demo/example/zenoh-rs-pub")
-iex> Publisher.put(publisher, "Hello zenoh?")
+```elixir
+iex(1)> {:ok, session} = Zenohex.open()
+{:ok, #Reference<>}
+iex(2)> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "pub/sub")
+{:ok, #Reference<>}
+iex(3)> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "pub/sub")
+{:ok, #Reference<>}
+iex(4)> Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon")
+:ok
+iex(5)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+{:ok, "Hello Zenoh Dragon"}
+iex(6)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+{:error, :timeout}
 ```
 
-### Subscriber example
-```
-(Subscriber)
-iex -S mix
-iex> session = Zenohex.open
-iex> Session.declare_subscriber(session, "demo/example/zenoh-rs-pub", fn m -> IO.inspect(m) end)
-(third argument is callback function)
+### Practical examples
 
-(Publisher)
-iex> {:ok, publisher} = Session.declare_publisher(session, "demo/example/zenoh-rs-pub")
-iex> Publisher.put(publisher, "Hello zenoh?")
-```
+We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples).
+
+Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples/README.md) to use them as your implementation's reference.
+
+## For developer
+
+### How to release
+
+1. Change versions, `mix.exs`, `native/zenohex_nif/Cargo.toml`
+2. Run test, this step changes `native/zenohex_nif/Cargo.lock` version
+3. Commit them and put the version tag, like v0.2.0-rc.2
+4. Puth the tag, like `git push origin v0.2.0-rc.2`. this step triggers the `.github/workflows/nif_precompile.yml`
+5. After the artifacts are made, run `mix rustler_precompiled.download Zenohex.Nif --all` to update `checksum-Elixir.Zenohex.Nif.exs` and commit it.
+6. Then publish to Hex
+
+(These steps just follows [Recommended flow](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).)
