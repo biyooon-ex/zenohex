@@ -25,37 +25,61 @@ So what we need is [Elixir](https://elixir-lang.org/)!
 With this library, you can call Zenoh from your Elixir application to perform its basic processing.
 This allows the creation and communication of a large number of fault-tolerant nodes with little memory load (we hope :D
 
-**Currently zenohex uses version 0.10.1-rc of zenoh.  
-If you want to communicate with other Zenoh clients or routers, please use the same version.**
+## Usage
 
-## Installation
+**Currently, Zenohex uses version 0.10.1-rc of Zenoh.  
+We recommend you use the same version to communicate with other Zenoh clients or routers.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `zenohex` to your list of dependencies in `mix.exs`:
+### Installation
+
+`zenohex` is [available in Hex](https://hex.pm/packages/zenohex).
+
+You can install this package into your project by adding `zenohex` to your list of dependencies in `mix.exs`:
 
 ```elixir
-def deps do
-  [
-    {:zenohex, "~> 0.2.0-rc.2"}
-  ]
-end
+  defp deps do
+    [
+      ...
+      {:zenohex, "~> 0.2.0-rc.2"},
+      ...
+    ]
+  end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/zenohex>.
+Documentation is also [available in HexDocs](https://hexdocs.pm/zenohex).
 
-### Install rust (Optional)
+Zenohex can be also adapted to your [Nerves](https://nerves-project.org/) application just by adding `zenohex` in `mix.exs`.
+Please refer to [pojiro/nerves_zenohex](https://github.com/pojiro/nerves_zenohex) as the example.
 
-Since version 0.1.3, Zenohex uses rustler precompiled and does not require Rust to be installed.
+### [optional] Build NIF module locally
 
-If you want to build rust NIFs code, please add following to your config file.
+For most users, this section should be skipped.
+
+This repository uses [Rustler](https://github.com/rusterlium/rustler) to call Rust (Zenoh) modules from Elixir, and pre-compiled NIF modules are automatically downloaded at `mix compile` time (since v0.1.3). 
+IOW, if you just want to use this library from your Elixir application, you do not need to prepare a Rust environment.
+
+If you still want to build Rust NIF modules locally, first install and configure the Rust environment according to [the instructions on the official site](https://www.rust-lang.org/tools/install).
+
+Then, add the following to your config file (e.g., `config/config.exs`).
 
 ```elixir
+import Config
+
 config :rustler_precompiled, :force_build, zenohex: true
 ```
 
-https://www.rust-lang.org/tools/install
+Finally, install Rustler into your project by adding `rustler` to your list of dependencies in `mix.exs`:
+
+```elixir
+  defp deps do
+    [
+      ...
+      {:zenohex, "~> 0.2.0-rc.2"},
+      {:rustler, ">= 0.0.0", optional: true},
+      ...
+    ]
+  end
+```
 
 ## Getting Started
 
