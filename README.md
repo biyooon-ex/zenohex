@@ -162,3 +162,18 @@ These steps just follow the [Recommended flow of rustler_precompiled](https://he
 4. Puth the tag, like `git push origin v0.2.0`. this step triggers the `.github/workflows/nif_precompile.yml`
 5. After the artifacts are made, run `mix rustler_precompiled.download Zenohex.Nif --all` to update `checksum-Elixir.Zenohex.Nif.exs` and commit it.
 6. Then publish to Hex
+
+## Resources
+
+- Zenoh meets Elixir in Japan
+  - presented in [Zenoh User Meeting 2023](https://www.zettascale.tech/news/zenoh-user-meeting-2023/) at 2023/12/12
+  - [SpeakerDeck](https://speakerdeck.com/takasehideki/zenoh-meets-elixir-in-japan)
+  - [YouTube archive](https://www.youtube.com/watch?v=4TYn_l6rXIg)
+- Zenohex: an eloquent, scalable and fast communication library for Elixir
+  - (will be) presented in [Code BEAM America 2024](https://codebeamamerica.com/) at 2024/03/07
+  - Slide and video archive will be added
+
+## License
+
+The source code of this repository itself is published under [MIT License](https://github.com/b5g-ex/zenohex/blob/main/LICENSE).  
+Please note that this repository mainly uses [Zenoh which is licensed under Apache 2.0 and EPL 2.0](https://github.com/eclipse-zenoh/zenoh/blob/main/LICENSE) and [Rustler which is licensed under either of Apache 2.0 or MIT](https://github.com/rusterlium/rustler?tab=readme-ov-file#license).
