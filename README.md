@@ -81,32 +81,43 @@ Finally, install Rustler into your project by adding `rustler` to your list of d
   end
 ```
 
-## Getting Started
+### Getting Started
 
-### Low layer Pub/Sub example
+Zenohex has a policy of providing APIs that wrap the basic functionality of Zenoh like other API libraries.
+
+Here is the first step to building an Elixir application and using this feature.
 
 ```sh
+$ mix deps.get
+$ mix compile
 $ iex -S mix
 ```
 
 ```elixir
-iex(1)> {:ok, session} = Zenohex.open()
+iex()> {:ok, session} = Zenohex.open()
 {:ok, #Reference<>}
-iex(2)> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "pub/sub")
+iex()> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "demo/example/test")
 {:ok, #Reference<>}
-iex(3)> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "pub/sub")
+iex()> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "demo/**")
 {:ok, #Reference<>}
-iex(4)> Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon")
+iex()> Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon")
 :ok
-iex(5)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
-{:ok, "Hello Zenoh Dragon"}
-iex(6)> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+iex()> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
+{:ok,
+ %Zenohex.Sample{
+   key_expr: "demo/example/test",
+   value: "Hello Zenoh Dragon",
+   kind: :put,
+   reference: #Reference<>
+ }}
+iex()> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
 {:error, :timeout}
 ```
 
 ### Practical examples
 
 We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples).
+Since they consist of `Supervisor` and `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
 Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples/README.md) to use them as your implementation's reference.
 
