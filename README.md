@@ -5,7 +5,25 @@
 [![License](https://img.shields.io/hexpm/l/zenohex.svg)](https://github.com/zenohex/zenohex/blob/main/LICENSE)
 [![CI](https://github.com/b5g-ex/zenohex/actions/workflows/ci.yml/badge.svg)](https://github.com/b5g-ex/zenohex/actions/workflows/ci.yml)
 
-Zenohex is the [zenoh](https://zenoh.io/) client library for elixir.
+Zenohex is Elixir API for [Zenoh](https://zenoh.io/).
+
+Zenoh is a new protocol for Zero Overhead Pub/Sub, Store/Query and Compute.
+The most obvious explanation is that Zenoh offers publication subscription-based communication capabilities.
+Within the same network, Zenoh can autonomously search for communication partner nodes like DDS.
+Between different networks, Zenoh can search for nodes through a broker (called a router in Zenoh) like MQTT.
+Also, Zenoh provides functions for database operations and computational processing based on the Key-Value Store.
+Moreover, it has plugins/bridges for interoperability with MQTT, DDS, REST, etc. as communication middleware, and influxdb, RocksDB, etc. as database stacks.
+
+For more details about Zenoh, please refer to the official resources.
+- [Official Page](https://zenoh.io/)
+- [GitHub](https://github.com/eclipse-zenoh/zenoh)
+- [Discord](https://discord.gg/vSDSpqnbkm)
+
+Zenoh's core modules are implemented in Rust, but API libraries in various programming languages such as Python ([zenoh-python](https://github.com/eclipse-zenoh/zenoh-python)), C ([zenoh-c](https://github.com/eclipse-zenoh/zenoh-c)), C++ ([zenoh-cpp](https://github.com/eclipse-zenoh/zenoh-cpp)) are officially provided.
+
+So what we need is [Elixir](https://elixir-lang.org/)!
+With this library, you can call Zenoh from your Elixir application to perform its basic processing.
+This allows the creation and communication of a large number of fault-tolerant nodes with little memory load (we hope :D
 
 **Currently zenohex uses version 0.10.1-rc of zenoh.  
 If you want to communicate with other Zenoh clients or routers, please use the same version.**
