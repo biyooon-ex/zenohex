@@ -28,7 +28,7 @@ This allows the creation and communication of a large number of fault-tolerant n
 ## Usage
 
 **Currently, Zenohex uses version 0.10.1-rc of Zenoh.  
-We recommend you use the same version to communicate with other Zenoh clients or routers.
+We recommend you use the same version to communicate with other Zenoh clients or routers.**
 
 ### Installation
 
@@ -51,35 +51,9 @@ Documentation is also [available in HexDocs](https://hexdocs.pm/zenohex).
 Zenohex can be also adapted to your [Nerves](https://nerves-project.org/) application just by adding `zenohex` in `mix.exs`.
 Please refer to [pojiro/nerves_zenohex](https://github.com/pojiro/nerves_zenohex) as the example.
 
-### [optional] Build NIF module locally
-
-For most users, this section should be skipped.
-
 This repository uses [Rustler](https://github.com/rusterlium/rustler) to call Rust (Zenoh) modules from Elixir, and pre-compiled NIF modules are automatically downloaded at `mix compile` time (since v0.1.3). 
 IOW, if you just want to use this library from your Elixir application, you do not need to prepare a Rust environment.
-
-If you still want to build Rust NIF modules locally, first install and configure the Rust environment according to [the instructions on the official site](https://www.rust-lang.org/tools/install).
-
-Then, add the following to your config file (e.g., `config/config.exs`).
-
-```elixir
-import Config
-
-config :rustler_precompiled, :force_build, zenohex: true
-```
-
-Finally, install Rustler into your project by adding `rustler` to your list of dependencies in `mix.exs`:
-
-```elixir
-  defp deps do
-    [
-      ...
-      {:zenohex, "~> 0.2.0-rc.2"},
-      {:rustler, ">= 0.0.0", optional: true},
-      ...
-    ]
-  end
-```
+If you still want to build Rust NIF modules locally, please refer to [this section](#build-nif-module-locally).
 
 ### Getting Started
 
@@ -121,15 +95,70 @@ Since they consist of `Supervisor` and `GenServer`, we think they are useful as 
 
 Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples/README.md) to use them as your implementation's reference.
 
-## For developer
+## For developers
+
+For most users, this section should be skipped.
+
+### Build NIF module locally
+
+This subsection is for developers who want to build NIF module locally in your Elixir application or try to use this repository itself for the contribution (very welcome!!).
+
+First, please install and configure the Rust environment according to [the instructions on the official site](https://www.rust-lang.org/tools/install).
+
+Then, add the following to your config file (e.g., `config/config.exs`) or make sure it is added.
+
+```elixir
+import Config
+
+config :rustler_precompiled, :force_build, zenohex: true
+```
+
+When you want to build NIF module locally into your project, install Rustler by adding `rustler` to your list of dependencies in `mix.exs`:
+
+```elixir
+  defp deps do
+    [
+      ...
+      {:zenohex, "~> 0.2.0-rc.2"},
+      {:rustler, ">= 0.0.0", optional: true},
+      ...
+    ]
+  end
+```
+
+### Enhance mix test
+
+This subsection describes some Tips for `mix test`.
+
+The default `mix test` rebuilds the NIF module, so you can reduce the test time by doing the following in advance.
+
+```sh
+export API_OPEN_SESSION_DELAY=0 && mix compile --force
+```
+
+You can also reduce the test time by adjusting `SCOUTING_DELAY` as the follow.
+
+```sh
+SCOUTING_DELAY=30 mix test
+```
+
+This parameter is used to set the upper time limit for searching (scouting) for a communication peer node.
+IOW, if the test fails because the communication partner is not found within the set time, this value should be increased.
+
+Finally, the default `mix test` only checks the communication of Zenoh nodes within the same session.
+If you wish to run communication tests between different sessions, please run the following (CI does this in `test-with-another-session`).
+
+```sh
+USE_DIFFERENT_SESSION="1" mix test
+```
 
 ### How to release
 
+These steps just follow the [Recommended flow of rustler_precompiled](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
+
 1. Change versions, `mix.exs`, `native/zenohex_nif/Cargo.toml`
 2. Run test, this step changes `native/zenohex_nif/Cargo.lock` version
-3. Commit them and put the version tag, like v0.2.0-rc.2
-4. Puth the tag, like `git push origin v0.2.0-rc.2`. this step triggers the `.github/workflows/nif_precompile.yml`
+3. Commit them and put the version tag, like v0.2.0
+4. Puth the tag, like `git push origin v0.2.0`. this step triggers the `.github/workflows/nif_precompile.yml`
 5. After the artifacts are made, run `mix rustler_precompiled.download Zenohex.Nif --all` to update `checksum-Elixir.Zenohex.Nif.exs` and commit it.
 6. Then publish to Hex
-
-(These steps just follows [Recommended flow](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).)
