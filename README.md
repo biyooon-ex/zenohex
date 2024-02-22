@@ -147,11 +147,13 @@ This parameter is used to set the upper time limit for searching (scouting) for 
 IOW, if the test fails because the communication partner is not found within the set time, this value should be increased.
 
 Finally, the default `mix test` only checks the communication of Zenoh nodes within the same session.
-If you wish to run communication tests between different sessions, please run the following (CI does this in `test-with-another-session`).
+If you wish to run communication tests between different sessions, please run the following.
 
 ```sh
 USE_DIFFERENT_SESSION="1" mix test
 ```
+
+FYI, CI does this in `test-with-another-session` without defining `SCOUTING_DELAY`, so this test sometimes fails on GHA.
 
 ### How to release
 
