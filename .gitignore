@@ -25,7 +25,9 @@ zenohex-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
-/priv/native/
+# Ignore compiled NIF for Rustler
+/priv/native/*zenohex_nif*
 
+# Ignore local Dialyzer PLTs
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
