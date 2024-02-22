@@ -15,6 +15,7 @@ Also, Zenoh provides functions for database operations and computational process
 Moreover, it has plugins/bridges for interoperability with MQTT, DDS, REST, etc. as communication middleware, and influxdb, RocksDB, etc. as database stacks.
 
 For more details about Zenoh, please refer to the official resources.
+
 - [Official Page](https://zenoh.io/)
 - [GitHub](https://github.com/eclipse-zenoh/zenoh)
 - [Discord](https://discord.gg/vSDSpqnbkm)
