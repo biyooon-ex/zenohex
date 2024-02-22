@@ -54,7 +54,14 @@ defmodule Zenohex.VersionMatchTest do
       version_on_cargo_toml =
         Toml.decode_file!("native/zenohex_nif/Cargo.toml")["package"]["version"]
 
+      version_on_cargo_lock =
+        Toml.decode_file!("native/zenohex_nif/Cargo.lock")["package"]
+        |> Enum.filter(fn map -> map["name"] == "zenohex_nif" end)
+        |> List.first()
+        |> Map.get("version")
+
       assert version_on_mix_exs == version_on_cargo_toml
+      assert version_on_mix_exs == version_on_cargo_lock
     end
   end
 end
