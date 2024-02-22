@@ -50,7 +50,7 @@ You can install this package into your project by adding `zenohex` to your list 
 Documentation is also [available in HexDocs](https://hexdocs.pm/zenohex).
 
 Zenohex can be also adapted to your [Nerves](https://nerves-project.org/) application just by adding `zenohex` in `mix.exs`.
-Please refer to [pojiro/nerves_zenohex](https://github.com/pojiro/nerves_zenohex) as the example.
+Please refer to [pojiro/zenohex_on_nerves](https://github.com/pojiro/zenohex_on_nerves) as the example.
 
 This repository uses [Rustler](https://github.com/rusterlium/rustler) to call Rust (Zenoh) modules from Elixir, and pre-compiled NIF modules are automatically downloaded at `mix compile` time (since v0.1.3).
 IOW, if you just want to use this library from your Elixir application, you do not need to prepare a Rust environment.
