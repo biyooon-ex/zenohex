@@ -91,10 +91,10 @@ iex()> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
 
 ### Practical examples
 
-We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples).
+We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples).
 Since they consist of `Supervisor` and `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
-Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/v0.2.0-rc.2/lib/zenohex/examples/README.md) to use them as your implementation's reference.
+Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples/README.md) to use them as your implementation's reference.
 
 ## For developers
 
@@ -154,7 +154,8 @@ If you wish to run communication tests between different sessions, please run th
 USE_DIFFERENT_SESSION="1" mix test
 ```
 
-FYI, CI does this in `test-with-another-session` without defining `SCOUTING_DELAY`, so this test sometimes fails on GHA.
+FYI, CI does this in `test-with-another-session`.
+This test may fail on GHA depending on whether the scouting is successful or not.
 
 ### How to release
 
