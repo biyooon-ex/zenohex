@@ -144,6 +144,7 @@ SCOUTING_DELAY=30 mix test
 ```
 
 This parameter is used to set the upper time limit for searching (scouting) for a communication peer node.
+The default value (when undefined) is 200 ms.
 IOW, if the test fails because the communication partner is not found within the set time, this value should be increased.
 
 Finally, the default `mix test` only checks the communication of Zenoh nodes within the same session.
