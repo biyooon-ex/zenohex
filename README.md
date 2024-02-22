@@ -154,7 +154,8 @@ If you wish to run communication tests between different sessions, please run th
 USE_DIFFERENT_SESSION="1" mix test
 ```
 
-FYI, CI does this in `test-with-another-session` without defining `SCOUTING_DELAY`, so this test sometimes fails on GHA.
+FYI, CI does this in `test-with-another-session`.
+This test may fail on GHA depending on whether the scouting is successful or not.
 
 ### How to release
 
