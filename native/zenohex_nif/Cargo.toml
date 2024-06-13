@@ -13,4 +13,4 @@ crate-type = ["cdylib"]
 flume = "0.11.0"
 futures = "0.3.30"
 rustler = { version = "0.32.1", default-features = false, features = ["derive", "nif_version_2_15"] }
-zenoh = "0.11.0-rc.3"
+zenoh = "0.11.0"
