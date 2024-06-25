@@ -28,6 +28,9 @@ defmodule Zenohex.Examples.PublisherTest do
          }}
       )
 
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
+
       for i <- 0..100 do
         assert Publisher.put(i) == :ok
         assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
@@ -47,6 +50,9 @@ defmodule Zenohex.Examples.PublisherTest do
            callback: fn sample -> send(me, sample) end
          }}
       )
+
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
 
       assert Publisher.delete() == :ok
 

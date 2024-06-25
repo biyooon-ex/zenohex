@@ -28,6 +28,9 @@ defmodule Zenohex.Examples.SessionTest do
          }}
       )
 
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
+
       assert Session.put("key/expression/put", "value") == :ok
       assert_receive %Zenohex.Sample{key_expr: "key/expression/put", value: "value"}
     end
@@ -45,6 +48,9 @@ defmodule Zenohex.Examples.SessionTest do
            callback: fn sample -> send(me, sample) end
          }}
       )
+
+        # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
 
       assert Session.delete("key/expression/delete") == :ok
       assert_receive %Zenohex.Sample{key_expr: "key/expression/delete", kind: :delete}
