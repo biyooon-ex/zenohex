@@ -83,6 +83,9 @@ defmodule Zenohex.Examples.SessionTest do
       me = self()
       callback = fn sample -> send(me, sample) end
 
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
+
       assert Session.get("key/expression/**", callback) == :ok
       assert_receive %Zenohex.Sample{}
     end
