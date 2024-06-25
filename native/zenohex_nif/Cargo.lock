@@ -3307,7 +3307,7 @@ dependencies = [
 
 [[package]]
 name = "zenohex_nif"
-version = "0.2.0"
+version = "0.3.0+zenoh-0.11.0"
 dependencies = [
  "flume",
  "futures",

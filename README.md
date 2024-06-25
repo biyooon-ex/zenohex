@@ -28,8 +28,10 @@ This allows the creation and communication of a large number of fault-tolerant n
 
 ## Usage
 
-**Currently, Zenohex uses version 0.10.1-rc of Zenoh.  
-We recommend you use the same version to communicate with other Zenoh clients or routers.**
+**Currently, Zenohex uses version 0.11.0 of Zenoh.**
+
+We recommend you use the same version to communicate with other Zenoh clients or routers since version compatibility is somewhat important for Zenoh.
+Please also check the [release names](https://github.com/biyooon-ex/zenohex/releases) with the corresponding Zenoh version after the `+`.
 
 ### Installation
 
