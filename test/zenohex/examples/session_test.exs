@@ -49,7 +49,7 @@ defmodule Zenohex.Examples.SessionTest do
          }}
       )
 
-        # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
       Process.sleep(1)
 
       assert Session.delete("key/expression/delete") == :ok
