@@ -9,6 +9,8 @@ jobs:
   build_release:
     name: NIF ${{ matrix.nif }} - ${{ matrix.job.target }} (${{ matrix.job.os }})
     runs-on: ${{ matrix.job.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:

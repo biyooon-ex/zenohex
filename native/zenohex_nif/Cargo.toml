@@ -1,6 +1,6 @@
 [package]
 name = "zenohex_nif"
-version = "0.2.0"
+version = "0.2.0+zenoh-0.10.1-rc"
 authors = []
 edition = "2021"
 
