@@ -1,7 +1,7 @@
 defmodule Zenohex.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.2.0+zenoh-0.10.1-rc"
   @source_url "https://github.com/biyooon-ex/zenohex"
 
   def project do
