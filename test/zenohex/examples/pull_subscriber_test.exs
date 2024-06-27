@@ -32,6 +32,9 @@ defmodule Zenohex.Examples.PullSubscriberTest do
   test "pull/0", %{session: session} do
     Zenohex.Session.put(session, "key/expression/put", "put")
 
+    # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+    Process.sleep(1)
+
     PullSubscriber.pull()
     assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
   end

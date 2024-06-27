@@ -1,7 +1,7 @@
 defmodule Zenohex.MixProject do
   use Mix.Project
 
-  @version "0.2.0+zenoh-0.10.1-rc"
+  @version "0.3.0+zenoh-0.11.0"
   @source_url "https://github.com/biyooon-ex/zenohex"
 
   def project do
@@ -41,9 +41,9 @@ defmodule Zenohex.MixProject do
   defp deps do
     [
       {:rustler_precompiled, "~> 0.7.1"},
-      {:rustler, ">= 0.31.0", optional: true},
-      {:ex_doc, "~> 0.31.0", only: :dev},
-      {:mix_test_watch, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:rustler, ">= 0.32.1", optional: true},
+      {:ex_doc, "~> 0.33", only: :dev},
+      {:mix_test_watch, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:toml, "~> 0.7", runtime: false}

@@ -28,6 +28,9 @@ defmodule Zenohex.Examples.PublisherTest do
          }}
       )
 
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
+
       for i <- 0..100 do
         assert Publisher.put(i) == :ok
         assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
@@ -48,16 +51,12 @@ defmodule Zenohex.Examples.PublisherTest do
          }}
       )
 
+      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
+      Process.sleep(1)
+
       assert Publisher.delete() == :ok
 
-      if System.get_env("USE_DIFFERENT_SESSION") == "1" do
-        # Zenoh 0.10.1-rc has the bug, https://github.com/eclipse-zenoh/zenoh/issues/633
-        # This bug causes that `delete` creates the Sample whose kind is :put.
-        # FIXME: when update Zenoh from 0.10.1-rc to over
-        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put}
-      else
-        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :delete}
-      end
+      assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :delete}
     end
   end
 
