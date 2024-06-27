@@ -28,8 +28,10 @@ This allows the creation and communication of a large number of fault-tolerant n
 
 ## Usage
 
-**Currently, Zenohex uses version 0.10.1-rc of Zenoh.  
-We recommend you use the same version to communicate with other Zenoh clients or routers.**
+**Currently, Zenohex uses version 0.11.0 of Zenoh.**
+
+We recommend you use the same version to communicate with other Zenoh clients or routers since version compatibility is somewhat important for Zenoh.
+Please also check the [release names](https://github.com/biyooon-ex/zenohex/releases) with the corresponding Zenoh version after the `+`.
 
 ### Installation
 
@@ -174,9 +176,10 @@ These steps just follow the [Recommended flow of rustler_precompiled](https://he
   - presented in [Zenoh User Meeting 2023](https://www.zettascale.tech/news/zenoh-user-meeting-2023/) at 2023/12/12
   - [SpeakerDeck](https://speakerdeck.com/takasehideki/zenoh-meets-elixir-in-japan)
   - [YouTube archive](https://www.youtube.com/watch?v=4TYn_l6rXIg)
-- Zenohex: an eloquent, scalable and fast communication library for Elixir
-  - (will be) presented in [Code BEAM America 2024](https://codebeamamerica.com/) at 2024/03/07
-  - Slide and video archive will be added
+- Zenohex - an eloquent, scalable and fast communication library for Elixir
+  - presented in [Code BEAM America 2024](https://codebeamamerica.com/) at 2024/03/07
+  - [SpeakerDeck](https://speakerdeck.com/takasehideki/zenohex-an-eloquent-scalable-and-fast-communication-library-for-elixir)
+  - [YouTube archive](https://www.youtube.com/watch?v=9DIamjWqass)
 
 ## License
 
