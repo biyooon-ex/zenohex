@@ -40,7 +40,7 @@ defmodule Zenohex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler_precompiled, "~> 0.7.1"},
+      {:rustler_precompiled, "~> 0.8.0"},
       {:rustler, ">= 0.32.1", optional: true},
       {:ex_doc, "~> 0.33", only: :dev},
       {:mix_test_watch, "~> 1.2", only: [:dev, :test], runtime: false},
