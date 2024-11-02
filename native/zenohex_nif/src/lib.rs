@@ -54,33 +54,4 @@ fn load(env: Env, _term: Term) -> bool {
     true
 }
 
-rustler::init!(
-    "Elixir.Zenohex.Nif",
-    [
-        zenoh_open,
-        session::declare_publisher,
-        session::declare_subscriber,
-        session::declare_pull_subscriber,
-        session::declare_queryable,
-        session::session_put_integer,
-        session::session_put_float,
-        session::session_put_binary,
-        session::session_get_reply_receiver,
-        session::session_get_reply_timeout,
-        session::session_delete,
-        publisher::publisher_put_integer,
-        publisher::publisher_put_float,
-        publisher::publisher_put_binary,
-        publisher::publisher_delete,
-        publisher::publisher_congestion_control,
-        publisher::publisher_priority,
-        subscriber::subscriber_recv_timeout,
-        pull_subscriber::pull_subscriber_pull,
-        pull_subscriber::pull_subscriber_recv_timeout,
-        queryable::queryable_recv_timeout,
-        query::query_reply,
-        query::query_finish_reply,
-        keyexpr::key_expr_intersects,
-    ],
-    load = load
-);
+rustler::init!("Elixir.Zenohex.Nif", load = load);
