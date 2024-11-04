@@ -52,15 +52,14 @@ fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>
 }
 
 fn load(env: Env, _term: Term) -> bool {
-    env.register::<SessionRef>().unwrap();
-    env.register::<PublisherRef>().unwrap();
-    env.register::<SubscriberRef>().unwrap();
-    env.register::<PullSubscriberRef>().unwrap();
-    env.register::<QueryableRef>().unwrap();
-    env.register::<ReplyReceiverRef>().unwrap();
-    env.register::<QueryRef>().unwrap();
-    env.register::<SampleRef>().unwrap();
-    true
+    env.register::<SessionRef>().is_ok()
+        && env.register::<PublisherRef>().is_ok()
+        && env.register::<SubscriberRef>().is_ok()
+        && env.register::<PullSubscriberRef>().is_ok()
+        && env.register::<QueryableRef>().is_ok()
+        && env.register::<ReplyReceiverRef>().is_ok()
+        && env.register::<QueryRef>().is_ok()
+        && env.register::<SampleRef>().is_ok()
 }
 
 rustler::init!("Elixir.Zenohex.Nif", load = load);
