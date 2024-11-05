@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock};
 
 use flume::Receiver;
-use rustler::{Env, ResourceArc, Term};
+use rustler::{Env, Resource, ResourceArc, Term};
 use zenoh::{
     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
     sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
@@ -33,6 +33,15 @@ struct ReplyReceiverRef(Receiver<Reply>);
 struct QueryRef(RwLock<Option<Query>>);
 struct SampleRef(Sample);
 
+impl Resource for SessionRef {}
+impl Resource for PublisherRef {}
+impl Resource for SubscriberRef {}
+impl Resource for PullSubscriberRef {}
+impl Resource for QueryableRef {}
+impl Resource for ReplyReceiverRef {}
+impl Resource for QueryRef {}
+impl Resource for SampleRef {}
+
 #[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>, String> {
     let config: zenoh::prelude::config::Config = config.into();
@@ -43,44 +52,14 @@ fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>
 }
 
 fn load(env: Env, _term: Term) -> bool {
-    rustler::resource!(SessionRef, env);
-    rustler::resource!(PublisherRef, env);
-    rustler::resource!(SubscriberRef, env);
-    rustler::resource!(PullSubscriberRef, env);
-    rustler::resource!(QueryableRef, env);
-    rustler::resource!(ReplyReceiverRef, env);
-    rustler::resource!(QueryRef, env);
-    rustler::resource!(SampleRef, env);
-    true
+    env.register::<SessionRef>().is_ok()
+        && env.register::<PublisherRef>().is_ok()
+        && env.register::<SubscriberRef>().is_ok()
+        && env.register::<PullSubscriberRef>().is_ok()
+        && env.register::<QueryableRef>().is_ok()
+        && env.register::<ReplyReceiverRef>().is_ok()
+        && env.register::<QueryRef>().is_ok()
+        && env.register::<SampleRef>().is_ok()
 }
 
-rustler::init!(
-    "Elixir.Zenohex.Nif",
-    [
-        zenoh_open,
-        session::declare_publisher,
-        session::declare_subscriber,
-        session::declare_pull_subscriber,
-        session::declare_queryable,
-        session::session_put_integer,
-        session::session_put_float,
-        session::session_put_binary,
-        session::session_get_reply_receiver,
-        session::session_get_reply_timeout,
-        session::session_delete,
-        publisher::publisher_put_integer,
-        publisher::publisher_put_float,
-        publisher::publisher_put_binary,
-        publisher::publisher_delete,
-        publisher::publisher_congestion_control,
-        publisher::publisher_priority,
-        subscriber::subscriber_recv_timeout,
-        pull_subscriber::pull_subscriber_pull,
-        pull_subscriber::pull_subscriber_recv_timeout,
-        queryable::queryable_recv_timeout,
-        query::query_reply,
-        query::query_finish_reply,
-        keyexpr::key_expr_intersects,
-    ],
-    load = load
-);
+rustler::init!("Elixir.Zenohex.Nif", load = load);
