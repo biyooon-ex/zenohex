@@ -159,6 +159,12 @@ USE_DIFFERENT_SESSION="1" mix test
 FYI, CI does this in `test-with-another-session`.
 This test may fail on GHA depending on whether the scouting is successful or not.
 
+### Versions of dependencies
+
+We think the correspondence between Zenoh (cargo crate) and Rustler is sensitive.
+Also, the version number of Rustler is specified in both mix.exs (Elixir hex package) and Cargo.toml (Rust cargo crate).
+Therefore, we clearly specify these version numbers with `==` in mix.exs and `=` in Cargo.toml.
+
 ### How to release
 
 These steps just follow the [Recommended flow of rustler_precompiled](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
