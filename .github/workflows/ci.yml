@@ -1,10 +1,5 @@
 name: CI
 
-env:
-  OTP_VERSION: 26.1.2
-  ELIXIR_VERSION: 1.15.7
-  MIX_ENV: test
-
 # based https://github.com/erlef/setup-beam
 
 on:
@@ -16,6 +11,15 @@ on:
 jobs:
   build-deps:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pair:
+          - { erlang: "27", elixir: "1.17", latest: true }
+          - { erlang: "26", elixir: "1.17" }
+          - { erlang: "26", elixir: "1.16" }
+          - { erlang: "26", elixir: "1.15" }
+          - { erlang: "25", elixir: "1.15" }
 
     steps:
       - uses: actions/checkout@v4
@@ -23,8 +27,8 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
-          otp-version: ${{env.OTP_VERSION}}
-          elixir-version: ${{env.ELIXIR_VERSION}}
+          otp-version: ${{matrix.pair.erlang}}
+          elixir-version: ${{matrix.pair.elixir}}
 
       - uses: actions/cache@v4
         id: save-deps-cache
@@ -41,6 +45,15 @@ jobs:
   code-analysis:
     needs: build-deps
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pair:
+          - { erlang: "27", elixir: "1.17", latest: true }
+          - { erlang: "26", elixir: "1.17" }
+          - { erlang: "26", elixir: "1.16" }
+          - { erlang: "26", elixir: "1.15" }
+          - { erlang: "25", elixir: "1.15" }
 
     steps:
       - uses: actions/checkout@v4
@@ -48,8 +61,8 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
-          otp-version: ${{env.OTP_VERSION}}
-          elixir-version: ${{env.ELIXIR_VERSION}}
+          otp-version: ${{matrix.pair.erlang}}
+          elixir-version: ${{matrix.pair.elixir}}
 
       - uses: actions/cache/restore@v4
         id: restore-deps-cache
@@ -96,6 +109,15 @@ jobs:
   test-with-one-session:
     needs: build-deps
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pair:
+          - { erlang: "27", elixir: "1.17", latest: true }
+          - { erlang: "26", elixir: "1.17" }
+          - { erlang: "26", elixir: "1.16" }
+          - { erlang: "26", elixir: "1.15" }
+          - { erlang: "25", elixir: "1.15" }
 
     steps:
       - uses: actions/checkout@v4
@@ -103,8 +125,8 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
-          otp-version: ${{env.OTP_VERSION}}
-          elixir-version: ${{env.ELIXIR_VERSION}}
+          otp-version: ${{matrix.pair.erlang}}
+          elixir-version: ${{matrix.pair.elixir}}
 
       - uses: actions/cache/restore@v4
         id: restore-deps-cache
@@ -121,6 +143,15 @@ jobs:
   test-with-another-session:
     needs: build-deps
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pair:
+          - { erlang: "27", elixir: "1.17", latest: true }
+          - { erlang: "26", elixir: "1.17" }
+          - { erlang: "26", elixir: "1.16" }
+          - { erlang: "26", elixir: "1.15" }
+          - { erlang: "25", elixir: "1.15" }
 
     steps:
       - uses: actions/checkout@v4
@@ -128,8 +159,8 @@ jobs:
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
-          otp-version: ${{env.OTP_VERSION}}
-          elixir-version: ${{env.ELIXIR_VERSION}}
+          otp-version: ${{matrix.pair.erlang}}
+          elixir-version: ${{matrix.pair.elixir}}
 
       - uses: actions/cache/restore@v4
         id: restore-deps-cache
