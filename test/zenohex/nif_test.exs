@@ -12,7 +12,7 @@ defmodule Zenohex.NifTest do
   describe "session" do
     for {type, value} <- [
           {"integer", 0},
-          {"float", 0.0},
+          {"float", +0.0},
           {"binary", :erlang.term_to_binary("binary")}
         ] do
       test "session_put_#{type}/2", %{session: session} do
@@ -63,7 +63,7 @@ defmodule Zenohex.NifTest do
 
     for {type, value} <- [
           {"integer", 0},
-          {"float", 0.0},
+          {"float", +0.0},
           {"binary", :erlang.term_to_binary("binary")}
         ] do
       test "publisher_put_#{type}/2", %{session: session} do
@@ -101,8 +101,8 @@ defmodule Zenohex.NifTest do
       Nif.publisher_put_integer(publisher, 0)
       assert {:ok, %Sample{value: 0}} = Nif.subscriber_recv_timeout(subscriber, 1000)
 
-      Nif.publisher_put_float(publisher, 0.0)
-      assert {:ok, %Sample{value: 0.0}} = Nif.subscriber_recv_timeout(subscriber, 1000)
+      Nif.publisher_put_float(publisher, +0.0)
+      assert {:ok, %Sample{value: +0.0}} = Nif.subscriber_recv_timeout(subscriber, 1000)
 
       Nif.publisher_put_binary(publisher, "binary")
       assert {:ok, %Sample{value: "binary"}} = Nif.subscriber_recv_timeout(subscriber, 1000)
