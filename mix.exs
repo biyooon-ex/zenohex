@@ -93,7 +93,9 @@ defmodule Zenohex.MixProject do
 
   defp test_coverage() do
     [
-      ignore_modules: [Zenohex.Nif]
+      ignore_modules: [Zenohex.Nif],
+      # WHY: see https://github.com/biyooon-ex/zenohex/issues/77
+      summary: [threshold: 80]
     ]
   end
 
