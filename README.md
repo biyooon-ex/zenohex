@@ -33,6 +33,12 @@ This allows the creation and communication of a large number of fault-tolerant n
 We recommend you use the same version to communicate with other Zenoh clients or routers since version compatibility is somewhat important for Zenoh.
 Please also check the description on [Releases](https://github.com/biyooon-ex/zenohex/releases) about the corresponding Zenoh version.
 
+FYI, the development team currently uses the following versions.
+
+- Elixir 1.17.3-otp-27
+- Erlang/OTP 27.1.2
+- Rust 1.82.0
+
 ### Installation
 
 `zenohex` is [available in Hex](https://hex.pm/packages/zenohex).
