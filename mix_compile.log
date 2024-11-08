@@ -1,0 +1,89 @@
+Compiling 1 file (.ex)
+Compiling crate zenohex_nif in release mode (native/zenohex_nif)
+   Compiling rustls-platform-verifier v0.3.4
+   Compiling aes v0.8.4
+   Compiling phf_generator v0.11.2
+   Compiling zenoh-link-tls v1.0.1
+   Compiling pkcs1 v0.7.5
+   Compiling zenoh-link-tcp v1.0.1
+   Compiling signature v2.2.0
+   Compiling hmac v0.12.1
+   Compiling git-version-macro v0.3.9
+   Compiling siphasher v0.3.11
+   Compiling phf_macros v0.11.2
+   Compiling zenoh v1.0.0
+   Compiling lz4_flex v0.11.2
+   Compiling phf_shared v0.11.2
+   Compiling zenoh-crypto v1.0.1
+   Compiling rsa v0.9.6
+   Compiling zenoh-task v1.0.1
+error[E0277]: the trait bound `tokio_rustls::TlsAcceptor: AsyncTls<_>` is not satisfied
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:428:17
+    |
+428 |         .listen(socket);
+    |          ------ ^^^^^^ the trait `AsyncTls<_>` is not implemented for `tokio_rustls::TlsAcceptor`
+    |          |
+    |          required by a bound introduced by this call
+    |
+    = help: the trait `AsyncTls<C>` is implemented for `tls_listener::tokio_rustls::TlsAcceptor`
+note: required by a bound in `tls_listener::Builder::<T>::listen`
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tls-listener-0.10.2/src/lib.rs:370:12
+    |
+368 |     pub fn listen<A: AsyncAccept>(&self, listener: A) -> TlsListener<A, T>
+    |            ------ required by a bound in this associated function
+369 |     where
+370 |         T: AsyncTls<A::Connection>,
+    |            ^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Builder::<T>::listen`
+
+error[E0277]: the trait bound `tokio_rustls::TlsAcceptor: AsyncTls<_>` is not satisfied
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:428:10
+    |
+428 |         .listen(socket);
+    |          ^^^^^^ the trait `AsyncTls<_>` is not implemented for `tokio_rustls::TlsAcceptor`
+    |
+    = help: the trait `AsyncTls<C>` is implemented for `tls_listener::tokio_rustls::TlsAcceptor`
+note: required by a bound in `TlsListener`
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tls-listener-0.10.2/src/lib.rs:84:1
+    |
+84  | / pin_project! {
+85  | |     ///
+86  | |     /// Wraps a `Stream` of connections (such as a TCP listener) so that each connection is itself
+87  | |     /// encrypted using TLS.
+...   |
+111 | |     pub struct TlsListener<A: AsyncAccept, T: AsyncTls<A::Connection>> {
+    | |                ----------- required by a bound in this struct
+...   |
+118 | |     }
+119 | | }
+    | |_^ required by this bound in `TlsListener`
+    = note: this error originates in the macro `$crate::__pin_project_parse_generics` which comes from the expansion of the macro `pin_project` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling rustler_codegen v0.34.0
+   Compiling git-version v0.3.9
+error[E0599]: the method `accept` exists for struct `TlsListener<TcpListener, TlsAcceptor>`, but its trait bounds were not satisfied
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:435:28
+    |
+435 |             res = listener.accept() => {
+    |                            ^^^^^^ method cannot be called on `TlsListener<TcpListener, TlsAcceptor>` due to unsatisfied trait bounds
+    |
+   ::: /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-rustls-0.26.0/src/lib.rs:78:1
+    |
+78  | pub struct TlsAcceptor {
+    | ---------------------- doesn't satisfy `_: AsyncTls<TcpStream>`
+    |
+    = note: the following trait bounds were not satisfied:
+            `tokio_rustls::TlsAcceptor: AsyncTls<tokio::net::TcpStream>`
+
+   Compiling petgraph v0.6.5
+   Compiling phf v0.11.2
+   Compiling quinn-proto v0.11.8
+   Compiling zenoh-plugin-trait v1.0.1
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+error: could not compile `zenoh-link-tls` (lib) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...
+
+== Compilation error in file lib/zenohex/nif.ex ==
+** (RuntimeError) Rust NIF compile error (rustc exit code 101)
+    (rustler 0.34.0) lib/rustler/compiler.ex:36: Rustler.Compiler.compile_crate/3
+    lib/zenohex/nif.ex:8: (module)
