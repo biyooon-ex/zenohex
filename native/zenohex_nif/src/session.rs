@@ -31,7 +31,6 @@ fn declare_subscriber(
     let session: &Arc<Session> = &resource.0;
     match session
         .declare_subscriber(key_expr)
-        .reliability(opts.reliability.into())
         .wait()
     {
         Ok(subscriber) => Ok(ResourceArc::new(crate::SubscriberRef(subscriber))),

@@ -7,18 +7,6 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
 24 | fn publisher_put_impl<T: Into<zenoh::value::Value>>(
    |                                      ^^^^^ could not find `value` in `zenoh`
 
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-  --> src/publisher.rs:80:43
-   |
-80 | impl From<ExCongestionControl> for zenoh::publication::CongestionControl {
-   |                                           ^^^^^^^^^^^ could not find `publication` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:100:34
-    |
-100 | impl From<ExPriority> for zenoh::publication::Priority {
-    |                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
-
 error[E0433]: failed to resolve: could not find `Mode` in `query`
    --> src/query.rs:121:56
     |
@@ -44,28 +32,10 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
    |                        ^^^^^ could not find `value` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
-  --> src/session.rs:89:36
+  --> src/session.rs:88:36
    |
-89 | fn session_put_impl<T: Into<zenoh::value::Value>>(
+88 | fn session_put_impl<T: Into<zenoh::value::Value>>(
    |                                    ^^^^^ could not find `value` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
-  --> src/subscriber.rs:33:37
-   |
-33 | impl From<ExReliability> for zenoh::subscriber::Reliability {
-   |                                     ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
-  --> src/subscriber.rs:36:49
-   |
-36 |             ExReliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
-   |                                                 ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
-  --> src/subscriber.rs:37:47
-   |
-37 |             ExReliability::Reliable => zenoh::subscriber::Reliability::Reliable,
-   |                                               ^^^^^^^^^^ could not find `subscriber` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
  --> src/value.rs:9:57
@@ -78,150 +48,6 @@ error[E0425]: cannot find function `peer` in module `zenoh::config`
    |
 12 |         let mut config = zenoh::config::peer();
    |                                         ^^^^ not found in `zenoh::config`
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-  --> src/publisher.rs:83:49
-   |
-83 |             ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
-   |                                                 ^^^^^^^^^^^ could not find `publication` in `zenoh`
-   |
-help: consider importing this enum
-   |
-1  + use zenoh::qos::CongestionControl;
-   |
-help: if you import `CongestionControl`, refer to it directly
-   |
-83 -             ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
-83 +             ExCongestionControl::Drop => CongestionControl::Drop,
-   |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-  --> src/publisher.rs:84:50
-   |
-84 |             ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
-   |                                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
-   |
-help: consider importing this enum
-   |
-1  + use zenoh::qos::CongestionControl;
-   |
-help: if you import `CongestionControl`, refer to it directly
-   |
-84 -             ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
-84 +             ExCongestionControl::Block => CongestionControl::Block,
-   |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:103:44
-    |
-103 |             ExPriority::RealTime => zenoh::publication::Priority::RealTime,
-    |                                            ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-103 -             ExPriority::RealTime => zenoh::publication::Priority::RealTime,
-103 +             ExPriority::RealTime => Priority::RealTime,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:104:51
-    |
-104 |             ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
-    |                                                   ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-104 -             ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
-104 +             ExPriority::InteractiveHigh => Priority::InteractiveHigh,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:105:50
-    |
-105 |             ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
-    |                                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-105 -             ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
-105 +             ExPriority::InteractiveLow => Priority::InteractiveLow,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:106:44
-    |
-106 |             ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
-    |                                            ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-106 -             ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
-106 +             ExPriority::DataHigh => Priority::DataHigh,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:107:40
-    |
-107 |             ExPriority::Data => zenoh::publication::Priority::Data,
-    |                                        ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-107 -             ExPriority::Data => zenoh::publication::Priority::Data,
-107 +             ExPriority::Data => Priority::Data,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:108:43
-    |
-108 |             ExPriority::DataLow => zenoh::publication::Priority::DataLow,
-    |                                           ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-108 -             ExPriority::DataLow => zenoh::publication::Priority::DataLow,
-108 +             ExPriority::DataLow => Priority::DataLow,
-    |
-
-error[E0433]: failed to resolve: could not find `publication` in `zenoh`
-   --> src/publisher.rs:109:46
-    |
-109 |             ExPriority::Background => zenoh::publication::Priority::Background,
-    |                                              ^^^^^^^^^^^ could not find `publication` in `zenoh`
-    |
-help: consider importing this enum
-    |
-1   + use zenoh::qos::Priority;
-    |
-help: if you import `Priority`, refer to it directly
-    |
-109 -             ExPriority::Background => zenoh::publication::Priority::Background,
-109 +             ExPriority::Background => Priority::Background,
-    |
 
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
   --> src/query.rs:17:48
@@ -288,18 +114,18 @@ help: if you import `queryable`, refer to it directly
    |
 
 warning: unused import: `bytes::ZBytes`
- --> src/publisher.rs:3:19
+ --> src/publisher.rs:3:13
   |
-3 | use zenoh::{Wait, bytes::ZBytes, pubsub::Publisher};
-  |                   ^^^^^^^^^^^^^
+3 | use zenoh::{bytes::ZBytes, pubsub::Publisher, Wait};
+  |             ^^^^^^^^^^^^^
   |
   = note: `#[warn(unused_imports)]` on by default
 
 warning: unused import: `bytes::ZBytes`
- --> src/session.rs:5:19
+ --> src/session.rs:5:13
   |
-5 | use zenoh::{Wait, bytes::ZBytes, query::Reply, session::Session};
-  |                   ^^^^^^^^^^^^^
+5 | use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
+  |             ^^^^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/lib.rs:29:22
@@ -335,10 +161,10 @@ error[E0223]: ambiguous associated type
 25 | impl From<ExConfigConnect> for zenoh::Config::ConnectConfig {
    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `Config`, you could use the fully-qualified path
+help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `zenoh::Config`, you could use the fully-qualified path
    |
-25 | impl From<ExConfigConnect> for <Config as Example>::ConnectConfig {
-   |                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+25 | impl From<ExConfigConnect> for <zenoh::Config as Example>::ConnectConfig {
+   |                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0223]: ambiguous associated type
   --> src/config.rs:47:33
@@ -346,10 +172,10 @@ error[E0223]: ambiguous associated type
 47 | impl From<ExConfigScouting> for zenoh::Config::ScoutingConf {
    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `Config`, you could use the fully-qualified path
+help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `zenoh::Config`, you could use the fully-qualified path
    |
-47 | impl From<ExConfigScouting> for <Config as Example>::ScoutingConf {
-   |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+47 | impl From<ExConfigScouting> for <zenoh::Config as Example>::ScoutingConf {
+   |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0223]: ambiguous associated type
   --> src/config.rs:35:26
@@ -357,10 +183,10 @@ error[E0223]: ambiguous associated type
 35 |         let mut config = zenoh::Config::ConnectConfig::default();
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `Config`, you could use the fully-qualified path
+help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `zenoh::Config`, you could use the fully-qualified path
    |
-35 |         let mut config = <Config as Example>::ConnectConfig::default();
-   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+35 |         let mut config = <zenoh::Config as Example>::ConnectConfig::default();
+   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0223]: ambiguous associated type
   --> src/config.rs:49:26
@@ -368,10 +194,10 @@ error[E0223]: ambiguous associated type
 49 |         let mut config = zenoh::Config::ScoutingConf::default();
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `Config`, you could use the fully-qualified path
+help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `zenoh::Config`, you could use the fully-qualified path
    |
-49 |         let mut config = <Config as Example>::ScoutingConf::default();
-   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+49 |         let mut config = <zenoh::Config as Example>::ScoutingConf::default();
+   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
    --> src/keyexpr.rs:5:39
@@ -575,43 +401,16 @@ error[E0599]: no function or associated item named `new` found for struct `Sampl
 49 |         zenoh::sample::Sample::new(key_expr, value)
    |                                ^^^ function or associated item not found in `Sample`
 
-error[E0277]: the trait bound `CongestionControl: From<ExCongestionControl>` is not satisfied
-  --> src/session.rs:16:53
-   |
-16 |         .congestion_control(opts.congestion_control.into())
-   |                                                     ^^^^ the trait `From<ExCongestionControl>` is not implemented for `CongestionControl`, which is required by `ExCongestionControl: Into<_>`
-   |
-   = note: required for `ExCongestionControl` to implement `Into<CongestionControl>`
-
-error[E0277]: the trait bound `Priority: From<ExPriority>` is not satisfied
-  --> src/session.rs:17:33
-   |
-17 |         .priority(opts.priority.into())
-   |                                 ^^^^ the trait `From<ExPriority>` is not implemented for `Priority`, which is required by `ExPriority: Into<_>`
-   |
-   = note: required for `ExPriority` to implement `Into<Priority>`
-
-error[E0599]: no method named `reliability` found for struct `SubscriberBuilder` in the current scope
-  --> src/session.rs:34:10
-   |
-32 |       match session
-   |  ___________-
-33 | |         .declare_subscriber(key_expr)
-34 | |         .reliability(opts.reliability.into())
-   | |         -^^^^^^^^^^^ method not found in `SubscriberBuilder<'_, '_, DefaultHandler>`
-   | |_________|
-   |
-
 error[E0433]: failed to resolve: use of undeclared type `Value`
-  --> src/session.rs:86:47
+  --> src/session.rs:85:47
    |
-86 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+85 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
    |                                               ^^^^^ use of undeclared type `Value`
 
 error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
-   --> src/session.rs:96:33
+   --> src/session.rs:95:33
     |
-96  |     match session.put(key_expr, value).wait() {
+95  |     match session.put(key_expr, value).wait() {
     |                   ---           ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
     |                   |
     |                   required by a bound introduced by this call
@@ -627,29 +426,29 @@ note: required by a bound in `Session::put`
     |                     ^^^^^^^^^^^^ required by this bound in `Session::put`
 help: consider introducing a `where` clause, but there might be an alternative better way to express this requirement
     |
-94  | ) -> Term where ZBytes: From<T> {
+93  | ) -> Term where ZBytes: From<T> {
     |           +++++++++++++++++++++
 
 error[E0308]: mismatched types
-   --> src/session.rs:118:69
+   --> src/session.rs:117:69
     |
-118 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
+117 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
     |                                             ----------------------- ^^^^^^^^ expected `Receiver<Reply>`, found `FifoChannelHandler<Reply>`
     |                                             |
     |                                             arguments to this struct are incorrect
     |
-    = note: expected struct `flume::Receiver<Reply>`
-               found struct `FifoChannelHandler<Reply>`
+    = note: expected struct `flume::Receiver<zenoh::query::Reply>`
+               found struct `FifoChannelHandler<zenoh::query::Reply>`
 note: tuple struct defined here
    --> src/lib.rs:31:8
     |
 31  | struct ReplyReceiverRef(Receiver<Reply>);
     |        ^^^^^^^^^^^^^^^^
 
-error[E0609]: no field `sample` on type `Reply`
-   --> src/session.rs:131:34
+error[E0609]: no field `sample` on type `zenoh::query::Reply`
+   --> src/session.rs:130:34
     |
-131 |         Ok(reply) => match reply.sample {
+130 |         Ok(reply) => match reply.sample {
     |                                  ^^^^^^ unknown field
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
@@ -812,7 +611,7 @@ error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
 Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0282, E0308, E0425, E0433, E0599...
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 2 warnings
-error: could not compile `zenohex_nif` (lib) due to 76 previous errors; 2 warnings emitted
+error: could not compile `zenohex_nif` (lib) due to 59 previous errors; 2 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
