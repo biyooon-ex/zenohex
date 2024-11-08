@@ -1,7 +1,7 @@
 use std::{borrow::Cow, io::Write};
 
 use rustler::{Encoder, Env, OwnedBinary, Term};
-use zenoh::prelude::KnownEncoding;
+// use zenoh::prelude::KnownEncoding;
 
 pub(crate) struct ExValue;
 

@@ -1,7 +1,6 @@
 use std::sync::RwLock;
 
 use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
-use zenoh::prelude::sync::SyncResolve;
 
 use crate::{QueryRef, SampleRef};
 
@@ -54,7 +53,7 @@ fn query_reply<'a>(
             Some(resource) => resource.0.clone(),
             None => sample.into(),
         };
-    match query.reply(Ok(sample)).res_sync() {
+    match query.reply(Ok(sample)).wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }

@@ -56,11 +56,11 @@ pub(crate) enum ExSampleKind {
     Delete,
 }
 
-impl From<zenoh::prelude::SampleKind> for ExSampleKind {
-    fn from(kind: zenoh::prelude::SampleKind) -> Self {
+impl From<zenoh::sample::SampleKind> for ExSampleKind {
+    fn from(kind: zenoh::sample::SampleKind) -> Self {
         match kind {
-            zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
-            zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
+            zenoh::sample::SampleKind::Put => ExSampleKind::Put,
+            zenoh::sample::SampleKind::Delete => ExSampleKind::Delete,
         }
     }
 }

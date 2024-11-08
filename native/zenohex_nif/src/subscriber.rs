@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{Encoder, Env, ResourceArc, Term};
-use zenoh::{sample::Sample, subscriber::Subscriber};
+use zenoh::{pubsub::Subscriber, sample::Sample};
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn subscriber_recv_timeout(
@@ -30,11 +30,12 @@ pub(crate) enum ExReliability {
     Reliable,
 }
 
-impl From<ExReliability> for zenoh::subscriber::Reliability {
+// TODO: this impl may not be needed
+impl From<ExReliability> for zenoh_protocol::core::Reliability {
     fn from(value: ExReliability) -> Self {
         match value {
-            ExReliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
-            ExReliability::Reliable => zenoh::subscriber::Reliability::Reliable,
+            ExReliability::BestEffort => zenoh_protocol::core::Reliability::BestEffort,
+            ExReliability::Reliable => zenoh_protocol::core::Reliability::Reliable,
         }
     }
 }

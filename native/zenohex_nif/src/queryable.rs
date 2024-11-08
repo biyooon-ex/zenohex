@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{Encoder, Env, ResourceArc, Term};
-use zenoh::queryable::{Query, Queryable};
+use zenoh::query::{Query, Queryable};
 
 use crate::{atoms, QueryableRef};
 

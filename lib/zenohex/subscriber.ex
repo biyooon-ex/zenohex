@@ -12,7 +12,7 @@ defmodule Zenohex.Subscriber do
     @moduledoc """
     Documentation for `#{__MODULE__}`.
 
-    Used by `Zenohex.Session.declare_subscriber/3` and `Zenohex.Session.declare_pull_subscriber/3`.
+    Used by `Zenohex.Session.declare_subscriber/3`.
     """
 
     @type t :: %__MODULE__{reliability: reliability()}

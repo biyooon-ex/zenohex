@@ -1,6 +1,6 @@
 use crate::PublisherRef;
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
+use zenoh::{bytes::ZBytes, pubsub::Publisher, Wait};
 
 #[rustler::nif]
 fn publisher_put_integer(env: Env, resource: ResourceArc<PublisherRef>, value: i64) -> Term {
@@ -27,7 +27,7 @@ fn publisher_put_impl<T: Into<zenoh::value::Value>>(
     value: T,
 ) -> Term {
     let publisher: &Publisher = &resource.0;
-    match publisher.put(value).res_sync() {
+    match publisher.put(value).wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }
@@ -36,7 +36,7 @@ fn publisher_put_impl<T: Into<zenoh::value::Value>>(
 #[rustler::nif]
 fn publisher_delete(env: Env, resource: ResourceArc<PublisherRef>) -> Term {
     let publisher: &Publisher = &resource.0;
-    match publisher.delete().res_sync() {
+    match publisher.delete().wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }
@@ -77,11 +77,11 @@ pub(crate) enum ExCongestionControl {
     Block,
 }
 
-impl From<ExCongestionControl> for zenoh::publication::CongestionControl {
+impl From<ExCongestionControl> for zenoh::qos::CongestionControl {
     fn from(value: ExCongestionControl) -> Self {
         match value {
-            ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
-            ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
+            ExCongestionControl::Drop => zenoh::qos::CongestionControl::Drop,
+            ExCongestionControl::Block => zenoh::qos::CongestionControl::Block,
         }
     }
 }
@@ -97,16 +97,16 @@ pub(crate) enum ExPriority {
     Background,
 }
 
-impl From<ExPriority> for zenoh::publication::Priority {
+impl From<ExPriority> for zenoh::qos::Priority {
     fn from(value: ExPriority) -> Self {
         match value {
-            ExPriority::RealTime => zenoh::publication::Priority::RealTime,
-            ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
-            ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
-            ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
-            ExPriority::Data => zenoh::publication::Priority::Data,
-            ExPriority::DataLow => zenoh::publication::Priority::DataLow,
-            ExPriority::Background => zenoh::publication::Priority::Background,
+            ExPriority::RealTime => zenoh::qos::Priority::RealTime,
+            ExPriority::InteractiveHigh => zenoh::qos::Priority::InteractiveHigh,
+            ExPriority::InteractiveLow => zenoh::qos::Priority::InteractiveLow,
+            ExPriority::DataHigh => zenoh::qos::Priority::DataHigh,
+            ExPriority::Data => zenoh::qos::Priority::Data,
+            ExPriority::DataLow => zenoh::qos::Priority::DataLow,
+            ExPriority::Background => zenoh::qos::Priority::Background,
         }
     }
 }
