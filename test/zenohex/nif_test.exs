@@ -110,32 +110,6 @@ defmodule Zenohex.NifTest do
     end
   end
 
-  describe "pull subscriber" do
-    alias Zenohex.Subscriber.Options
-
-    test "declare_pull_subscriber/2", %{session: session} do
-      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression")
-      assert is_reference(pull_subscriber)
-    end
-
-    test "declare_pull_subscriber/3", %{session: session} do
-      opts = %Options{reliability: :reliable}
-      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression", opts)
-      assert is_reference(pull_subscriber)
-    end
-
-    test "pull_subscriber_pull/1", %{session: session} do
-      {:ok, publisher} = Nif.declare_publisher(session, "key/expression")
-      {:ok, pull_subscriber} = Nif.declare_pull_subscriber(session, "key/expression")
-
-      :ok = Nif.publisher_put_integer(publisher, 0)
-      {:ok, %Sample{value: 0}} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
-      {:error, :timeout} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
-      assert Nif.pull_subscriber_pull(pull_subscriber) == :ok
-      assert {:ok, %Sample{value: 0}} = Nif.pull_subscriber_recv_timeout(pull_subscriber, 1000)
-    end
-  end
-
   describe "binary pub/sub" do
     setup context do
       key_expr = "key/expression"

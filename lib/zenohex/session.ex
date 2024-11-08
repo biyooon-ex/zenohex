@@ -6,7 +6,6 @@ defmodule Zenohex.Session do
   alias Zenohex.Nif
   alias Zenohex.Publisher
   alias Zenohex.Subscriber
-  alias Zenohex.PullSubscriber
   alias Zenohex.Queryable
   alias Zenohex.Query
   alias Zenohex.Sample
@@ -42,21 +41,6 @@ defmodule Zenohex.Session do
   def declare_subscriber(session, key_expr, opts \\ %Subscriber.Options{})
       when is_reference(session) and is_binary(key_expr) and is_struct(opts, Subscriber.Options) do
     Nif.declare_subscriber(session, key_expr, opts)
-  end
-
-  @doc ~S"""
-  Create a PullSubscriber for the given key expression.
-
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> Zenohex.Session.declare_pull_subscriber(session, "key/expression")
-  """
-  @spec declare_pull_subscriber(t(), String.t(), Subscriber.Options.t()) ::
-          {:ok, PullSubscriber.t()} | {:error, reason :: any()}
-  def declare_pull_subscriber(session, key_expr, opts \\ %Subscriber.Options{})
-      when is_reference(session) and is_binary(key_expr) and is_struct(opts, Subscriber.Options) do
-    Nif.declare_pull_subscriber(session, key_expr, opts)
   end
 
   @doc ~S"""
@@ -102,7 +86,7 @@ defmodule Zenohex.Session do
   end
 
   @doc ~S"""
-  Get one data from the matching queryables in the system.  
+  Get one data from the matching queryables in the system.
   To get multiple data, use `get_reply_receiver/2` and `get_reply_timeout/1` instead.
 
   ## Examples

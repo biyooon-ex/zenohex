@@ -53,12 +53,6 @@ defmodule Zenohex.Nif do
 
   def subscriber_recv_timeout(_subscriber, _timeout_us), do: err()
 
-  def declare_pull_subscriber(_session, _key_expr, _opts \\ %Subscriber.Options{}), do: err()
-
-  def pull_subscriber_pull(_pull_subscriber), do: err()
-
-  def pull_subscriber_recv_timeout(_pull_subscriber, _timeout_us), do: err()
-
   def declare_queryable(_session, _key_expr, _opts \\ %Queryable.Options{}), do: err()
 
   def queryable_recv_timeout(_queryable, _timeout_us), do: err()

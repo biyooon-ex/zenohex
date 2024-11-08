@@ -1,12 +1,6 @@
-Compiling 1 file (.ex)
+Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0432]: unresolved import `zenoh::subscriber`
- --> src/pull_subscriber.rs:5:29
-  |
-5 | use zenoh::{sample::Sample, subscriber::PullSubscriber};
-  |                             ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-
 error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
   --> src/config.rs:12:33
    |
@@ -92,10 +86,10 @@ error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
    |                          ^^^^^^^ could not find `prelude` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
-   --> src/session.rs:107:36
-    |
-107 | fn session_put_impl<T: Into<zenoh::value::Value>>(
-    |                                    ^^^^^ could not find `value` in `zenoh`
+  --> src/session.rs:89:36
+   |
+89 | fn session_put_impl<T: Into<zenoh::value::Value>>(
+   |                                    ^^^^^ could not find `value` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
   --> src/subscriber.rs:33:37
@@ -393,16 +387,10 @@ help: if you import `SampleKind`, refer to it directly
 63 +             SampleKind::Delete => ExSampleKind::Delete,
    |
 
-error[E0412]: cannot find type `PullSubscriber` in this scope
-  --> src/lib.rs:30:26
-   |
-30 | struct PullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
-   |                          ^^^^^^^^^^^^^^ not found in this scope
-
 error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/lib.rs:47:24
+  --> src/lib.rs:44:24
    |
-47 |     let config: zenoh::prelude::config::Config = config.into();
+44 |     let config: zenoh::prelude::config::Config = config.into();
    |                        ^^^^^^^ could not find `prelude` in `zenoh`
    |
 help: consider importing this module
@@ -411,28 +399,28 @@ help: consider importing this module
    |
 help: if you import `config`, refer to it directly
    |
-47 -     let config: zenoh::prelude::config::Config = config.into();
-47 +     let config: config::Config = config.into();
+44 -     let config: zenoh::prelude::config::Config = config.into();
+44 +     let config: config::Config = config.into();
    |
 
 warning: unused import: `bytes::ZBytes`
- --> src/publisher.rs:3:32
+ --> src/publisher.rs:3:13
   |
-3 | use zenoh::{pubsub::Publisher, bytes::ZBytes};
-  |                                ^^^^^^^^^^^^^
+3 | use zenoh::{bytes::ZBytes, pubsub::Publisher};
+  |             ^^^^^^^^^^^^^
   |
   = note: `#[warn(unused_imports)]` on by default
 
 warning: unused import: `bytes::ZBytes`
- --> src/session.rs:5:27
+ --> src/session.rs:5:13
   |
-5 | use zenoh::{query::Reply, bytes::ZBytes, session::Session};
-  |                           ^^^^^^^^^^^^^
+5 | use zenoh::{bytes::ZBytes, query::Reply, session::Session};
+  |             ^^^^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/lib.rs:29:22
+   --> src/lib.rs:28:22
     |
-29  | struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
+28  | struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
     |                      ^^^^^^^^^^ ------- help: remove the lifetime argument
     |                      |
     |                      expected 0 lifetime arguments
@@ -444,9 +432,9 @@ note: struct defined here, with 0 lifetime parameters
     |            ^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/lib.rs:31:21
+   --> src/lib.rs:29:21
     |
-31  | struct QueryableRef(Queryable<'static, Receiver<Query>>);
+29  | struct QueryableRef(Queryable<'static, Receiver<Query>>);
     |                     ^^^^^^^^^ ------- help: remove the lifetime argument
     |                     |
     |                     expected 0 lifetime arguments
@@ -623,18 +611,6 @@ error[E0308]: mismatched types
    |                    |
    |                    expected due to this
 
-error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
-  --> src/pull_subscriber.rs:13:76
-   |
-13 |     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
-   |                                                                            ^ unknown field
-
-error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
-  --> src/pull_subscriber.rs:23:76
-   |
-23 |     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
-   |                                                                            ^ unknown field
-
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/queryable.rs:15:21
     |
@@ -723,39 +699,28 @@ error[E0599]: no method named `reliability` found for struct `SubscriberBuilder`
    | |_________|
    |
 
-error[E0599]: no method named `reliability` found for struct `SubscriberBuilder` in the current scope
-  --> src/session.rs:51:10
+error[E0599]: no method named `res_sync` found for struct `QueryableBuilder` in the current scope
+  --> src/session.rs:52:10
    |
 49 |       match session
    |  ___________-
-50 | |         .declare_subscriber(key_expr)
-51 | |         .reliability(opts.reliability.into())
-   | |         -^^^^^^^^^^^ method not found in `SubscriberBuilder<'_, '_, DefaultHandler>`
-   | |_________|
-   |
-
-error[E0599]: no method named `res_sync` found for struct `QueryableBuilder` in the current scope
-  --> src/session.rs:70:10
-   |
-67 |       match session
-   |  ___________-
-68 | |         .declare_queryable(key_expr)
-69 | |         .complete(opts.complete)
-70 | |         .res_sync()
+50 | |         .declare_queryable(key_expr)
+51 | |         .complete(opts.complete)
+52 | |         .res_sync()
    | |         -^^^^^^^^ method not found in `QueryableBuilder<'_, '_, DefaultHandler>`
    | |_________|
    |
 
 error[E0433]: failed to resolve: use of undeclared type `Value`
-   --> src/session.rs:104:47
-    |
-104 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
-    |                                               ^^^^^ use of undeclared type `Value`
+  --> src/session.rs:86:47
+   |
+86 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+   |                                               ^^^^^ use of undeclared type `Value`
 
 error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
-   --> src/session.rs:114:33
+   --> src/session.rs:96:33
     |
-114 |     match session.put(key_expr, value).res_sync() {
+96  |     match session.put(key_expr, value).res_sync() {
     |                   ---           ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
     |                   |
     |                   required by a bound introduced by this call
@@ -771,38 +736,38 @@ note: required by a bound in `Session::put`
     |                     ^^^^^^^^^^^^ required by this bound in `Session::put`
 help: consider introducing a `where` clause, but there might be an alternative better way to express this requirement
     |
-112 | ) -> Term where ZBytes: From<T> {
+94  | ) -> Term where ZBytes: From<T> {
     |           +++++++++++++++++++++
 
 error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-   --> src/session.rs:114:40
-    |
-114 |     match session.put(key_expr, value).res_sync() {
-    |                                        ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderPut>`
+  --> src/session.rs:96:40
+   |
+96 |     match session.put(key_expr, value).res_sync() {
+   |                                        ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderPut>`
 
 error[E0599]: no method named `res_sync` found for struct `SessionGetBuilder` in the current scope
-   --> src/session.rs:134:10
+   --> src/session.rs:116:10
     |
-130 |       match session
+112 |       match session
     |  ___________-
-131 | |         .get(selector)
-132 | |         .target(opts.target.into())
-133 | |         .consolidation(opts.consolidation)
-134 | |         .res_sync()
+113 | |         .get(selector)
+114 | |         .target(opts.target.into())
+115 | |         .consolidation(opts.consolidation)
+116 | |         .res_sync()
     | |         -^^^^^^^^ method not found in `SessionGetBuilder<'_, '_, DefaultHandler>`
     | |_________|
     |
 
 error[E0609]: no field `sample` on type `Reply`
-   --> src/session.rs:149:34
+   --> src/session.rs:131:34
     |
-149 |         Ok(reply) => match reply.sample {
+131 |         Ok(reply) => match reply.sample {
     |                                  ^^^^^^ unknown field
 
 error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-   --> src/session.rs:161:36
+   --> src/session.rs:143:36
     |
-161 |     match session.delete(key_expr).res_sync() {
+143 |     match session.delete(key_expr).res_sync() {
     |                                    ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderDelete>`
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
@@ -951,10 +916,10 @@ error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
 45 |             KnownEncoding::ImageJpeg => unimplemented!(),
    |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
 
-Some errors have detailed explanations: E0061, E0107, E0277, E0282, E0308, E0412, E0432, E0433, E0599...
+Some errors have detailed explanations: E0061, E0107, E0277, E0282, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 2 warnings
-error: could not compile `zenohex_nif` (lib) due to 93 previous errors; 2 warnings emitted
+error: could not compile `zenohex_nif` (lib) due to 88 previous errors; 2 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

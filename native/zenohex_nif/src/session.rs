@@ -40,24 +40,6 @@ fn declare_subscriber(
 }
 
 #[rustler::nif]
-fn declare_pull_subscriber(
-    resource: ResourceArc<crate::SessionRef>,
-    key_expr: String,
-    opts: crate::subscriber::SubscriberOptions,
-) -> Result<ResourceArc<crate::PullSubscriberRef>, String> {
-    let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_subscriber(key_expr)
-        .reliability(opts.reliability.into())
-        .pull_mode()
-        .res_sync()
-    {
-        Ok(pull_subscriber) => Ok(ResourceArc::new(crate::PullSubscriberRef(pull_subscriber))),
-        Err(error) => Err(error.to_string()),
-    }
-}
-
-#[rustler::nif]
 fn declare_queryable(
     resource: ResourceArc<crate::SessionRef>,
     key_expr: String,
