@@ -1,36 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:12:33
-   |
-12 |         let mut config = zenoh::prelude::config::peer();
-   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:25:39
-   |
-25 | impl From<ExConfigConnect> for zenoh::prelude::config::ConnectConfig {
-   |                                       ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:35:33
-   |
-35 |         let mut config = zenoh::prelude::config::ConnectConfig::default();
-   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:47:40
-   |
-47 | impl From<ExConfigScouting> for zenoh::prelude::config::ScoutingConf {
-   |                                        ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:49:33
-   |
-49 |         let mut config = zenoh::prelude::config::ScoutingConf::default();
-   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
-
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
   --> src/publisher.rs:24:38
    |
@@ -73,18 +43,6 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
 41 |                 zenoh::value::Value::from(sample.value.decode::<f64>().unwrap())
    |                        ^^^^^ could not find `value` in `zenoh`
 
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/sample.rs:59:18
-   |
-59 | impl From<zenoh::prelude::SampleKind> for ExSampleKind {
-   |                  ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/sample.rs:60:26
-   |
-60 |     fn from(kind: zenoh::prelude::SampleKind) -> Self {
-   |                          ^^^^^^^ could not find `prelude` in `zenoh`
-
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
   --> src/session.rs:89:36
    |
@@ -115,37 +73,11 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
 9 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::value::Value) -> Term<'a> {
   |                                                         ^^^^^ could not find `value` in `zenoh`
 
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:10:32
+error[E0425]: cannot find function `peer` in module `zenoh::config`
+  --> src/config.rs:12:41
    |
-10 | impl From<ExConfig> for zenoh::prelude::config::Config {
-   |                                ^^^^^^^ could not find `prelude` in `zenoh`
-   |
-help: consider importing this module
-   |
-1  + use zenoh::config;
-   |
-help: if you import `config`, refer to it directly
-   |
-10 - impl From<ExConfig> for zenoh::prelude::config::Config {
-10 + impl From<ExConfig> for config::Config {
-   |
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/config.rs:31:24
-   |
-31 |                 zenoh::prelude::config::EndPoint::try_from(endpoint.clone())
-   |                        ^^^^^^^ could not find `prelude` in `zenoh`
-   |
-help: consider importing this struct
-   |
-1  + use zenoh::config::EndPoint;
-   |
-help: if you import `EndPoint`, refer to it directly
-   |
-31 -                 zenoh::prelude::config::EndPoint::try_from(endpoint.clone())
-31 +                 EndPoint::try_from(endpoint.clone())
-   |
+12 |         let mut config = zenoh::config::peer();
+   |                                         ^^^^ not found in `zenoh::config`
 
 error[E0433]: failed to resolve: could not find `publication` in `zenoh`
   --> src/publisher.rs:83:49
@@ -355,72 +287,24 @@ help: if you import `queryable`, refer to it directly
 64 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
    |
 
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/sample.rs:62:20
-   |
-62 |             zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
-   |                    ^^^^^^^ could not find `prelude` in `zenoh`
-   |
-help: consider importing this enum
-   |
-1  + use zenoh::sample::SampleKind;
-   |
-help: if you import `SampleKind`, refer to it directly
-   |
-62 -             zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
-62 +             SampleKind::Put => ExSampleKind::Put,
-   |
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/sample.rs:63:20
-   |
-63 |             zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
-   |                    ^^^^^^^ could not find `prelude` in `zenoh`
-   |
-help: consider importing this enum
-   |
-1  + use zenoh::sample::SampleKind;
-   |
-help: if you import `SampleKind`, refer to it directly
-   |
-63 -             zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
-63 +             SampleKind::Delete => ExSampleKind::Delete,
-   |
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
-  --> src/lib.rs:44:24
-   |
-44 |     let config: zenoh::prelude::config::Config = config.into();
-   |                        ^^^^^^^ could not find `prelude` in `zenoh`
-   |
-help: consider importing this module
-   |
-1  + use zenoh::config;
-   |
-help: if you import `config`, refer to it directly
-   |
-44 -     let config: zenoh::prelude::config::Config = config.into();
-44 +     let config: config::Config = config.into();
-   |
-
 warning: unused import: `bytes::ZBytes`
- --> src/publisher.rs:3:13
+ --> src/publisher.rs:3:19
   |
-3 | use zenoh::{bytes::ZBytes, pubsub::Publisher};
-  |             ^^^^^^^^^^^^^
+3 | use zenoh::{Wait, bytes::ZBytes, pubsub::Publisher};
+  |                   ^^^^^^^^^^^^^
   |
   = note: `#[warn(unused_imports)]` on by default
 
 warning: unused import: `bytes::ZBytes`
- --> src/session.rs:5:13
+ --> src/session.rs:5:19
   |
-5 | use zenoh::{bytes::ZBytes, query::Reply, session::Session};
-  |             ^^^^^^^^^^^^^
+5 | use zenoh::{Wait, bytes::ZBytes, query::Reply, session::Session};
+  |                   ^^^^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/lib.rs:28:22
+   --> src/lib.rs:29:22
     |
-28  | struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
+29  | struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
     |                      ^^^^^^^^^^ ------- help: remove the lifetime argument
     |                      |
     |                      expected 0 lifetime arguments
@@ -432,9 +316,9 @@ note: struct defined here, with 0 lifetime parameters
     |            ^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/lib.rs:29:21
+   --> src/lib.rs:30:21
     |
-29  | struct QueryableRef(Queryable<'static, Receiver<Query>>);
+30  | struct QueryableRef(Queryable<'static, Receiver<Query>>);
     |                     ^^^^^^^^^ ------- help: remove the lifetime argument
     |                     |
     |                     expected 0 lifetime arguments
@@ -444,6 +328,50 @@ note: struct defined here, with 0 lifetime parameters
     |
 420 | pub struct Queryable<Handler> {
     |            ^^^^^^^^^
+
+error[E0223]: ambiguous associated type
+  --> src/config.rs:25:32
+   |
+25 | impl From<ExConfigConnect> for zenoh::Config::ConnectConfig {
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `Config`, you could use the fully-qualified path
+   |
+25 | impl From<ExConfigConnect> for <Config as Example>::ConnectConfig {
+   |                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0223]: ambiguous associated type
+  --> src/config.rs:47:33
+   |
+47 | impl From<ExConfigScouting> for zenoh::Config::ScoutingConf {
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `Config`, you could use the fully-qualified path
+   |
+47 | impl From<ExConfigScouting> for <Config as Example>::ScoutingConf {
+   |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0223]: ambiguous associated type
+  --> src/config.rs:35:26
+   |
+35 |         let mut config = zenoh::Config::ConnectConfig::default();
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `Config`, you could use the fully-qualified path
+   |
+35 |         let mut config = <Config as Example>::ConnectConfig::default();
+   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0223]: ambiguous associated type
+  --> src/config.rs:49:26
+   |
+49 |         let mut config = zenoh::Config::ScoutingConf::default();
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `Config`, you could use the fully-qualified path
+   |
+49 |         let mut config = <Config as Example>::ScoutingConf::default();
+   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
    --> src/keyexpr.rs:5:39
@@ -530,7 +458,7 @@ error[E0433]: failed to resolve: use of undeclared type `Value`
 error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
    --> src/publisher.rs:30:25
     |
-30  |     match publisher.put(value).res_sync() {
+30  |     match publisher.put(value).wait() {
     |                     --- ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
     |                     |
     |                     required by a bound introduced by this call
@@ -548,18 +476,6 @@ help: consider introducing a `where` clause, but there might be an alternative b
     |
 28  | ) -> Term where ZBytes: From<T> {
     |           +++++++++++++++++++++
-
-error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-  --> src/publisher.rs:30:32
-   |
-30 |     match publisher.put(value).res_sync() {
-   |                                ^^^^^^^^ method not found in `PublicationBuilder<&Publisher<'_>, PublicationBuilderPut>`
-
-error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-  --> src/publisher.rs:39:30
-   |
-39 |     match publisher.delete().res_sync() {
-   |                              ^^^^^^^^ method not found in `PublicationBuilder<&Publisher<'_>, PublicationBuilderDelete>`
 
 error[E0061]: this method takes 0 arguments but 1 argument was supplied
    --> src/publisher.rs:51:50
@@ -675,19 +591,6 @@ error[E0277]: the trait bound `Priority: From<ExPriority>` is not satisfied
    |
    = note: required for `ExPriority` to implement `Into<Priority>`
 
-error[E0599]: no method named `res_sync` found for struct `PublisherBuilder` in the current scope
-  --> src/session.rs:18:10
-   |
-14 |       match session
-   |  ___________-
-15 | |         .declare_publisher(key_expr)
-16 | |         .congestion_control(opts.congestion_control.into())
-17 | |         .priority(opts.priority.into())
-18 | |         .res_sync()
-   | |         -^^^^^^^^ method not found in `PublisherBuilder<'_, '_>`
-   | |_________|
-   |
-
 error[E0599]: no method named `reliability` found for struct `SubscriberBuilder` in the current scope
   --> src/session.rs:34:10
    |
@@ -696,18 +599,6 @@ error[E0599]: no method named `reliability` found for struct `SubscriberBuilder`
 33 | |         .declare_subscriber(key_expr)
 34 | |         .reliability(opts.reliability.into())
    | |         -^^^^^^^^^^^ method not found in `SubscriberBuilder<'_, '_, DefaultHandler>`
-   | |_________|
-   |
-
-error[E0599]: no method named `res_sync` found for struct `QueryableBuilder` in the current scope
-  --> src/session.rs:52:10
-   |
-49 |       match session
-   |  ___________-
-50 | |         .declare_queryable(key_expr)
-51 | |         .complete(opts.complete)
-52 | |         .res_sync()
-   | |         -^^^^^^^^ method not found in `QueryableBuilder<'_, '_, DefaultHandler>`
    | |_________|
    |
 
@@ -720,7 +611,7 @@ error[E0433]: failed to resolve: use of undeclared type `Value`
 error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
    --> src/session.rs:96:33
     |
-96  |     match session.put(key_expr, value).res_sync() {
+96  |     match session.put(key_expr, value).wait() {
     |                   ---           ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
     |                   |
     |                   required by a bound introduced by this call
@@ -739,36 +630,27 @@ help: consider introducing a `where` clause, but there might be an alternative b
 94  | ) -> Term where ZBytes: From<T> {
     |           +++++++++++++++++++++
 
-error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-  --> src/session.rs:96:40
-   |
-96 |     match session.put(key_expr, value).res_sync() {
-   |                                        ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderPut>`
-
-error[E0599]: no method named `res_sync` found for struct `SessionGetBuilder` in the current scope
-   --> src/session.rs:116:10
+error[E0308]: mismatched types
+   --> src/session.rs:118:69
     |
-112 |       match session
-    |  ___________-
-113 | |         .get(selector)
-114 | |         .target(opts.target.into())
-115 | |         .consolidation(opts.consolidation)
-116 | |         .res_sync()
-    | |         -^^^^^^^^ method not found in `SessionGetBuilder<'_, '_, DefaultHandler>`
-    | |_________|
+118 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
+    |                                             ----------------------- ^^^^^^^^ expected `Receiver<Reply>`, found `FifoChannelHandler<Reply>`
+    |                                             |
+    |                                             arguments to this struct are incorrect
     |
+    = note: expected struct `flume::Receiver<Reply>`
+               found struct `FifoChannelHandler<Reply>`
+note: tuple struct defined here
+   --> src/lib.rs:31:8
+    |
+31  | struct ReplyReceiverRef(Receiver<Reply>);
+    |        ^^^^^^^^^^^^^^^^
 
 error[E0609]: no field `sample` on type `Reply`
    --> src/session.rs:131:34
     |
 131 |         Ok(reply) => match reply.sample {
     |                                  ^^^^^^ unknown field
-
-error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
-   --> src/session.rs:143:36
-    |
-143 |     match session.delete(key_expr).res_sync() {
-    |                                    ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderDelete>`
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/subscriber.rs:13:22
@@ -789,6 +671,17 @@ error[E0282]: type annotations needed
    |
 14 |                     let mut binary = OwnedBinary::new(value.len()).unwrap();
    |                                                             ^^^ cannot infer type for type parameter `B` declared on the enum `Cow`
+
+error[E0599]: no method named `into_arc` found for struct `Session` in the current scope
+  --> src/lib.rs:47:63
+   |
+47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
+   |                                                               ^^^^^^^^
+   |
+help: there is a method `into` with a similar name
+   |
+47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into()))),
+   |                                                               ~~~~
 
 error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
   --> src/value.rs:47:13
@@ -916,10 +809,10 @@ error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
 45 |             KnownEncoding::ImageJpeg => unimplemented!(),
    |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
 
-Some errors have detailed explanations: E0061, E0107, E0277, E0282, E0308, E0433, E0599, E0609, E0616.
+Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0282, E0308, E0425, E0433, E0599...
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 2 warnings
-error: could not compile `zenohex_nif` (lib) due to 88 previous errors; 2 warnings emitted
+error: could not compile `zenohex_nif` (lib) due to 76 previous errors; 2 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

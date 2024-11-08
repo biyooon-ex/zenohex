@@ -6,6 +6,7 @@ use zenoh::pubsub::{Publisher, Subscriber};
 use zenoh::query::{Query, Queryable, Reply};
 use zenoh::sample::Sample;
 use zenoh::session::Session;
+use zenoh::Wait;
 
 mod atoms {
     rustler::atoms! {
@@ -41,8 +42,8 @@ impl Resource for SampleRef {}
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>, String> {
-    let config: zenoh::prelude::config::Config = config.into();
-    match zenoh::open(config).res_sync() {
+    let config: zenoh::config::Config = config.into();
+    match zenoh::open(config).wait() {
         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
         Err(error) => Err(error.to_string()),
     }

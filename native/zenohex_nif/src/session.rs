@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{bytes::ZBytes, query::Reply, session::Session};
+use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
 
 #[rustler::nif]
 fn declare_publisher(
@@ -15,7 +15,7 @@ fn declare_publisher(
         .declare_publisher(key_expr)
         .congestion_control(opts.congestion_control.into())
         .priority(opts.priority.into())
-        .res_sync()
+        .wait()
     {
         Ok(publisher) => Ok(ResourceArc::new(crate::PublisherRef(publisher))),
         Err(error) => Err(error.to_string()),
@@ -32,7 +32,7 @@ fn declare_subscriber(
     match session
         .declare_subscriber(key_expr)
         .reliability(opts.reliability.into())
-        .res_sync()
+        .wait()
     {
         Ok(subscriber) => Ok(ResourceArc::new(crate::SubscriberRef(subscriber))),
         Err(error) => Err(error.to_string()),
@@ -49,7 +49,7 @@ fn declare_queryable(
     match session
         .declare_queryable(key_expr)
         .complete(opts.complete)
-        .res_sync()
+        .wait()
     {
         Ok(queryable) => Ok(ResourceArc::new(crate::QueryableRef(queryable))),
         Err(error) => Err(error.to_string()),
@@ -93,7 +93,7 @@ fn session_put_impl<T: Into<zenoh::value::Value>>(
     value: T,
 ) -> Term {
     let session: &Arc<Session> = &resource.0;
-    match session.put(key_expr, value).res_sync() {
+    match session.put(key_expr, value).wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }
@@ -113,7 +113,7 @@ fn session_get_reply_receiver(
         .get(selector)
         .target(opts.target.into())
         .consolidation(opts.consolidation)
-        .res_sync()
+        .wait()
     {
         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
         Err(error) => Err(error.to_string()),
@@ -140,7 +140,7 @@ fn session_get_reply_timeout(
 #[rustler::nif]
 fn session_delete(env: Env, resource: ResourceArc<crate::SessionRef>, key_expr: String) -> Term {
     let session: &Arc<Session> = &resource.0;
-    match session.delete(key_expr).res_sync() {
+    match session.delete(key_expr).wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }
