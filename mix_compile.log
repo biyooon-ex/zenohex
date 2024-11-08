@@ -1,87 +1,772 @@
 Compiling 1 file (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
-   Compiling rustls-platform-verifier v0.3.4
-   Compiling aes v0.8.4
-   Compiling phf_generator v0.11.2
-   Compiling zenoh-link-tls v1.0.1
-   Compiling pkcs1 v0.7.5
-   Compiling zenoh-link-tcp v1.0.1
-   Compiling signature v2.2.0
-   Compiling hmac v0.12.1
-   Compiling git-version-macro v0.3.9
-   Compiling siphasher v0.3.11
-   Compiling phf_macros v0.11.2
-   Compiling zenoh v1.0.0
-   Compiling lz4_flex v0.11.2
-   Compiling phf_shared v0.11.2
-   Compiling zenoh-crypto v1.0.1
-   Compiling rsa v0.9.6
-   Compiling zenoh-task v1.0.1
-error[E0277]: the trait bound `tokio_rustls::TlsAcceptor: AsyncTls<_>` is not satisfied
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:428:17
-    |
-428 |         .listen(socket);
-    |          ------ ^^^^^^ the trait `AsyncTls<_>` is not implemented for `tokio_rustls::TlsAcceptor`
-    |          |
-    |          required by a bound introduced by this call
-    |
-    = help: the trait `AsyncTls<C>` is implemented for `tls_listener::tokio_rustls::TlsAcceptor`
-note: required by a bound in `tls_listener::Builder::<T>::listen`
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tls-listener-0.10.2/src/lib.rs:370:12
-    |
-368 |     pub fn listen<A: AsyncAccept>(&self, listener: A) -> TlsListener<A, T>
-    |            ------ required by a bound in this associated function
-369 |     where
-370 |         T: AsyncTls<A::Connection>,
-    |            ^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Builder::<T>::listen`
+   Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+ --> src/lib.rs:6:5
+  |
+6 |     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
+  |     ^^^^^^^ could not find `prelude` in `zenoh`
 
-error[E0277]: the trait bound `tokio_rustls::TlsAcceptor: AsyncTls<_>` is not satisfied
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:428:10
-    |
-428 |         .listen(socket);
-    |          ^^^^^^ the trait `AsyncTls<_>` is not implemented for `tokio_rustls::TlsAcceptor`
-    |
-    = help: the trait `AsyncTls<C>` is implemented for `tls_listener::tokio_rustls::TlsAcceptor`
-note: required by a bound in `TlsListener`
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tls-listener-0.10.2/src/lib.rs:84:1
-    |
-84  | / pin_project! {
-85  | |     ///
-86  | |     /// Wraps a `Stream` of connections (such as a TCP listener) so that each connection is itself
-87  | |     /// encrypted using TLS.
-...   |
-111 | |     pub struct TlsListener<A: AsyncAccept, T: AsyncTls<A::Connection>> {
-    | |                ----------- required by a bound in this struct
-...   |
-118 | |     }
-119 | | }
-    | |_^ required by this bound in `TlsListener`
-    = note: this error originates in the macro `$crate::__pin_project_parse_generics` which comes from the expansion of the macro `pin_project` (in Nightly builds, run with -Z macro-backtrace for more info)
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+ --> src/publisher.rs:3:13
+  |
+3 | use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
+  |             ^^^^^^^ could not find `prelude` in `zenoh`
 
-   Compiling rustler_codegen v0.34.0
-   Compiling git-version v0.3.9
-error[E0599]: the method `accept` exists for struct `TlsListener<TcpListener, TlsAcceptor>`, but its trait bounds were not satisfied
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-link-tls-1.0.1/src/unicast.rs:435:28
-    |
-435 |             res = listener.accept() => {
-    |                            ^^^^^^ method cannot be called on `TlsListener<TcpListener, TlsAcceptor>` due to unsatisfied trait bounds
-    |
-   ::: /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-rustls-0.26.0/src/lib.rs:78:1
-    |
-78  | pub struct TlsAcceptor {
-    | ---------------------- doesn't satisfy `_: AsyncTls<TcpStream>`
-    |
-    = note: the following trait bounds were not satisfied:
-            `tokio_rustls::TlsAcceptor: AsyncTls<tokio::net::TcpStream>`
+error[E0432]: unresolved imports `zenoh::publication`, `zenoh::queryable`, `zenoh::queryable`, `zenoh::subscriber`, `zenoh::subscriber`
+ --> src/lib.rs:6:23
+  |
+6 |     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
+  |                       ^^^^^^^^^^^                           ^^^^^^^^^         ^^^^^^^^^ could not find `queryable` in `zenoh`
+  |                       |                                     |
+  |                       |                                     could not find `queryable` in `zenoh`
+  |                       could not find `publication` in `zenoh`
+7 |     sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
+  |                     ^^^^^^^^^^                  ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+  |                     |
+  |                     could not find `subscriber` in `zenoh`
 
-   Compiling petgraph v0.6.5
-   Compiling phf v0.11.2
-   Compiling quinn-proto v0.11.8
-   Compiling zenoh-plugin-trait v1.0.1
-Some errors have detailed explanations: E0277, E0599.
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+ --> src/pull_subscriber.rs:5:13
+  |
+5 | use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
+  |             ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0432]: unresolved imports `zenoh::publication`, `zenoh::value`
+ --> src/publisher.rs:3:41
+  |
+3 | use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
+  |                                         ^^^^^^^^^^^             ^^^^^ could not find `value` in `zenoh`
+  |                                         |
+  |                                         could not find `publication` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+ --> src/query.rs:4:12
+  |
+4 | use zenoh::prelude::sync::SyncResolve;
+  |            ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0432]: unresolved import `zenoh::subscriber`
+ --> src/pull_subscriber.rs:5:57
+  |
+5 | use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
+  |                                                         ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+ --> src/session.rs:5:13
+  |
+5 | use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
+  |             ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0432]: unresolved import `zenoh::queryable`
+ --> src/queryable.rs:5:12
+  |
+5 | use zenoh::queryable::{Query, Queryable};
+  |            ^^^^^^^^^ could not find `queryable` in `zenoh`
+
+error[E0432]: unresolved import `zenoh::value`
+ --> src/session.rs:5:45
+  |
+5 | use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
+  |                                             ^^^^^ could not find `value` in `zenoh`
+
+error[E0432]: unresolved import `zenoh::subscriber`
+ --> src/subscriber.rs:5:29
+  |
+5 | use zenoh::{sample::Sample, subscriber::Subscriber};
+  |                             ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+
+error[E0432]: unresolved import `zenoh::prelude`
+ --> src/value.rs:4:12
+  |
+4 | use zenoh::prelude::KnownEncoding;
+  |            ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:12:33
+   |
+12 |         let mut config = zenoh::prelude::config::peer();
+   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:25:39
+   |
+25 | impl From<ExConfigConnect> for zenoh::prelude::config::ConnectConfig {
+   |                                       ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:35:33
+   |
+35 |         let mut config = zenoh::prelude::config::ConnectConfig::default();
+   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:47:40
+   |
+47 | impl From<ExConfigScouting> for zenoh::prelude::config::ScoutingConf {
+   |                                        ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:49:33
+   |
+49 |         let mut config = zenoh::prelude::config::ScoutingConf::default();
+   |                                 ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+  --> src/publisher.rs:24:38
+   |
+24 | fn publisher_put_impl<T: Into<zenoh::value::Value>>(
+   |                                      ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+  --> src/publisher.rs:80:43
+   |
+80 | impl From<ExCongestionControl> for zenoh::publication::CongestionControl {
+   |                                           ^^^^^^^^^^^ could not find `publication` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:100:34
+    |
+100 | impl From<ExPriority> for zenoh::publication::Priority {
+    |                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `Mode` in `query`
+   --> src/query.rs:122:56
+    |
+122 |             ExConsolidationMode::Auto => zenoh::query::Mode::Auto.into(),
+    |                                                        ^^^^ could not find `Mode` in `query`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+  --> src/sample.rs:32:24
+   |
+32 |                 zenoh::value::Value::from(binary.as_slice())
+   |                        ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+  --> src/sample.rs:38:24
+   |
+38 |                 zenoh::value::Value::from(sample.value.decode::<i64>().unwrap())
+   |                        ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+  --> src/sample.rs:41:24
+   |
+41 |                 zenoh::value::Value::from(sample.value.decode::<f64>().unwrap())
+   |                        ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/sample.rs:59:18
+   |
+59 | impl From<zenoh::prelude::SampleKind> for ExSampleKind {
+   |                  ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/sample.rs:60:26
+   |
+60 |     fn from(kind: zenoh::prelude::SampleKind) -> Self {
+   |                          ^^^^^^^ could not find `prelude` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+   --> src/session.rs:107:36
+    |
+107 | fn session_put_impl<T: Into<zenoh::value::Value>>(
+    |                                    ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
+  --> src/subscriber.rs:33:37
+   |
+33 | impl From<ExReliability> for zenoh::subscriber::Reliability {
+   |                                     ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
+  --> src/subscriber.rs:36:49
+   |
+36 |             ExReliability::BestEffort => zenoh::subscriber::Reliability::BestEffort,
+   |                                                 ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `subscriber` in `zenoh`
+  --> src/subscriber.rs:37:47
+   |
+37 |             ExReliability::Reliable => zenoh::subscriber::Reliability::Reliable,
+   |                                               ^^^^^^^^^^ could not find `subscriber` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `value` in `zenoh`
+ --> src/value.rs:9:57
+  |
+9 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::value::Value) -> Term<'a> {
+  |                                                         ^^^^^ could not find `value` in `zenoh`
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:10:32
+   |
+10 | impl From<ExConfig> for zenoh::prelude::config::Config {
+   |                                ^^^^^^^ could not find `prelude` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use zenoh::config;
+   |
+help: if you import `config`, refer to it directly
+   |
+10 - impl From<ExConfig> for zenoh::prelude::config::Config {
+10 + impl From<ExConfig> for config::Config {
+   |
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/config.rs:31:24
+   |
+31 |                 zenoh::prelude::config::EndPoint::try_from(endpoint.clone())
+   |                        ^^^^^^^ could not find `prelude` in `zenoh`
+   |
+help: consider importing this struct
+   |
+1  + use zenoh::config::EndPoint;
+   |
+help: if you import `EndPoint`, refer to it directly
+   |
+31 -                 zenoh::prelude::config::EndPoint::try_from(endpoint.clone())
+31 +                 EndPoint::try_from(endpoint.clone())
+   |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+  --> src/publisher.rs:83:49
+   |
+83 |             ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
+   |                                                 ^^^^^^^^^^^ could not find `publication` in `zenoh`
+   |
+help: consider importing this enum
+   |
+1  + use zenoh::qos::CongestionControl;
+   |
+help: if you import `CongestionControl`, refer to it directly
+   |
+83 -             ExCongestionControl::Drop => zenoh::publication::CongestionControl::Drop,
+83 +             ExCongestionControl::Drop => CongestionControl::Drop,
+   |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+  --> src/publisher.rs:84:50
+   |
+84 |             ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
+   |                                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
+   |
+help: consider importing this enum
+   |
+1  + use zenoh::qos::CongestionControl;
+   |
+help: if you import `CongestionControl`, refer to it directly
+   |
+84 -             ExCongestionControl::Block => zenoh::publication::CongestionControl::Block,
+84 +             ExCongestionControl::Block => CongestionControl::Block,
+   |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:103:44
+    |
+103 |             ExPriority::RealTime => zenoh::publication::Priority::RealTime,
+    |                                            ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+103 -             ExPriority::RealTime => zenoh::publication::Priority::RealTime,
+103 +             ExPriority::RealTime => Priority::RealTime,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:104:51
+    |
+104 |             ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
+    |                                                   ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+104 -             ExPriority::InteractiveHigh => zenoh::publication::Priority::InteractiveHigh,
+104 +             ExPriority::InteractiveHigh => Priority::InteractiveHigh,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:105:50
+    |
+105 |             ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
+    |                                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+105 -             ExPriority::InteractiveLow => zenoh::publication::Priority::InteractiveLow,
+105 +             ExPriority::InteractiveLow => Priority::InteractiveLow,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:106:44
+    |
+106 |             ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
+    |                                            ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+106 -             ExPriority::DataHigh => zenoh::publication::Priority::DataHigh,
+106 +             ExPriority::DataHigh => Priority::DataHigh,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:107:40
+    |
+107 |             ExPriority::Data => zenoh::publication::Priority::Data,
+    |                                        ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+107 -             ExPriority::Data => zenoh::publication::Priority::Data,
+107 +             ExPriority::Data => Priority::Data,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:108:43
+    |
+108 |             ExPriority::DataLow => zenoh::publication::Priority::DataLow,
+    |                                           ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+108 -             ExPriority::DataLow => zenoh::publication::Priority::DataLow,
+108 +             ExPriority::DataLow => Priority::DataLow,
+    |
+
+error[E0433]: failed to resolve: could not find `publication` in `zenoh`
+   --> src/publisher.rs:109:46
+    |
+109 |             ExPriority::Background => zenoh::publication::Priority::Background,
+    |                                              ^^^^^^^^^^^ could not find `publication` in `zenoh`
+    |
+help: consider importing this enum
+    |
+1   + use zenoh::qos::Priority;
+    |
+help: if you import `Priority`, refer to it directly
+    |
+109 -             ExPriority::Background => zenoh::publication::Priority::Background,
+109 +             ExPriority::Background => Priority::Background,
+    |
+
+error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
+  --> src/query.rs:18:48
+   |
+18 |     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
+   |                                                ^^^^^^^^^ could not find `queryable` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use crate::queryable;
+   |
+help: if you import `queryable`, refer to it directly
+   |
+18 -     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
+18 +     pub(crate) fn from(env: Env, query: queryable::Query) -> ExQuery {
+   |
+
+error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
+  --> src/query.rs:37:37
+   |
+37 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+   |                                     ^^^^^^^^^ could not find `queryable` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use crate::queryable;
+   |
+help: if you import `queryable`, refer to it directly
+   |
+37 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+37 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
+   |
+
+error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
+  --> src/query.rs:42:24
+   |
+42 |     let query: &zenoh::queryable::Query = match &*guard {
+   |                        ^^^^^^^^^ could not find `queryable` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use crate::queryable;
+   |
+help: if you import `queryable`, refer to it directly
+   |
+42 -     let query: &zenoh::queryable::Query = match &*guard {
+42 +     let query: &queryable::Query = match &*guard {
+   |
+
+error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
+  --> src/query.rs:65:37
+   |
+65 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+   |                                     ^^^^^^^^^ could not find `queryable` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use crate::queryable;
+   |
+help: if you import `queryable`, refer to it directly
+   |
+65 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+65 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
+   |
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/sample.rs:62:20
+   |
+62 |             zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
+   |                    ^^^^^^^ could not find `prelude` in `zenoh`
+   |
+help: consider importing this enum
+   |
+1  + use zenoh::sample::SampleKind;
+   |
+help: if you import `SampleKind`, refer to it directly
+   |
+62 -             zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
+62 +             SampleKind::Put => ExSampleKind::Put,
+   |
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/sample.rs:63:20
+   |
+63 |             zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
+   |                    ^^^^^^^ could not find `prelude` in `zenoh`
+   |
+help: consider importing this enum
+   |
+1  + use zenoh::sample::SampleKind;
+   |
+help: if you import `SampleKind`, refer to it directly
+   |
+63 -             zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
+63 +             SampleKind::Delete => ExSampleKind::Delete,
+   |
+
+error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
+  --> src/lib.rs:47:24
+   |
+47 |     let config: zenoh::prelude::config::Config = config.into();
+   |                        ^^^^^^^ could not find `prelude` in `zenoh`
+   |
+help: consider importing this module
+   |
+1  + use zenoh::config;
+   |
+help: if you import `config`, refer to it directly
+   |
+47 -     let config: zenoh::prelude::config::Config = config.into();
+47 +     let config: config::Config = config.into();
+   |
+
+error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
+   --> src/keyexpr.rs:5:39
+    |
+5   |     let key_expr1 = unsafe { KeyExpr::from_str_uncheckend(key_expr1) };
+    |                                       ^^^^^^^^^^^^^^^^^^^ function or associated item not found in `KeyExpr<'_>`
+    |
+note: if you're trying to build a new `KeyExpr<'_>` consider using one of the following associated functions:
+      KeyExpr::<'static>::from_string_unchecked
+      KeyExpr::<'static>::from_boxed_str_unchecked
+      KeyExpr::<'a>::new
+      KeyExpr::<'a>::autocanonize
+      KeyExpr::<'a>::from_str_unchecked
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/key_expr.rs:78:5
+    |
+78  |       pub unsafe fn from_string_unchecked(s: String) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+86  |       pub unsafe fn from_boxed_str_unchecked(s: Box<str>) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+99  | /     pub fn new<T, E>(t: T) -> Result<Self, E>
+100 | |     where
+101 | |         Self: TryFrom<T, Error = E>,
+    | |____________________________________^
+...
+146 | /     pub fn autocanonize<T, E>(mut t: T) -> Result<Self, E>
+147 | |     where
+148 | |         Self: TryFrom<T, Error = E>,
+149 | |         T: Canonize,
+    | |____________________^
+...
+159 |       pub unsafe fn from_str_unchecked(s: &'a str) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: there is an associated function `from_str_unchecked` with a similar name
+    |
+5   |     let key_expr1 = unsafe { KeyExpr::from_str_unchecked(key_expr1) };
+    |                                       ~~~~~~~~~~~~~~~~~~
+
+error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
+   --> src/keyexpr.rs:6:39
+    |
+6   |     let key_expr2 = unsafe { KeyExpr::from_str_uncheckend(key_expr2) };
+    |                                       ^^^^^^^^^^^^^^^^^^^ function or associated item not found in `KeyExpr<'_>`
+    |
+note: if you're trying to build a new `KeyExpr<'_>` consider using one of the following associated functions:
+      KeyExpr::<'static>::from_string_unchecked
+      KeyExpr::<'static>::from_boxed_str_unchecked
+      KeyExpr::<'a>::new
+      KeyExpr::<'a>::autocanonize
+      KeyExpr::<'a>::from_str_unchecked
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/key_expr.rs:78:5
+    |
+78  |       pub unsafe fn from_string_unchecked(s: String) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+86  |       pub unsafe fn from_boxed_str_unchecked(s: Box<str>) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+99  | /     pub fn new<T, E>(t: T) -> Result<Self, E>
+100 | |     where
+101 | |         Self: TryFrom<T, Error = E>,
+    | |____________________________________^
+...
+146 | /     pub fn autocanonize<T, E>(mut t: T) -> Result<Self, E>
+147 | |     where
+148 | |         Self: TryFrom<T, Error = E>,
+149 | |         T: Canonize,
+    | |____________________^
+...
+159 |       pub unsafe fn from_str_unchecked(s: &'a str) -> Self {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: there is an associated function `from_str_unchecked` with a similar name
+    |
+6   |     let key_expr2 = unsafe { KeyExpr::from_str_unchecked(key_expr2) };
+    |                                       ~~~~~~~~~~~~~~~~~~
+
+error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
+  --> src/publisher.rs:29:43
+   |
+29 |     let publisher: &Publisher = &resource.0;
+   |                                           ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
+  --> src/publisher.rs:38:43
+   |
+38 |     let publisher: &Publisher = &resource.0;
+   |                                           ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
+  --> src/publisher.rs:50:43
+   |
+50 |     let publisher: &Publisher = &resource.0;
+   |                                           ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
+  --> src/publisher.rs:61:43
+   |
+61 |     let publisher: &Publisher = &resource.0;
+   |                                           ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
+  --> src/pull_subscriber.rs:13:76
+   |
+13 |     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
+   |                                                                            ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
+  --> src/pull_subscriber.rs:23:76
+   |
+23 |     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
+   |                                                                            ^ unknown field
+
+error[E0609]: no field `0` on type `ResourceArc<QueryableRef>`
+  --> src/queryable.rs:15:64
+   |
+15 |     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
+   |                                                                ^ unknown field
+
+error[E0616]: field `key_expr` of struct `Sample` is private
+  --> src/sample.rs:17:30
+   |
+17 |             key_expr: sample.key_expr.to_string(),
+   |                              ^^^^^^^^ private field
+   |
+help: a method `key_expr` also exists, call it with parentheses
+   |
+17 |             key_expr: sample.key_expr().to_string(),
+   |                                      ++
+
+error[E0609]: no field `value` on type `Sample`
+  --> src/sample.rs:18:61
+   |
+18 |             value: crate::value::ExValue::from(env, &sample.value),
+   |                                                             ^^^^^ unknown field
+
+error[E0616]: field `kind` of struct `Sample` is private
+  --> src/sample.rs:19:26
+   |
+19 |             kind: sample.kind.into(),
+   |                          ^^^^ private field
+   |
+help: a method `kind` also exists, call it with parentheses
+   |
+19 |             kind: sample.kind().into(),
+   |                              ++
+
+error[E0599]: no function or associated item named `new` found for struct `Sample` in the current scope
+  --> src/sample.rs:49:32
+   |
+49 |         zenoh::sample::Sample::new(key_expr, value)
+   |                                ^^^ function or associated item not found in `Sample`
+
+error[E0277]: the trait bound `CongestionControl: From<ExCongestionControl>` is not satisfied
+  --> src/session.rs:16:53
+   |
+16 |         .congestion_control(opts.congestion_control.into())
+   |                                                     ^^^^ the trait `From<ExCongestionControl>` is not implemented for `CongestionControl`, which is required by `ExCongestionControl: Into<_>`
+   |
+   = note: required for `ExCongestionControl` to implement `Into<CongestionControl>`
+
+error[E0277]: the trait bound `Priority: From<ExPriority>` is not satisfied
+  --> src/session.rs:17:33
+   |
+17 |         .priority(opts.priority.into())
+   |                                 ^^^^ the trait `From<ExPriority>` is not implemented for `Priority`, which is required by `ExPriority: Into<_>`
+   |
+   = note: required for `ExPriority` to implement `Into<Priority>`
+
+error[E0599]: no method named `res_sync` found for struct `PublisherBuilder` in the current scope
+  --> src/session.rs:18:10
+   |
+14 |       match session
+   |  ___________-
+15 | |         .declare_publisher(key_expr)
+16 | |         .congestion_control(opts.congestion_control.into())
+17 | |         .priority(opts.priority.into())
+18 | |         .res_sync()
+   | |         -^^^^^^^^ method not found in `PublisherBuilder<'_, '_>`
+   | |_________|
+   |
+
+error[E0599]: no method named `reliability` found for struct `SubscriberBuilder` in the current scope
+  --> src/session.rs:34:10
+   |
+32 |       match session
+   |  ___________-
+33 | |         .declare_subscriber(key_expr)
+34 | |         .reliability(opts.reliability.into())
+   | |         -^^^^^^^^^^^ method not found in `SubscriberBuilder<'_, '_, DefaultHandler>`
+   | |_________|
+   |
+
+error[E0599]: no method named `reliability` found for struct `SubscriberBuilder` in the current scope
+  --> src/session.rs:51:10
+   |
+49 |       match session
+   |  ___________-
+50 | |         .declare_subscriber(key_expr)
+51 | |         .reliability(opts.reliability.into())
+   | |         -^^^^^^^^^^^ method not found in `SubscriberBuilder<'_, '_, DefaultHandler>`
+   | |_________|
+   |
+
+error[E0599]: no method named `res_sync` found for struct `QueryableBuilder` in the current scope
+  --> src/session.rs:70:10
+   |
+67 |       match session
+   |  ___________-
+68 | |         .declare_queryable(key_expr)
+69 | |         .complete(opts.complete)
+70 | |         .res_sync()
+   | |         -^^^^^^^^ method not found in `QueryableBuilder<'_, '_, DefaultHandler>`
+   | |_________|
+   |
+
+error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
+   --> src/session.rs:114:33
+    |
+114 |     match session.put(key_expr, value).res_sync() {
+    |                   ---           ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
+    |                   |
+    |                   required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `Into<ZBytes>`
+note: required by a bound in `Session::put`
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/session.rs:946:21
+    |
+938 |     pub fn put<'a, 'b: 'a, TryIntoKeyExpr, IntoZBytes>(
+    |            --- required by a bound in this associated function
+...
+946 |         IntoZBytes: Into<ZBytes>,
+    |                     ^^^^^^^^^^^^ required by this bound in `Session::put`
+help: consider introducing a `where` clause, but there might be an alternative better way to express this requirement
+    |
+112 | ) -> Term where ZBytes: From<T> {
+    |           +++++++++++++++++++++
+
+error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
+   --> src/session.rs:114:40
+    |
+114 |     match session.put(key_expr, value).res_sync() {
+    |                                        ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderPut>`
+
+error[E0599]: no method named `res_sync` found for struct `SessionGetBuilder` in the current scope
+   --> src/session.rs:134:10
+    |
+130 |       match session
+    |  ___________-
+131 | |         .get(selector)
+132 | |         .target(opts.target.into())
+133 | |         .consolidation(opts.consolidation)
+134 | |         .res_sync()
+    | |         -^^^^^^^^ method not found in `SessionGetBuilder<'_, '_, DefaultHandler>`
+    | |_________|
+    |
+
+error[E0609]: no field `sample` on type `Reply`
+   --> src/session.rs:149:34
+    |
+149 |         Ok(reply) => match reply.sample {
+    |                                  ^^^^^^ unknown field
+
+error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
+   --> src/session.rs:161:36
+    |
+161 |     match session.delete(key_expr).res_sync() {
+    |                                    ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderDelete>`
+
+error[E0609]: no field `0` on type `ResourceArc<SubscriberRef>`
+  --> src/subscriber.rs:13:67
+   |
+13 |     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
+   |                                                                   ^ unknown field
+
+error[E0282]: type annotations needed
+  --> src/value.rs:14:61
+   |
+14 |                     let mut binary = OwnedBinary::new(value.len()).unwrap();
+   |                                                             ^^^ cannot infer type for type parameter `B` declared on the enum `Cow`
+
+Some errors have detailed explanations: E0277, E0282, E0432, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0277`.
-error: could not compile `zenoh-link-tls` (lib) due to 3 previous errors
-warning: build failed, waiting for other jobs to finish...
+error: could not compile `zenohex_nif` (lib) due to 75 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
