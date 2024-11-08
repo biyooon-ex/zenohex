@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Encoder, Env, ResourceArc, Term};
-use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
+use zenoh::{sample::Sample, subscriber::PullSubscriber};
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn pull_subscriber_recv_timeout(

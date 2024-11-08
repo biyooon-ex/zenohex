@@ -2,10 +2,10 @@ use std::sync::{Arc, RwLock};
 
 use flume::Receiver;
 use rustler::{Env, Resource, ResourceArc, Term};
-use zenoh::{
-    prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
-    sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
-};
+use zenoh::pubsub::{Publisher, Subscriber};
+use zenoh::query::{Query, Queryable, Reply};
+use zenoh::sample::Sample;
+use zenoh::session::Session;
 
 mod atoms {
     rustler::atoms! {

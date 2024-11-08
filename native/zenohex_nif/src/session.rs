@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
+use zenoh::{bytes::ZBytes, query::Reply, session::Session};
 
 #[rustler::nif]
 fn declare_publisher(

@@ -1,86 +1,11 @@
 Compiling 1 file (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
- --> src/lib.rs:6:5
-  |
-6 |     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
-  |     ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
- --> src/publisher.rs:3:13
-  |
-3 | use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
-  |             ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0432]: unresolved imports `zenoh::publication`, `zenoh::queryable`, `zenoh::queryable`, `zenoh::subscriber`, `zenoh::subscriber`
- --> src/lib.rs:6:23
-  |
-6 |     prelude::sync::*, publication::Publisher, query::Reply, queryable::Query, queryable::Queryable,
-  |                       ^^^^^^^^^^^                           ^^^^^^^^^         ^^^^^^^^^ could not find `queryable` in `zenoh`
-  |                       |                                     |
-  |                       |                                     could not find `queryable` in `zenoh`
-  |                       could not find `publication` in `zenoh`
-7 |     sample::Sample, subscriber::PullSubscriber, subscriber::Subscriber, Session,
-  |                     ^^^^^^^^^^                  ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-  |                     |
-  |                     could not find `subscriber` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
- --> src/pull_subscriber.rs:5:13
-  |
-5 | use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
-  |             ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0432]: unresolved imports `zenoh::publication`, `zenoh::value`
- --> src/publisher.rs:3:41
-  |
-3 | use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
-  |                                         ^^^^^^^^^^^             ^^^^^ could not find `value` in `zenoh`
-  |                                         |
-  |                                         could not find `publication` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
- --> src/query.rs:4:12
-  |
-4 | use zenoh::prelude::sync::SyncResolve;
-  |            ^^^^^^^ could not find `prelude` in `zenoh`
-
 error[E0432]: unresolved import `zenoh::subscriber`
- --> src/pull_subscriber.rs:5:57
+ --> src/pull_subscriber.rs:5:29
   |
-5 | use zenoh::{prelude::sync::SyncResolve, sample::Sample, subscriber::PullSubscriber};
-  |                                                         ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-
-error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
- --> src/session.rs:5:13
-  |
-5 | use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
-  |             ^^^^^^^ could not find `prelude` in `zenoh`
-
-error[E0432]: unresolved import `zenoh::queryable`
- --> src/queryable.rs:5:12
-  |
-5 | use zenoh::queryable::{Query, Queryable};
-  |            ^^^^^^^^^ could not find `queryable` in `zenoh`
-
-error[E0432]: unresolved import `zenoh::value`
- --> src/session.rs:5:45
-  |
-5 | use zenoh::{prelude::sync::*, query::Reply, value::Value, Session};
-  |                                             ^^^^^ could not find `value` in `zenoh`
-
-error[E0432]: unresolved import `zenoh::subscriber`
- --> src/subscriber.rs:5:29
-  |
-5 | use zenoh::{sample::Sample, subscriber::Subscriber};
+5 | use zenoh::{sample::Sample, subscriber::PullSubscriber};
   |                             ^^^^^^^^^^ could not find `subscriber` in `zenoh`
-
-error[E0432]: unresolved import `zenoh::prelude`
- --> src/value.rs:4:12
-  |
-4 | use zenoh::prelude::KnownEncoding;
-  |            ^^^^^^^ could not find `prelude` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
   --> src/config.rs:12:33
@@ -131,9 +56,9 @@ error[E0433]: failed to resolve: could not find `publication` in `zenoh`
     |                                  ^^^^^^^^^^^ could not find `publication` in `zenoh`
 
 error[E0433]: failed to resolve: could not find `Mode` in `query`
-   --> src/query.rs:122:56
+   --> src/query.rs:121:56
     |
-122 |             ExConsolidationMode::Auto => zenoh::query::Mode::Auto.into(),
+121 |             ExConsolidationMode::Auto => zenoh::query::Mode::Auto.into(),
     |                                                        ^^^^ could not find `Mode` in `query`
 
 error[E0433]: failed to resolve: could not find `value` in `zenoh`
@@ -373,9 +298,9 @@ help: if you import `Priority`, refer to it directly
     |
 
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
-  --> src/query.rs:18:48
+  --> src/query.rs:17:48
    |
-18 |     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
+17 |     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
    |                                                ^^^^^^^^^ could not find `queryable` in `zenoh`
    |
 help: consider importing this module
@@ -384,14 +309,14 @@ help: consider importing this module
    |
 help: if you import `queryable`, refer to it directly
    |
-18 -     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
-18 +     pub(crate) fn from(env: Env, query: queryable::Query) -> ExQuery {
+17 -     pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
+17 +     pub(crate) fn from(env: Env, query: queryable::Query) -> ExQuery {
    |
 
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
-  --> src/query.rs:37:37
+  --> src/query.rs:36:37
    |
-37 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+36 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
    |                                     ^^^^^^^^^ could not find `queryable` in `zenoh`
    |
 help: consider importing this module
@@ -400,14 +325,14 @@ help: consider importing this module
    |
 help: if you import `queryable`, refer to it directly
    |
-37 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
-37 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
+36 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+36 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
    |
 
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
-  --> src/query.rs:42:24
+  --> src/query.rs:41:24
    |
-42 |     let query: &zenoh::queryable::Query = match &*guard {
+41 |     let query: &zenoh::queryable::Query = match &*guard {
    |                        ^^^^^^^^^ could not find `queryable` in `zenoh`
    |
 help: consider importing this module
@@ -416,14 +341,14 @@ help: consider importing this module
    |
 help: if you import `queryable`, refer to it directly
    |
-42 -     let query: &zenoh::queryable::Query = match &*guard {
-42 +     let query: &queryable::Query = match &*guard {
+41 -     let query: &zenoh::queryable::Query = match &*guard {
+41 +     let query: &queryable::Query = match &*guard {
    |
 
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
-  --> src/query.rs:65:37
+  --> src/query.rs:64:37
    |
-65 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+64 |     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
    |                                     ^^^^^^^^^ could not find `queryable` in `zenoh`
    |
 help: consider importing this module
@@ -432,8 +357,8 @@ help: consider importing this module
    |
 help: if you import `queryable`, refer to it directly
    |
-65 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
-65 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
+64 -     let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+64 +     let lock: &RwLock<Option<queryable::Query>> = &query.reference.0;
    |
 
 error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
@@ -468,6 +393,12 @@ help: if you import `SampleKind`, refer to it directly
 63 +             SampleKind::Delete => ExSampleKind::Delete,
    |
 
+error[E0412]: cannot find type `PullSubscriber` in this scope
+  --> src/lib.rs:30:26
+   |
+30 | struct PullSubscriberRef(PullSubscriber<'static, Receiver<Sample>>);
+   |                          ^^^^^^^^^^^^^^ not found in this scope
+
 error[E0433]: failed to resolve: could not find `prelude` in `zenoh`
   --> src/lib.rs:47:24
    |
@@ -483,6 +414,48 @@ help: if you import `config`, refer to it directly
 47 -     let config: zenoh::prelude::config::Config = config.into();
 47 +     let config: config::Config = config.into();
    |
+
+warning: unused import: `bytes::ZBytes`
+ --> src/publisher.rs:3:32
+  |
+3 | use zenoh::{pubsub::Publisher, bytes::ZBytes};
+  |                                ^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `bytes::ZBytes`
+ --> src/session.rs:5:27
+  |
+5 | use zenoh::{query::Reply, bytes::ZBytes, session::Session};
+  |                           ^^^^^^^^^^^^^
+
+error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> src/lib.rs:29:22
+    |
+29  | struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
+    |                      ^^^^^^^^^^ ------- help: remove the lifetime argument
+    |                      |
+    |                      expected 0 lifetime arguments
+    |
+note: struct defined here, with 0 lifetime parameters
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/subscriber.rs:142:12
+    |
+142 | pub struct Subscriber<Handler> {
+    |            ^^^^^^^^^^
+
+error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> src/lib.rs:31:21
+    |
+31  | struct QueryableRef(Queryable<'static, Receiver<Query>>);
+    |                     ^^^^^^^^^ ------- help: remove the lifetime argument
+    |                     |
+    |                     expected 0 lifetime arguments
+    |
+note: struct defined here, with 0 lifetime parameters
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/queryable.rs:420:12
+    |
+420 | pub struct Queryable<Handler> {
+    |            ^^^^^^^^^
 
 error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
    --> src/keyexpr.rs:5:39
@@ -560,29 +533,95 @@ help: there is an associated function `from_str_unchecked` with a similar name
 6   |     let key_expr2 = unsafe { KeyExpr::from_str_unchecked(key_expr2) };
     |                                       ~~~~~~~~~~~~~~~~~~
 
-error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
-  --> src/publisher.rs:29:43
+error[E0433]: failed to resolve: use of undeclared type `Value`
+  --> src/publisher.rs:21:39
    |
-29 |     let publisher: &Publisher = &resource.0;
-   |                                           ^ unknown field
+21 |     publisher_put_impl(env, resource, Value::from(value.as_slice()))
+   |                                       ^^^^^ use of undeclared type `Value`
 
-error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
-  --> src/publisher.rs:38:43
-   |
-38 |     let publisher: &Publisher = &resource.0;
-   |                                           ^ unknown field
+error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
+   --> src/publisher.rs:30:25
+    |
+30  |     match publisher.put(value).res_sync() {
+    |                     --- ^^^^^ the trait `From<T>` is not implemented for `ZBytes`, which is required by `T: Into<ZBytes>`
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+    = note: required for `T` to implement `Into<ZBytes>`
+note: required by a bound in `Publisher::<'a>::put`
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/publisher.rs:185:21
+    |
+183 |     pub fn put<IntoZBytes>(&self, payload: IntoZBytes) -> PublisherPutBuilder<'_>
+    |            --- required by a bound in this associated function
+184 |     where
+185 |         IntoZBytes: Into<ZBytes>,
+    |                     ^^^^^^^^^^^^ required by this bound in `Publisher::<'a>::put`
+help: consider introducing a `where` clause, but there might be an alternative better way to express this requirement
+    |
+28  | ) -> Term where ZBytes: From<T> {
+    |           +++++++++++++++++++++
 
-error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
-  --> src/publisher.rs:50:43
+error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
+  --> src/publisher.rs:30:32
    |
-50 |     let publisher: &Publisher = &resource.0;
-   |                                           ^ unknown field
+30 |     match publisher.put(value).res_sync() {
+   |                                ^^^^^^^^ method not found in `PublicationBuilder<&Publisher<'_>, PublicationBuilderPut>`
 
-error[E0609]: no field `0` on type `ResourceArc<PublisherRef>`
-  --> src/publisher.rs:61:43
+error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` in the current scope
+  --> src/publisher.rs:39:30
    |
-61 |     let publisher: &Publisher = &resource.0;
-   |                                           ^ unknown field
+39 |     match publisher.delete().res_sync() {
+   |                              ^^^^^^^^ method not found in `PublicationBuilder<&Publisher<'_>, PublicationBuilderDelete>`
+
+error[E0061]: this method takes 0 arguments but 1 argument was supplied
+   --> src/publisher.rs:51:50
+    |
+51  |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+    |                                                  ^^^^^^^^^^^^^^^^^^ ------------ unexpected argument
+    |
+note: method defined here
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/publisher.rs:153:12
+    |
+153 |     pub fn congestion_control(&self) -> CongestionControl {
+    |            ^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+51  -     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+51  +     let publisher: Publisher = publisher.clone().congestion_control();
+    |
+
+error[E0308]: mismatched types
+  --> src/publisher.rs:51:32
+   |
+51 |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+   |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `CongestionControl`
+   |                    |
+   |                    expected due to this
+
+error[E0061]: this method takes 0 arguments but 1 argument was supplied
+   --> src/publisher.rs:62:50
+    |
+62  |     let publisher: Publisher = publisher.clone().priority(value.into());
+    |                                                  ^^^^^^^^ ------------ unexpected argument
+    |
+note: method defined here
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/publisher.rs:159:12
+    |
+159 |     pub fn priority(&self) -> Priority {
+    |            ^^^^^^^^
+help: remove the extra argument
+    |
+62  -     let publisher: Publisher = publisher.clone().priority(value.into());
+62  +     let publisher: Publisher = publisher.clone().priority();
+    |
+
+error[E0308]: mismatched types
+  --> src/publisher.rs:62:32
+   |
+62 |     let publisher: Publisher = publisher.clone().priority(value.into());
+   |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `Priority`
+   |                    |
+   |                    expected due to this
 
 error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
   --> src/pull_subscriber.rs:13:76
@@ -596,11 +635,19 @@ error[E0609]: no field `0` on type `ResourceArc<PullSubscriberRef>`
 23 |     let pull_subscriber: &PullSubscriber<'_, Receiver<Sample>> = &resource.0;
    |                                                                            ^ unknown field
 
-error[E0609]: no field `0` on type `ResourceArc<QueryableRef>`
-  --> src/queryable.rs:15:64
-   |
-15 |     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
-   |                                                                ^ unknown field
+error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> src/queryable.rs:15:21
+    |
+15  |     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
+    |                     ^^^^^^^^^ -- help: remove the lifetime argument
+    |                     |
+    |                     expected 0 lifetime arguments
+    |
+note: struct defined here, with 0 lifetime parameters
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/queryable.rs:420:12
+    |
+420 | pub struct Queryable<Handler> {
+    |            ^^^^^^^^^
 
 error[E0616]: field `key_expr` of struct `Sample` is private
   --> src/sample.rs:17:30
@@ -699,6 +746,12 @@ error[E0599]: no method named `res_sync` found for struct `QueryableBuilder` in 
    | |_________|
    |
 
+error[E0433]: failed to resolve: use of undeclared type `Value`
+   --> src/session.rs:104:47
+    |
+104 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+    |                                               ^^^^^ use of undeclared type `Value`
+
 error[E0277]: the trait bound `ZBytes: From<T>` is not satisfied
    --> src/session.rs:114:33
     |
@@ -752,11 +805,19 @@ error[E0599]: no method named `res_sync` found for struct `PublicationBuilder` i
 161 |     match session.delete(key_expr).res_sync() {
     |                                    ^^^^^^^^ method not found in `PublicationBuilder<PublisherBuilder<'_, '_>, PublicationBuilderDelete>`
 
-error[E0609]: no field `0` on type `ResourceArc<SubscriberRef>`
-  --> src/subscriber.rs:13:67
-   |
-13 |     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
-   |                                                                   ^ unknown field
+error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
+   --> src/subscriber.rs:13:22
+    |
+13  |     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
+    |                      ^^^^^^^^^^ -- help: remove the lifetime argument
+    |                      |
+    |                      expected 0 lifetime arguments
+    |
+note: struct defined here, with 0 lifetime parameters
+   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/subscriber.rs:142:12
+    |
+142 | pub struct Subscriber<Handler> {
+    |            ^^^^^^^^^^
 
 error[E0282]: type annotations needed
   --> src/value.rs:14:61
@@ -764,9 +825,136 @@ error[E0282]: type annotations needed
 14 |                     let mut binary = OwnedBinary::new(value.len()).unwrap();
    |                                                             ^^^ cannot infer type for type parameter `B` declared on the enum `Cow`
 
-Some errors have detailed explanations: E0277, E0282, E0432, E0433, E0599, E0609, E0616.
-For more information about an error, try `rustc --explain E0277`.
-error: could not compile `zenohex_nif` (lib) due to 75 previous errors
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:47:13
+   |
+47 |             KnownEncoding::ImageGif => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:46:13
+   |
+46 |             KnownEncoding::ImagePng => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:11:13
+   |
+11 |             KnownEncoding::Empty => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:12:13
+   |
+12 |             KnownEncoding::AppOctetStream => match Cow::try_from(value) {
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:20:13
+   |
+20 |             KnownEncoding::AppCustom => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:21:13
+   |
+21 |             KnownEncoding::TextPlain => match String::try_from(value) {
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:25:13
+   |
+25 |             KnownEncoding::AppProperties => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:26:13
+   |
+26 |             KnownEncoding::AppJson => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:27:13
+   |
+27 |             KnownEncoding::AppSql => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:28:13
+   |
+28 |             KnownEncoding::AppInteger => match i64::try_from(value) {
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:32:13
+   |
+32 |             KnownEncoding::AppFloat => match f64::try_from(value) {
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:36:13
+   |
+36 |             KnownEncoding::AppXml => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:37:13
+   |
+37 |             KnownEncoding::AppXhtmlXml => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:38:13
+   |
+38 |             KnownEncoding::AppXWwwFormUrlencoded => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:39:13
+   |
+39 |             KnownEncoding::TextJson => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:40:13
+   |
+40 |             KnownEncoding::TextHtml => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:41:13
+   |
+41 |             KnownEncoding::TextXml => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:42:13
+   |
+42 |             KnownEncoding::TextCss => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:43:13
+   |
+43 |             KnownEncoding::TextCsv => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:44:13
+   |
+44 |             KnownEncoding::TextJavascript => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
+  --> src/value.rs:45:13
+   |
+45 |             KnownEncoding::ImageJpeg => unimplemented!(),
+   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+
+Some errors have detailed explanations: E0061, E0107, E0277, E0282, E0308, E0412, E0432, E0433, E0599...
+For more information about an error, try `rustc --explain E0061`.
+warning: `zenohex_nif` (lib) generated 2 warnings
+error: could not compile `zenohex_nif` (lib) due to 93 previous errors; 2 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

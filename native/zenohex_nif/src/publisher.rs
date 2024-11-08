@@ -1,6 +1,6 @@
 use crate::PublisherRef;
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{prelude::sync::SyncResolve, publication::Publisher, value::Value};
+use zenoh::{bytes::ZBytes, pubsub::Publisher};
 
 #[rustler::nif]
 fn publisher_put_integer(env: Env, resource: ResourceArc<PublisherRef>, value: i64) -> Term {

@@ -1,7 +1,6 @@
 use std::sync::RwLock;
 
 use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
-use zenoh::prelude::sync::SyncResolve;
 
 use crate::{QueryRef, SampleRef};
 
