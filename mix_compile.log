@@ -37,12 +37,6 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
 88 | fn session_put_impl<T: Into<zenoh::value::Value>>(
    |                                    ^^^^^ could not find `value` in `zenoh`
 
-error[E0433]: failed to resolve: could not find `value` in `zenoh`
- --> src/value.rs:9:57
-  |
-9 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::value::Value) -> Term<'a> {
-  |                                                         ^^^^^ could not find `value` in `zenoh`
-
 error[E0425]: cannot find function `peer` in module `zenoh::config`
   --> src/config.rs:12:41
    |
@@ -126,6 +120,18 @@ warning: unused import: `bytes::ZBytes`
   |
 5 | use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
   |             ^^^^^^^^^^^^^
+
+warning: unused imports: `borrow::Cow` and `io::Write`
+ --> src/value.rs:2:11
+  |
+2 | use std::{borrow::Cow, io::Write};
+  |           ^^^^^^^^^^^  ^^^^^^^^^
+
+warning: unused imports: `Encoder` and `OwnedBinary`
+ --> src/value.rs:4:15
+  |
+4 | use rustler::{Encoder, Env, OwnedBinary, Term};
+  |               ^^^^^^^       ^^^^^^^^^^^
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/lib.rs:29:22
@@ -465,12 +471,6 @@ note: struct defined here, with 0 lifetime parameters
 142 | pub struct Subscriber<Handler> {
     |            ^^^^^^^^^^
 
-error[E0282]: type annotations needed
-  --> src/value.rs:14:61
-   |
-14 |                     let mut binary = OwnedBinary::new(value.len()).unwrap();
-   |                                                             ^^^ cannot infer type for type parameter `B` declared on the enum `Cow`
-
 error[E0599]: no method named `into_arc` found for struct `Session` in the current scope
   --> src/lib.rs:47:63
    |
@@ -482,136 +482,18 @@ help: there is a method `into` with a similar name
 47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into()))),
    |                                                               ~~~~
 
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:47:13
+warning: unused variable: `env`
+  --> src/value.rs:10:28
    |
-47 |             KnownEncoding::ImageGif => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:46:13
+10 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::sample::Sample) -> Term<'a> {
+   |                            ^^^ help: if this is intentional, prefix it with an underscore: `_env`
    |
-46 |             KnownEncoding::ImagePng => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
+   = note: `#[warn(unused_variables)]` on by default
 
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:11:13
-   |
-11 |             KnownEncoding::Empty => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:12:13
-   |
-12 |             KnownEncoding::AppOctetStream => match Cow::try_from(value) {
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:20:13
-   |
-20 |             KnownEncoding::AppCustom => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:21:13
-   |
-21 |             KnownEncoding::TextPlain => match String::try_from(value) {
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:25:13
-   |
-25 |             KnownEncoding::AppProperties => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:26:13
-   |
-26 |             KnownEncoding::AppJson => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:27:13
-   |
-27 |             KnownEncoding::AppSql => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:28:13
-   |
-28 |             KnownEncoding::AppInteger => match i64::try_from(value) {
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:32:13
-   |
-32 |             KnownEncoding::AppFloat => match f64::try_from(value) {
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:36:13
-   |
-36 |             KnownEncoding::AppXml => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:37:13
-   |
-37 |             KnownEncoding::AppXhtmlXml => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:38:13
-   |
-38 |             KnownEncoding::AppXWwwFormUrlencoded => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:39:13
-   |
-39 |             KnownEncoding::TextJson => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:40:13
-   |
-40 |             KnownEncoding::TextHtml => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:41:13
-   |
-41 |             KnownEncoding::TextXml => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:42:13
-   |
-42 |             KnownEncoding::TextCss => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:43:13
-   |
-43 |             KnownEncoding::TextCsv => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:44:13
-   |
-44 |             KnownEncoding::TextJavascript => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-error[E0433]: failed to resolve: use of undeclared type `KnownEncoding`
-  --> src/value.rs:45:13
-   |
-45 |             KnownEncoding::ImageJpeg => unimplemented!(),
-   |             ^^^^^^^^^^^^^ use of undeclared type `KnownEncoding`
-
-Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0282, E0308, E0425, E0433, E0599...
+Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0308, E0425, E0433, E0599, E0609...
 For more information about an error, try `rustc --explain E0061`.
-warning: `zenohex_nif` (lib) generated 2 warnings
-error: could not compile `zenohex_nif` (lib) due to 59 previous errors; 2 warnings emitted
+warning: `zenohex_nif` (lib) generated 5 warnings
+error: could not compile `zenohex_nif` (lib) due to 36 previous errors; 5 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
