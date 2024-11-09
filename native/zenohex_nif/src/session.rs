@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
+use zenoh::{query::Reply, session::Session, Wait};
 
 #[rustler::nif]
 fn declare_publisher(
@@ -29,10 +29,7 @@ fn declare_subscriber(
     opts: crate::subscriber::SubscriberOptions,
 ) -> Result<ResourceArc<crate::SubscriberRef>, String> {
     let session: &Arc<Session> = &resource.0;
-    match session
-        .declare_subscriber(key_expr)
-        .wait()
-    {
+    match session.declare_subscriber(key_expr).wait() {
         Ok(subscriber) => Ok(ResourceArc::new(crate::SubscriberRef(subscriber))),
         Err(error) => Err(error.to_string()),
     }

@@ -1,26 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-warning: unused import: `bytes::ZBytes`
- --> src/session.rs:5:13
-  |
-5 | use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
-  |             ^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused imports: `borrow::Cow` and `io::Write`
- --> src/value.rs:2:11
-  |
-2 | use std::{borrow::Cow, io::Write};
-  |           ^^^^^^^^^^^  ^^^^^^^^^
-
-warning: unused imports: `Encoder` and `OwnedBinary`
- --> src/value.rs:4:15
-  |
-4 | use rustler::{Encoder, Env, OwnedBinary, Term};
-  |               ^^^^^^^       ^^^^^^^^^^^
-
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/lib.rs:29:22
     |
@@ -427,9 +407,9 @@ error[E0599]: no function or associated item named `new` found for struct `Sampl
    |                                ^^^ function or associated item not found in `Sample`
 
 error[E0277]: the trait bound `ZBytes: From<i64>` is not satisfied
-  --> src/session.rs:65:47
+  --> src/session.rs:62:47
    |
-65 |     session_put_impl(env, resource, key_expr, value)
+62 |     session_put_impl(env, resource, key_expr, value)
    |     ----------------                          ^^^^^ the trait `From<i64>` is not implemented for `ZBytes`, which is required by `i64: Into<ZBytes>`
    |     |
    |     required by a bound introduced by this call
@@ -446,15 +426,15 @@ error[E0277]: the trait bound `ZBytes: From<i64>` is not satisfied
            and 8 others
    = note: required for `i64` to implement `Into<ZBytes>`
 note: required by a bound in `session_put_impl`
-  --> src/session.rs:88:24
+  --> src/session.rs:85:24
    |
-88 | fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
+85 | fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `session_put_impl`
 
 error[E0277]: the trait bound `ZBytes: From<f64>` is not satisfied
-  --> src/session.rs:75:47
+  --> src/session.rs:72:47
    |
-75 |     session_put_impl(env, resource, key_expr, value)
+72 |     session_put_impl(env, resource, key_expr, value)
    |     ----------------                          ^^^^^ the trait `From<f64>` is not implemented for `ZBytes`, which is required by `f64: Into<ZBytes>`
    |     |
    |     required by a bound introduced by this call
@@ -471,21 +451,21 @@ error[E0277]: the trait bound `ZBytes: From<f64>` is not satisfied
            and 8 others
    = note: required for `f64` to implement `Into<ZBytes>`
 note: required by a bound in `session_put_impl`
-  --> src/session.rs:88:24
+  --> src/session.rs:85:24
    |
-88 | fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
+85 | fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `session_put_impl`
 
 error[E0433]: failed to resolve: use of undeclared type `Value`
-  --> src/session.rs:85:47
+  --> src/session.rs:82:47
    |
-85 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+82 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
    |                                               ^^^^^ use of undeclared type `Value`
 
 error[E0308]: mismatched types
-   --> src/session.rs:117:69
+   --> src/session.rs:114:69
     |
-117 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
+114 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
     |                                             ----------------------- ^^^^^^^^ expected `Receiver<Reply>`, found `FifoChannelHandler<Reply>`
     |                                             |
     |                                             arguments to this struct are incorrect
@@ -499,9 +479,9 @@ note: tuple struct defined here
     |        ^^^^^^^^^^^^^^^^
 
 error[E0609]: no field `sample` on type `zenoh::query::Reply`
-   --> src/session.rs:130:34
+   --> src/session.rs:127:34
     |
-130 |         Ok(reply) => match reply.sample {
+127 |         Ok(reply) => match reply.sample {
     |                                  ^^^^^^ unknown field
 
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
@@ -539,8 +519,8 @@ warning: unused variable: `env`
 
 Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
-warning: `zenohex_nif` (lib) generated 4 warnings
-error: could not compile `zenohex_nif` (lib) due to 34 previous errors; 4 warnings emitted
+warning: `zenohex_nif` (lib) generated 1 warning
+error: could not compile `zenohex_nif` (lib) due to 34 previous errors; 1 warning emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

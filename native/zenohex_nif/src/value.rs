@@ -1,7 +1,7 @@
 /* TODO: this file may be changed to bytes.rs */
-use std::{borrow::Cow, io::Write};
+//use std::{borrow::Cow, io::Write};
 
-use rustler::{Encoder, Env, OwnedBinary, Term};
+use rustler::{Env, Term};
 use zenoh::bytes::Encoding;
 
 pub(crate) struct ExValue;
