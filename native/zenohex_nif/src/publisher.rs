@@ -18,10 +18,10 @@ fn publisher_put_binary<'a>(
     resource: ResourceArc<PublisherRef>,
     value: Binary<'a>,
 ) -> Term<'a> {
-    publisher_put_impl(env, resource, Value::from(value.as_slice()))
+    publisher_put_impl(env, resource, ZBytes::from(value.as_slice()))
 }
 
-fn publisher_put_impl<T: Into<zenoh::value::Value>>(
+fn publisher_put_impl<T: Into<zenoh::bytes::ZBytes>>(
     env: Env,
     resource: ResourceArc<PublisherRef>,
     value: T,

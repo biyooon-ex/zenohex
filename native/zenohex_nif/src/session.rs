@@ -85,7 +85,7 @@ fn session_put_binary<'a>(
     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
 }
 
-fn session_put_impl<T: Into<zenoh::value::Value>>(
+fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
     env: Env,
     resource: ResourceArc<crate::SessionRef>,
     key_expr: String,

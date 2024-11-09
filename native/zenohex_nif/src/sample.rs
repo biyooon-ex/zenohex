@@ -29,16 +29,16 @@ impl From<ExSample<'_>> for zenoh::sample::Sample {
             rustler::TermType::Atom => unimplemented!(),
             rustler::TermType::Binary => {
                 let binary = sample.value.decode::<Binary>().unwrap();
-                zenoh::value::Value::from(binary.as_slice())
+                zenoh::bytes::ZBytes::from(binary.as_slice())
             }
             rustler::TermType::Fun => unimplemented!(),
             rustler::TermType::List => unimplemented!(),
             rustler::TermType::Map => unimplemented!(),
             rustler::TermType::Integer => {
-                zenoh::value::Value::from(sample.value.decode::<i64>().unwrap())
+                zenoh::bytes::ZBytes::from(sample.value.decode::<i64>().unwrap())
             }
             rustler::TermType::Float => {
-                zenoh::value::Value::from(sample.value.decode::<f64>().unwrap())
+                zenoh::bytes::ZBytes::from(sample.value.decode::<f64>().unwrap())
             }
             rustler::TermType::Pid => unimplemented!(),
             rustler::TermType::Port => unimplemented!(),
