@@ -26,8 +26,8 @@ mod value;
 
 struct SessionRef(Arc<Session>);
 struct PublisherRef(Publisher<'static>);
-struct SubscriberRef(Subscriber<'static, Receiver<Sample>>);
-struct QueryableRef(Queryable<'static, Receiver<Query>>);
+struct SubscriberRef(Subscriber<Receiver<Sample>>);
+struct QueryableRef(Queryable<Receiver<Query>>);
 struct ReplyReceiverRef(Receiver<Reply>);
 struct QueryRef(RwLock<Option<Query>>);
 struct SampleRef(Sample);
