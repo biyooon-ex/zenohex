@@ -14,11 +14,11 @@ pub(crate) struct ExQuery<'a> {
 }
 
 impl ExQuery<'_> {
-    pub(crate) fn from(env: Env, query: zenoh::queryable::Query) -> ExQuery {
+    pub(crate) fn from(env: Env, query: zenoh::query::Query) -> ExQuery {
         ExQuery {
             key_expr: query.key_expr().to_string(),
             parameters: query.parameters().to_string(),
-            value: match query.value() {
+            value: match query.payload() {
                 Some(value) => ErlOption::some(crate::value::ExValue::from(env, value)),
                 None => ErlOption::none(),
             },
@@ -33,12 +33,12 @@ fn query_reply<'a>(
     query: ExQuery<'a>,
     sample: crate::sample::ExSample<'a>,
 ) -> Term<'a> {
-    let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+    let lock: &RwLock<Option<zenoh::query::Query>> = &query.reference.0;
     let guard = match lock.read() {
         Ok(guard) => guard,
         Err(error) => return (atom::error(), error.to_string()).encode(env),
     };
-    let query: &zenoh::queryable::Query = match &*guard {
+    let query: &zenoh::query::Query = match &*guard {
         Some(query) => query,
         None => {
             return (
@@ -61,7 +61,7 @@ fn query_reply<'a>(
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn query_finish_reply<'a>(env: Env<'a>, query: ExQuery<'a>) -> Term<'a> {
-    let lock: &RwLock<Option<zenoh::queryable::Query>> = &query.reference.0;
+    let lock: &RwLock<Option<zenoh::query::Query>> = &query.reference.0;
     let mut guard = match lock.write() {
         Ok(guard) => guard,
         Err(error) => return (atom::error(), error.to_string()).encode(env),
@@ -118,7 +118,7 @@ pub(crate) enum ExConsolidationMode {
 impl From<ExConsolidationMode> for zenoh::query::QueryConsolidation {
     fn from(value: ExConsolidationMode) -> Self {
         match value {
-            ExConsolidationMode::Auto => zenoh::query::Mode::Auto.into(),
+            ExConsolidationMode::Auto => zenoh::query::ConsolidationMode::Auto.into(),
             ExConsolidationMode::None => zenoh::query::ConsolidationMode::None.into(),
             ExConsolidationMode::Monotonic => zenoh::query::ConsolidationMode::Monotonic.into(),
             ExConsolidationMode::Latest => zenoh::query::ConsolidationMode::Latest.into(),
