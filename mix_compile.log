@@ -37,12 +37,6 @@ error[E0433]: failed to resolve: could not find `value` in `zenoh`
 88 | fn session_put_impl<T: Into<zenoh::value::Value>>(
    |                                    ^^^^^ could not find `value` in `zenoh`
 
-error[E0425]: cannot find function `peer` in module `zenoh::config`
-  --> src/config.rs:12:41
-   |
-12 |         let mut config = zenoh::config::peer();
-   |                                         ^^^^ not found in `zenoh::config`
-
 error[E0433]: failed to resolve: could not find `queryable` in `zenoh`
   --> src/query.rs:17:48
    |
@@ -182,6 +176,18 @@ help: if there were a trait named `Example` with associated type `ScoutingConf` 
    |
 47 | impl From<ExConfigScouting> for <zenoh::Config as Example>::ScoutingConf {
    |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+error[E0609]: no field `connect` on type `zenoh::Config`
+  --> src/config.rs:13:16
+   |
+13 |         config.connect = value.connect.into();
+   |                ^^^^^^^ unknown field
+
+error[E0609]: no field `scouting` on type `zenoh::Config`
+  --> src/config.rs:14:16
+   |
+14 |         config.scouting = value.scouting.into();
+   |                ^^^^^^^^ unknown field
 
 error[E0223]: ambiguous associated type
   --> src/config.rs:35:26
@@ -490,10 +496,10 @@ warning: unused variable: `env`
    |
    = note: `#[warn(unused_variables)]` on by default
 
-Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0308, E0425, E0433, E0599, E0609...
+Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 5 warnings
-error: could not compile `zenohex_nif` (lib) due to 36 previous errors; 5 warnings emitted
+error: could not compile `zenohex_nif` (lib) due to 37 previous errors; 5 warnings emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

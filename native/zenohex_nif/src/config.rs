@@ -9,7 +9,7 @@ pub(crate) struct ExConfig {
 
 impl From<ExConfig> for zenoh::Config {
     fn from(value: ExConfig) -> Self {
-        let mut config = zenoh::config::peer();
+        let mut config = zenoh::Config::default();
         config.connect = value.connect.into();
         config.scouting = value.scouting.into();
         config
