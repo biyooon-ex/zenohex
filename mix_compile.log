@@ -1,62 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0223]: ambiguous associated type
-  --> src/config.rs:25:32
-   |
-25 | impl From<ExConfigConnect> for zenoh::Config::ConnectConfig {
-   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `zenoh::Config`, you could use the fully-qualified path
-   |
-25 | impl From<ExConfigConnect> for <zenoh::Config as Example>::ConnectConfig {
-   |                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error[E0223]: ambiguous associated type
-  --> src/config.rs:47:33
-   |
-47 | impl From<ExConfigScouting> for zenoh::Config::ScoutingConf {
-   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `zenoh::Config`, you could use the fully-qualified path
-   |
-47 | impl From<ExConfigScouting> for <zenoh::Config as Example>::ScoutingConf {
-   |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error[E0609]: no field `connect` on type `zenoh::Config`
-  --> src/config.rs:13:16
-   |
-13 |         config.connect = value.connect.into();
-   |                ^^^^^^^ unknown field
-
-error[E0609]: no field `scouting` on type `zenoh::Config`
-  --> src/config.rs:14:16
-   |
-14 |         config.scouting = value.scouting.into();
-   |                ^^^^^^^^ unknown field
-
-error[E0223]: ambiguous associated type
-  --> src/config.rs:35:26
-   |
-35 |         let mut config = zenoh::Config::ConnectConfig::default();
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: if there were a trait named `Example` with associated type `ConnectConfig` implemented for `zenoh::Config`, you could use the fully-qualified path
-   |
-35 |         let mut config = <zenoh::Config as Example>::ConnectConfig::default();
-   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error[E0223]: ambiguous associated type
-  --> src/config.rs:49:26
-   |
-49 |         let mut config = zenoh::Config::ScoutingConf::default();
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: if there were a trait named `Example` with associated type `ScoutingConf` implemented for `zenoh::Config`, you could use the fully-qualified path
-   |
-49 |         let mut config = <zenoh::Config as Example>::ScoutingConf::default();
-   |                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
    --> src/keyexpr.rs:5:39
     |
@@ -521,10 +465,10 @@ warning: unused variable: `env`
    |
    = note: `#[warn(unused_variables)]` on by default
 
-Some errors have detailed explanations: E0061, E0107, E0223, E0277, E0308, E0433, E0599, E0609, E0616.
+Some errors have detailed explanations: E0061, E0107, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 1 warning
-error: could not compile `zenohex_nif` (lib) due to 34 previous errors; 1 warning emitted
+error: could not compile `zenohex_nif` (lib) due to 28 previous errors; 1 warning emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
