@@ -1,82 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
-   --> src/keyexpr.rs:5:39
-    |
-5   |     let key_expr1 = unsafe { KeyExpr::from_str_uncheckend(key_expr1) };
-    |                                       ^^^^^^^^^^^^^^^^^^^ function or associated item not found in `KeyExpr<'_>`
-    |
-note: if you're trying to build a new `KeyExpr<'_>` consider using one of the following associated functions:
-      KeyExpr::<'static>::from_string_unchecked
-      KeyExpr::<'static>::from_boxed_str_unchecked
-      KeyExpr::<'a>::new
-      KeyExpr::<'a>::autocanonize
-      KeyExpr::<'a>::from_str_unchecked
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/key_expr.rs:78:5
-    |
-78  |       pub unsafe fn from_string_unchecked(s: String) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-86  |       pub unsafe fn from_boxed_str_unchecked(s: Box<str>) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-99  | /     pub fn new<T, E>(t: T) -> Result<Self, E>
-100 | |     where
-101 | |         Self: TryFrom<T, Error = E>,
-    | |____________________________________^
-...
-146 | /     pub fn autocanonize<T, E>(mut t: T) -> Result<Self, E>
-147 | |     where
-148 | |         Self: TryFrom<T, Error = E>,
-149 | |         T: Canonize,
-    | |____________________^
-...
-159 |       pub unsafe fn from_str_unchecked(s: &'a str) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-help: there is an associated function `from_str_unchecked` with a similar name
-    |
-5   |     let key_expr1 = unsafe { KeyExpr::from_str_unchecked(key_expr1) };
-    |                                       ~~~~~~~~~~~~~~~~~~
-
-error[E0599]: no function or associated item named `from_str_uncheckend` found for struct `KeyExpr<'_>` in the current scope
-   --> src/keyexpr.rs:6:39
-    |
-6   |     let key_expr2 = unsafe { KeyExpr::from_str_uncheckend(key_expr2) };
-    |                                       ^^^^^^^^^^^^^^^^^^^ function or associated item not found in `KeyExpr<'_>`
-    |
-note: if you're trying to build a new `KeyExpr<'_>` consider using one of the following associated functions:
-      KeyExpr::<'static>::from_string_unchecked
-      KeyExpr::<'static>::from_boxed_str_unchecked
-      KeyExpr::<'a>::new
-      KeyExpr::<'a>::autocanonize
-      KeyExpr::<'a>::from_str_unchecked
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/key_expr.rs:78:5
-    |
-78  |       pub unsafe fn from_string_unchecked(s: String) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-86  |       pub unsafe fn from_boxed_str_unchecked(s: Box<str>) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-...
-99  | /     pub fn new<T, E>(t: T) -> Result<Self, E>
-100 | |     where
-101 | |         Self: TryFrom<T, Error = E>,
-    | |____________________________________^
-...
-146 | /     pub fn autocanonize<T, E>(mut t: T) -> Result<Self, E>
-147 | |     where
-148 | |         Self: TryFrom<T, Error = E>,
-149 | |         T: Canonize,
-    | |____________________^
-...
-159 |       pub unsafe fn from_str_unchecked(s: &'a str) -> Self {
-    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-help: there is an associated function `from_str_unchecked` with a similar name
-    |
-6   |     let key_expr2 = unsafe { KeyExpr::from_str_unchecked(key_expr2) };
-    |                                       ~~~~~~~~~~~~~~~~~~
-
 error[E0277]: the trait bound `ZBytes: From<i64>` is not satisfied
   --> src/publisher.rs:7:39
    |
@@ -468,7 +392,7 @@ warning: unused variable: `env`
 Some errors have detailed explanations: E0061, E0107, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 1 warning
-error: could not compile `zenohex_nif` (lib) due to 28 previous errors; 1 warning emitted
+error: could not compile `zenohex_nif` (lib) due to 26 previous errors; 1 warning emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
