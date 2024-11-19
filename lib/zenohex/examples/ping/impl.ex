@@ -38,7 +38,6 @@ defmodule Zenohex.Examples.Ping.Impl do
     {:ok, publisher} = Zenohex.Session.declare_publisher(session, ping_key_expr)
 
     value = Enum.map(0..(payload_size-1), fn i -> rem(i, 10) end)
-    IO.inspect(value, label: "Generated value")
     data = :binary.list_to_bin(value)
     IO.inspect(data, label: "Generated data")
 
@@ -49,19 +48,33 @@ defmodule Zenohex.Examples.Ping.Impl do
   def handle_call(:start_ping_process, _from, state) do
     IO.puts("Warming up for #{state.warmup}s...")
     warmup_end = DateTime.utc_now() |> DateTime.add(state.warmup, :second)
-    state = %{state | warmup_end: warmup_end}
-    warmup_loop_run(state)
+    state = Map.put(state, :warmup_end, warmup_end)
+    send(self(), :warmup_loop)
 
-    send(self(), :measurement)
+    # send(self(), :measurement)
 
     {:reply, :ok, state}
   end
 
-  def handle_call(:measurement, _from, state) do
+  def handle_info(:warmup_loop, state) do
+    IO.inspect(state, label: "State in warmup_loop")
+
+    current_time = DateTime.utc_now()
+
+    if current_time < state.warmup_end do
+      :ok = Zenohex.Publisher.put(state.publisher, state.data)
+      recv_timeout(state)
+      send(self(), :warmup_loop)
+    else
+      {:noreply, state}
+    end
+  end
+
+  def handle_info(:measurement, state) do
     sample_list = Enum.reduce(0..state.samples, [],
     fn _i, acc ->
       write_time = DateTime.utc_now()
-      state.publisher.put(state.data)
+      :ok = Zenohex.Publisher.put(state.publisher, state.data)
       recv_timeout(state)
 
       [round(DateTime.diff(DateTime.utc_now(), write_time)) | acc]
@@ -74,26 +87,15 @@ defmodule Zenohex.Examples.Ping.Impl do
     fn{i, rtt}
     -> IO.puts("#{state.payload_size} bytes: seq=#{i} rtt=#{rtt}μs lat=#{rtt / 2}μs")
     end)
-  end
 
-
-  defp warmup_loop_run(state) do
-    current_time = DateTime.utc_now()
-
-    if current_time < state.warmup_end do
-      state.publisher.put(state.data)
-      recv_timeout(state)
-      warmup_loop_run(state)
-    else
-      :ok
-    end
-
+    {:noreply, state}
   end
 
   def handle_info(:loop, state) do
     recv_timeout(state)
     {:noreply, state}
   end
+
 
   defp recv_timeout(state) do
     case Zenohex.Subscriber.recv_timeout(state.subscriber) do
