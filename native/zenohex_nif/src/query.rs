@@ -3,6 +3,7 @@ use std::sync::RwLock;
 use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
 
 use crate::{QueryRef, SampleRef};
+use zenoh::Wait;
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
@@ -53,7 +54,8 @@ fn query_reply<'a>(
             Some(resource) => resource.0.clone(),
             None => sample.into(),
         };
-    match query.reply(Ok(sample)).wait() {
+    // match query.reply(Ok(sample)).wait() {
+    match query.reply(sample.key_expr(), *sample.payload()).wait() {
         Ok(_) => atom::ok().encode(env),
         Err(error) => (atom::error(), error.to_string()).encode(env),
     }

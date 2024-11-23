@@ -7,7 +7,7 @@ use zenoh::bytes::Encoding;
 pub(crate) struct ExValue;
 
 impl ExValue {
-    pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::sample::Sample) -> Term<'a> {
+    pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::bytes::ZBytes) -> Term<'a> {
         // match value.encoding.prefix() {
         match value.encoding() {
             // TODO: implement??

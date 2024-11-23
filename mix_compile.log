@@ -1,69 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0308]: mismatched types
-  --> src/query.rs:22:81
-   |
-22 |                 Some(value) => ErlOption::some(crate::value::ExValue::from(env, value)),
-   |                                                ---------------------------      ^^^^^ expected `&Sample`, found `&ZBytes`
-   |                                                |
-   |                                                arguments to this function are incorrect
-   |
-   = note: expected reference `&Sample`
-              found reference `&ZBytes`
-note: associated function defined here
-  --> src/value.rs:10:19
-   |
-10 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::sample::Sample) -> Term<'a> {
-   |                   ^^^^                   -----------------------------
-
-error[E0277]: the trait bound `KeyExpr<'_>: From<Result<Sample, _>>` is not satisfied
-  --> src/query.rs:56:17
-   |
-56 |     match query.reply(Ok(sample)).wait() {
-   |                 ^^^^^ the trait `From<Result<Sample, _>>` is not implemented for `KeyExpr<'_>`, which is required by `KeyExpr<'_>: TryFrom<Result<Sample, _>>`
-   |
-   = help: the following other types implement trait `From<T>`:
-             `KeyExpr<'a>` implements `From<&'a KeyExpr<'a>>`
-             `KeyExpr<'a>` implements `From<&'a OwnedKeyExpr>`
-             `KeyExpr<'a>` implements `From<&'a zenoh::key_expr::keyexpr>`
-             `KeyExpr<'a>` implements `From<OwnedKeyExpr>`
-   = note: required for `Result<Sample, _>` to implement `Into<KeyExpr<'_>>`
-   = note: required for `KeyExpr<'_>` to implement `TryFrom<Result<Sample, _>>`
-
-error[E0061]: this method takes 2 arguments but 1 argument was supplied
-   --> src/query.rs:56:17
-    |
-56  |     match query.reply(Ok(sample)).wait() {
-    |                 ^^^^^------------ argument #2 is missing
-    |
-note: method defined here
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/queryable.rs:148:12
-    |
-148 |     pub fn reply<'b, TryIntoKeyExpr, IntoZBytes>(
-    |            ^^^^^
-help: provide the argument
-    |
-56  |     match query.reply(Ok(sample), /* payload */).wait() {
-    |                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-error[E0599]: no method named `wait` found for struct `ReplyBuilder` in the current scope
-  --> src/query.rs:56:35
-   |
-56 |     match query.reply(Ok(sample)).wait() {
-   |                                   ^^^^ method not found in `ReplyBuilder<'_, '_, ReplyBuilderPut>`
-   |
-  ::: /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-core-1.0.1/src/lib.rs:54:8
-   |
-54 |     fn wait(self) -> Self::To;
-   |        ---- the method is available for `ReplyBuilder<'_, '_, ReplyBuilderPut>` here
-   |
-   = help: items from traits can only be used if the trait is in scope
-help: trait `Wait` which provides `wait` is implemented but not in scope; perhaps you want to import it
-   |
-1  + use zenoh::Wait;
-   |
-
 error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
    --> src/queryable.rs:15:21
     |
@@ -270,6 +207,12 @@ note: struct defined here, with 0 lifetime parameters
 142 | pub struct Subscriber<Handler> {
     |            ^^^^^^^^^^
 
+error[E0599]: no method named `encoding` found for reference `&ZBytes` in the current scope
+  --> src/value.rs:12:21
+   |
+12 |         match value.encoding() {
+   |                     ^^^^^^^^ method not found in `&ZBytes`
+
 error[E0599]: no method named `into_arc` found for struct `Session` in the current scope
   --> src/lib.rs:47:63
    |
@@ -281,18 +224,15 @@ help: there is a method `into` with a similar name
 47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into()))),
    |                                                               ~~~~
 
-warning: unused variable: `env`
-  --> src/value.rs:10:28
+error[E0507]: cannot move out of a shared reference
+  --> src/query.rs:58:42
    |
-10 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::sample::Sample) -> Term<'a> {
-   |                            ^^^ help: if this is intentional, prefix it with an underscore: `_env`
-   |
-   = note: `#[warn(unused_variables)]` on by default
+58 |     match query.reply(sample.key_expr(), *sample.payload()).wait() {
+   |                                          ^^^^^^^^^^^^^^^^^ move occurs because value has type `ZBytes`, which does not implement the `Copy` trait
 
-Some errors have detailed explanations: E0061, E0107, E0277, E0308, E0433, E0599, E0609, E0616.
-For more information about an error, try `rustc --explain E0061`.
-warning: `zenohex_nif` (lib) generated 1 warning
-error: could not compile `zenohex_nif` (lib) due to 20 previous errors; 1 warning emitted
+Some errors have detailed explanations: E0107, E0277, E0308, E0433, E0507, E0599, E0609, E0616.
+For more information about an error, try `rustc --explain E0107`.
+error: could not compile `zenohex_nif` (lib) due to 18 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
