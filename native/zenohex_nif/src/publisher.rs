@@ -2,6 +2,7 @@ use crate::PublisherRef;
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
 use zenoh::{bytes::ZBytes, pubsub::Publisher, Wait};
 
+/*
 #[rustler::nif]
 fn publisher_put_integer(env: Env, resource: ResourceArc<PublisherRef>, value: i64) -> Term {
     publisher_put_impl(env, resource, value)
@@ -11,6 +12,7 @@ fn publisher_put_integer(env: Env, resource: ResourceArc<PublisherRef>, value: i
 fn publisher_put_float(env: Env, resource: ResourceArc<PublisherRef>, value: f64) -> Term {
     publisher_put_impl(env, resource, value)
 }
+*/
 
 #[rustler::nif]
 fn publisher_put_binary<'a>(

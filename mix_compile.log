@@ -1,60 +1,10 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0277]: the trait bound `ZBytes: From<i64>` is not satisfied
-  --> src/publisher.rs:7:39
-   |
-7  |     publisher_put_impl(env, resource, value)
-   |     ------------------                ^^^^^ the trait `From<i64>` is not implemented for `ZBytes`, which is required by `i64: Into<ZBytes>`
-   |     |
-   |     required by a bound introduced by this call
-   |
-   = help: the following other types implement trait `From<T>`:
-             `ZBytes` implements `From<&Cow<'_, [u8]>>`
-             `ZBytes` implements `From<&Cow<'_, str>>`
-             `ZBytes` implements `From<&String>`
-             `ZBytes` implements `From<&Vec<u8>>`
-             `ZBytes` implements `From<&[u8; N]>`
-             `ZBytes` implements `From<&[u8]>`
-             `ZBytes` implements `From<&str>`
-             `ZBytes` implements `From<AttachmentType<ID>>`
-           and 8 others
-   = note: required for `i64` to implement `Into<ZBytes>`
-note: required by a bound in `publisher_put_impl`
-  --> src/publisher.rs:24:26
-   |
-24 | fn publisher_put_impl<T: Into<zenoh::bytes::ZBytes>>(
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `publisher_put_impl`
-
-error[E0277]: the trait bound `ZBytes: From<f64>` is not satisfied
-  --> src/publisher.rs:12:39
-   |
-12 |     publisher_put_impl(env, resource, value)
-   |     ------------------                ^^^^^ the trait `From<f64>` is not implemented for `ZBytes`, which is required by `f64: Into<ZBytes>`
-   |     |
-   |     required by a bound introduced by this call
-   |
-   = help: the following other types implement trait `From<T>`:
-             `ZBytes` implements `From<&Cow<'_, [u8]>>`
-             `ZBytes` implements `From<&Cow<'_, str>>`
-             `ZBytes` implements `From<&String>`
-             `ZBytes` implements `From<&Vec<u8>>`
-             `ZBytes` implements `From<&[u8; N]>`
-             `ZBytes` implements `From<&[u8]>`
-             `ZBytes` implements `From<&str>`
-             `ZBytes` implements `From<AttachmentType<ID>>`
-           and 8 others
-   = note: required for `f64` to implement `Into<ZBytes>`
-note: required by a bound in `publisher_put_impl`
-  --> src/publisher.rs:24:26
-   |
-24 | fn publisher_put_impl<T: Into<zenoh::bytes::ZBytes>>(
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `publisher_put_impl`
-
 error[E0061]: this method takes 0 arguments but 1 argument was supplied
-   --> src/publisher.rs:51:50
+   --> src/publisher.rs:53:50
     |
-51  |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+53  |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
     |                                                  ^^^^^^^^^^^^^^^^^^ ------------ unexpected argument
     |
 note: method defined here
@@ -64,22 +14,22 @@ note: method defined here
     |            ^^^^^^^^^^^^^^^^^^
 help: remove the extra argument
     |
-51  -     let publisher: Publisher = publisher.clone().congestion_control(value.into());
-51  +     let publisher: Publisher = publisher.clone().congestion_control();
+53  -     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+53  +     let publisher: Publisher = publisher.clone().congestion_control();
     |
 
 error[E0308]: mismatched types
-  --> src/publisher.rs:51:32
+  --> src/publisher.rs:53:32
    |
-51 |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
+53 |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
    |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `CongestionControl`
    |                    |
    |                    expected due to this
 
 error[E0061]: this method takes 0 arguments but 1 argument was supplied
-   --> src/publisher.rs:62:50
+   --> src/publisher.rs:64:50
     |
-62  |     let publisher: Publisher = publisher.clone().priority(value.into());
+64  |     let publisher: Publisher = publisher.clone().priority(value.into());
     |                                                  ^^^^^^^^ ------------ unexpected argument
     |
 note: method defined here
@@ -89,14 +39,14 @@ note: method defined here
     |            ^^^^^^^^
 help: remove the extra argument
     |
-62  -     let publisher: Publisher = publisher.clone().priority(value.into());
-62  +     let publisher: Publisher = publisher.clone().priority();
+64  -     let publisher: Publisher = publisher.clone().priority(value.into());
+64  +     let publisher: Publisher = publisher.clone().priority();
     |
 
 error[E0308]: mismatched types
-  --> src/publisher.rs:62:32
+  --> src/publisher.rs:64:32
    |
-62 |     let publisher: Publisher = publisher.clone().priority(value.into());
+64 |     let publisher: Publisher = publisher.clone().priority(value.into());
    |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `Priority`
    |                    |
    |                    expected due to this
@@ -392,7 +342,7 @@ warning: unused variable: `env`
 Some errors have detailed explanations: E0061, E0107, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 1 warning
-error: could not compile `zenohex_nif` (lib) due to 26 previous errors; 1 warning emitted
+error: could not compile `zenohex_nif` (lib) due to 24 previous errors; 1 warning emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
