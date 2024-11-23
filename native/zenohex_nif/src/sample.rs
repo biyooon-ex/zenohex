@@ -34,12 +34,16 @@ impl From<ExSample<'_>> for zenoh::sample::Sample {
             rustler::TermType::Fun => unimplemented!(),
             rustler::TermType::List => unimplemented!(),
             rustler::TermType::Map => unimplemented!(),
+            /*
             rustler::TermType::Integer => {
                 zenoh::bytes::ZBytes::from(sample.value.decode::<i64>().unwrap())
             }
             rustler::TermType::Float => {
                 zenoh::bytes::ZBytes::from(sample.value.decode::<f64>().unwrap())
             }
+            */
+            rustler::TermType::Integer => unimplemented!(),
+            rustler::TermType::Float => unimplemented!(),
             rustler::TermType::Pid => unimplemented!(),
             rustler::TermType::Port => unimplemented!(),
             rustler::TermType::Ref => unimplemented!(),

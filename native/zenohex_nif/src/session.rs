@@ -52,6 +52,7 @@ fn declare_queryable(
     }
 }
 
+/*
 #[rustler::nif]
 fn session_put_integer(
     env: Env,
@@ -71,6 +72,7 @@ fn session_put_float(
 ) -> Term {
     session_put_impl(env, resource, key_expr, value)
 }
+*/
 
 #[rustler::nif]
 fn session_put_binary<'a>(
