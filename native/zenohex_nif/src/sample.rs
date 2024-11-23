@@ -14,9 +14,9 @@ pub(crate) struct ExSample<'a> {
 impl ExSample<'_> {
     pub(crate) fn from(env: Env, sample: zenoh::sample::Sample) -> ExSample {
         ExSample {
-            key_expr: sample.key_expr.to_string(),
-            value: crate::value::ExValue::from(env, &sample.value),
-            kind: sample.kind.into(),
+            key_expr: sample.key_expr().to_string(),
+            value: crate::value::ExValue::from(env, sample.payload()),
+            kind: sample.kind().into(),
             reference: ErlOption::some(ResourceArc::new(SampleRef(sample))),
         }
     }

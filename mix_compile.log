@@ -1,34 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0616]: field `key_expr` of struct `Sample` is private
-  --> src/sample.rs:17:30
-   |
-17 |             key_expr: sample.key_expr.to_string(),
-   |                              ^^^^^^^^ private field
-   |
-help: a method `key_expr` also exists, call it with parentheses
-   |
-17 |             key_expr: sample.key_expr().to_string(),
-   |                                      ++
-
-error[E0609]: no field `value` on type `Sample`
-  --> src/sample.rs:18:61
-   |
-18 |             value: crate::value::ExValue::from(env, &sample.value),
-   |                                                             ^^^^^ unknown field
-
-error[E0616]: field `kind` of struct `Sample` is private
-  --> src/sample.rs:19:26
-   |
-19 |             kind: sample.kind.into(),
-   |                          ^^^^ private field
-   |
-help: a method `kind` also exists, call it with parentheses
-   |
-19 |             kind: sample.kind().into(),
-   |                              ++
-
 error[E0277]: the trait bound `ZBytes: From<i64>` is not satisfied
   --> src/sample.rs:38:17
    |
@@ -216,9 +188,9 @@ error[E0507]: cannot move out of a shared reference
 58 |     match query.reply(sample.key_expr(), *sample.payload()).wait() {
    |                                          ^^^^^^^^^^^^^^^^^ move occurs because value has type `ZBytes`, which does not implement the `Copy` trait
 
-Some errors have detailed explanations: E0107, E0277, E0308, E0433, E0507, E0599, E0609, E0616.
+Some errors have detailed explanations: E0107, E0277, E0308, E0433, E0507, E0599, E0609.
 For more information about an error, try `rustc --explain E0107`.
-error: could not compile `zenohex_nif` (lib) due to 17 previous errors
+error: could not compile `zenohex_nif` (lib) due to 14 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
