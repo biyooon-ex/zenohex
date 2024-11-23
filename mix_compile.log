@@ -1,20 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/queryable.rs:15:21
-    |
-15  |     let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
-    |                     ^^^^^^^^^ -- help: remove the lifetime argument
-    |                     |
-    |                     expected 0 lifetime arguments
-    |
-note: struct defined here, with 0 lifetime parameters
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/queryable.rs:420:12
-    |
-420 | pub struct Queryable<Handler> {
-    |            ^^^^^^^^^
-
 error[E0616]: field `key_expr` of struct `Sample` is private
   --> src/sample.rs:17:30
    |
@@ -232,7 +218,7 @@ error[E0507]: cannot move out of a shared reference
 
 Some errors have detailed explanations: E0107, E0277, E0308, E0433, E0507, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0107`.
-error: could not compile `zenohex_nif` (lib) due to 18 previous errors
+error: could not compile `zenohex_nif` (lib) due to 17 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

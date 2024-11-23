@@ -12,7 +12,7 @@ fn queryable_recv_timeout(
     resource: ResourceArc<QueryableRef>,
     timeout_us: u64,
 ) -> Result<Term, Term> {
-    let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
+    let queryable: &Queryable<Receiver<Query>> = &resource.0;
     match queryable.recv_timeout(Duration::from_micros(timeout_us)) {
         Ok(query) => Ok(crate::query::ExQuery::from(env, query).encode(env)),
         Err(RecvTimeoutError::Timeout) => Err(atoms::timeout().encode(env)),
