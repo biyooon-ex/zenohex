@@ -44,6 +44,7 @@ fn publisher_delete(env: Env, resource: ResourceArc<PublisherRef>) -> Term {
     }
 }
 
+/*
 #[rustler::nif]
 fn publisher_congestion_control(
     resource: ResourceArc<PublisherRef>,
@@ -65,6 +66,7 @@ fn publisher_priority(
 
     ResourceArc::new(PublisherRef(publisher))
 }
+*/
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Publisher.Options"]

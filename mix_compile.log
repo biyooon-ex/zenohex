@@ -1,56 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0061]: this method takes 0 arguments but 1 argument was supplied
-   --> src/publisher.rs:53:50
-    |
-53  |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
-    |                                                  ^^^^^^^^^^^^^^^^^^ ------------ unexpected argument
-    |
-note: method defined here
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/publisher.rs:153:12
-    |
-153 |     pub fn congestion_control(&self) -> CongestionControl {
-    |            ^^^^^^^^^^^^^^^^^^
-help: remove the extra argument
-    |
-53  -     let publisher: Publisher = publisher.clone().congestion_control(value.into());
-53  +     let publisher: Publisher = publisher.clone().congestion_control();
-    |
-
-error[E0308]: mismatched types
-  --> src/publisher.rs:53:32
-   |
-53 |     let publisher: Publisher = publisher.clone().congestion_control(value.into());
-   |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `CongestionControl`
-   |                    |
-   |                    expected due to this
-
-error[E0061]: this method takes 0 arguments but 1 argument was supplied
-   --> src/publisher.rs:64:50
-    |
-64  |     let publisher: Publisher = publisher.clone().priority(value.into());
-    |                                                  ^^^^^^^^ ------------ unexpected argument
-    |
-note: method defined here
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/publisher.rs:159:12
-    |
-159 |     pub fn priority(&self) -> Priority {
-    |            ^^^^^^^^
-help: remove the extra argument
-    |
-64  -     let publisher: Publisher = publisher.clone().priority(value.into());
-64  +     let publisher: Publisher = publisher.clone().priority();
-    |
-
-error[E0308]: mismatched types
-  --> src/publisher.rs:64:32
-   |
-64 |     let publisher: Publisher = publisher.clone().priority(value.into());
-   |                    ---------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Publisher<'_>`, found `Priority`
-   |                    |
-   |                    expected due to this
-
 error[E0308]: mismatched types
   --> src/query.rs:22:81
    |
@@ -342,7 +292,7 @@ warning: unused variable: `env`
 Some errors have detailed explanations: E0061, E0107, E0277, E0308, E0433, E0599, E0609, E0616.
 For more information about an error, try `rustc --explain E0061`.
 warning: `zenohex_nif` (lib) generated 1 warning
-error: could not compile `zenohex_nif` (lib) due to 24 previous errors; 1 warning emitted
+error: could not compile `zenohex_nif` (lib) due to 20 previous errors; 1 warning emitted
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
