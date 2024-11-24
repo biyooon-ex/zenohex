@@ -44,7 +44,7 @@ impl Resource for SampleRef {}
 fn zenoh_open(config: crate::config::ExConfig) -> Result<ResourceArc<SessionRef>, String> {
     let config: zenoh::config::Config = config.into();
     match zenoh::open(config).wait() {
-        Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
+        Ok(session) => Ok(ResourceArc::new(SessionRef(session.into()))),
         Err(error) => Err(error.to_string()),
     }
 }

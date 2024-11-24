@@ -81,17 +81,6 @@ error[E0599]: no method named `encoding` found for reference `&ZBytes` in the cu
 12 |         match value.encoding() {
    |                     ^^^^^^^^ method not found in `&ZBytes`
 
-error[E0599]: no method named `into_arc` found for struct `Session` in the current scope
-  --> src/lib.rs:47:63
-   |
-47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into_arc()))),
-   |                                                               ^^^^^^^^
-   |
-help: there is a method `into` with a similar name
-   |
-47 |         Ok(session) => Ok(ResourceArc::new(SessionRef(session.into()))),
-   |                                                               ~~~~
-
 error[E0507]: cannot move out of a shared reference
   --> src/query.rs:59:42
    |
@@ -100,7 +89,7 @@ error[E0507]: cannot move out of a shared reference
 
 Some errors have detailed explanations: E0107, E0308, E0433, E0507, E0599, E0609.
 For more information about an error, try `rustc --explain E0107`.
-error: could not compile `zenohex_nif` (lib) due to 9 previous errors
+error: could not compile `zenohex_nif` (lib) due to 8 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
