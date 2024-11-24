@@ -52,7 +52,8 @@ fn query_reply<'a>(
     let sample: zenoh::sample::Sample =
         match Option::<ResourceArc<SampleRef>>::from(sample.reference.clone()) {
             Some(resource) => resource.0.clone(),
-            None => sample.into(),
+            // None => sample.into(),
+            None => todo!(),
         };
     // match query.reply(Ok(sample)).wait() {
     match query.reply(sample.key_expr(), *sample.payload()).wait() {

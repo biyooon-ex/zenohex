@@ -1,4 +1,5 @@
-use rustler::{Binary, Env, ErlOption, ResourceArc, Term};
+// use rustler::{Binary, Env, ErlOption, ResourceArc, Term};
+use rustler::{Env, ErlOption, ResourceArc, Term};
 
 use crate::SampleRef;
 
@@ -22,6 +23,7 @@ impl ExSample<'_> {
     }
 }
 
+/*
 impl From<ExSample<'_>> for zenoh::sample::Sample {
     fn from(sample: ExSample) -> Self {
         let key_expr = unsafe { zenoh::key_expr::KeyExpr::from_string_unchecked(sample.key_expr) };
@@ -53,6 +55,7 @@ impl From<ExSample<'_>> for zenoh::sample::Sample {
         zenoh::sample::Sample::new(key_expr, value)
     }
 }
+*/
 
 #[derive(rustler::NifUnitEnum)]
 pub(crate) enum ExSampleKind {
