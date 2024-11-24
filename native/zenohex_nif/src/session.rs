@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use flume::{Receiver, RecvTimeoutError};
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{query::Reply, session::Session, Wait};
+use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
 
 #[rustler::nif]
 fn declare_publisher(
@@ -81,7 +81,7 @@ fn session_put_binary<'a>(
     key_expr: String,
     value: Binary<'a>,
 ) -> Term<'a> {
-    session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
+    session_put_impl(env, resource, key_expr, ZBytes::from(value.as_slice()))
 }
 
 fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(

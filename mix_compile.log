@@ -33,12 +33,6 @@ note: tuple struct defined here
 30 | struct QueryableRef(Queryable<Receiver<Query>>);
    |        ^^^^^^^^^^^^
 
-error[E0433]: failed to resolve: use of undeclared type `Value`
-  --> src/session.rs:84:47
-   |
-84 |     session_put_impl(env, resource, key_expr, Value::from(value.as_slice()))
-   |                                               ^^^^^ use of undeclared type `Value`
-
 error[E0308]: mismatched types
    --> src/session.rs:116:69
     |
@@ -87,9 +81,9 @@ error[E0507]: cannot move out of a shared reference
 59 |     match query.reply(sample.key_expr(), *sample.payload()).wait() {
    |                                          ^^^^^^^^^^^^^^^^^ move occurs because value has type `ZBytes`, which does not implement the `Copy` trait
 
-Some errors have detailed explanations: E0107, E0308, E0433, E0507, E0599, E0609.
+Some errors have detailed explanations: E0107, E0308, E0507, E0599, E0609.
 For more information about an error, try `rustc --explain E0107`.
-error: could not compile `zenohex_nif` (lib) due to 8 previous errors
+error: could not compile `zenohex_nif` (lib) due to 7 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)
