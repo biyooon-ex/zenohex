@@ -7,15 +7,8 @@ error[E0599]: no method named `encoding` found for reference `&ZBytes` in the cu
 12 |         match value.encoding() {
    |                     ^^^^^^^^ method not found in `&ZBytes`
 
-error[E0507]: cannot move out of a shared reference
-  --> src/query.rs:59:42
-   |
-59 |     match query.reply(sample.key_expr(), *sample.payload()).wait() {
-   |                                          ^^^^^^^^^^^^^^^^^ move occurs because value has type `ZBytes`, which does not implement the `Copy` trait
-
-Some errors have detailed explanations: E0507, E0599.
-For more information about an error, try `rustc --explain E0507`.
-error: could not compile `zenohex_nif` (lib) due to 2 previous errors
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `zenohex_nif` (lib) due to 1 previous error
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

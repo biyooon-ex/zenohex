@@ -1,9 +1,11 @@
 use std::sync::RwLock;
 
-use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
+// use rustler::{types::atom, Encoder, Env, ErlOption, ResourceArc, Term};
+use rustler::{Env, ErlOption, ResourceArc, Term};
 
-use crate::{QueryRef, SampleRef};
-use zenoh::Wait;
+// use crate::{QueryRef, SampleRef};
+// use zenoh::Wait;
+use crate::{QueryRef};
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
@@ -28,6 +30,7 @@ impl ExQuery<'_> {
     }
 }
 
+/*
 #[rustler::nif(schedule = "DirtyIo")]
 fn query_reply<'a>(
     env: Env<'a>,
@@ -85,6 +88,7 @@ fn query_finish_reply<'a>(env: Env<'a>, query: ExQuery<'a>) -> Term<'a> {
         }
     }
 }
+*/
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query.Options"]
