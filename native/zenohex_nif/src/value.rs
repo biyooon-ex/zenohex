@@ -8,6 +8,8 @@ pub(crate) struct ExValue;
 
 impl ExValue {
     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::bytes::ZBytes) -> Term<'a> {
+        todo!()
+        /*
         // match value.encoding.prefix() {
         match value.encoding() {
             // TODO: implement??
@@ -82,5 +84,6 @@ impl ExValue {
             &Encoding::VIDEO_VP9 => unimplemented!(),
             _ => todo!(),
         }
+        */
     }
 }

@@ -1,16 +1,97 @@
-Compiling 3 files (.ex)
+Compiling 1 file (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0599]: no method named `encoding` found for reference `&ZBytes` in the current scope
-  --> src/value.rs:12:21
+warning: unused import: `zenoh::bytes::Encoding`
+ --> src/value.rs:5:5
+  |
+5 | use zenoh::bytes::Encoding;
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `env`
+  --> src/value.rs:10:28
    |
-12 |         match value.encoding() {
-   |                     ^^^^^^^^ method not found in `&ZBytes`
+10 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::bytes::ZBytes) -> Term<'a> {
+   |                            ^^^ help: if this is intentional, prefix it with an underscore: `_env`
+   |
+   = note: `#[warn(unused_variables)]` on by default
 
-For more information about this error, try `rustc --explain E0599`.
-error: could not compile `zenohex_nif` (lib) due to 1 previous error
+warning: unused variable: `value`
+  --> src/value.rs:10:42
+   |
+10 |     pub(crate) fn from<'a>(env: Env<'a>, value: &zenoh::bytes::ZBytes) -> Term<'a> {
+   |                                          ^^^^^ help: if this is intentional, prefix it with an underscore: `_value`
 
-== Compilation error in file lib/zenohex/nif.ex ==
-** (RuntimeError) Rust NIF compile error (rustc exit code 101)
-    (rustler 0.34.0) lib/rustler/compiler.ex:36: Rustler.Compiler.compile_crate/3
-    lib/zenohex/nif.ex:8: (module)
+warning: field `0` is never read
+  --> src/lib.rs:29:22
+   |
+29 | struct SubscriberRef(Subscriber<Receiver<Sample>>);
+   |        ------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |        |
+   |        field in this struct
+   |
+   = help: consider removing this field
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `0` is never read
+  --> src/lib.rs:31:25
+   |
+31 | struct ReplyReceiverRef(Receiver<Reply>);
+   |        ---------------- ^^^^^^^^^^^^^^^
+   |        |
+   |        field in this struct
+   |
+   = help: consider removing this field
+
+warning: field `0` is never read
+  --> src/lib.rs:32:17
+   |
+32 | struct QueryRef(RwLock<Option<Query>>);
+   |        -------- ^^^^^^^^^^^^^^^^^^^^^
+   |        |
+   |        field in this struct
+   |
+   = help: consider removing this field
+
+warning: field `0` is never read
+  --> src/lib.rs:33:18
+   |
+33 | struct SampleRef(Sample);
+   |        --------- ^^^^^^
+   |        |
+   |        field in this struct
+   |
+   = help: consider removing this field
+
+warning: associated function `from` is never used
+  --> src/sample.rs:16:19
+   |
+15 | impl ExSample<'_> {
+   | ----------------- associated function in this implementation
+16 |     pub(crate) fn from(env: Env, sample: zenoh::sample::Sample) -> ExSample {
+   |                   ^^^^
+
+warning: path statement drops value
+  --> src/config.rs:18:9
+   |
+18 |         value;
+   |         ^^^^^^ help: use `drop` to clarify the intent: `drop(value);`
+   |
+   = note: `#[warn(path_statements)]` on by default
+
+warning: path statement drops value
+  --> src/config.rs:44:9
+   |
+44 |         value;
+   |         ^^^^^^ help: use `drop` to clarify the intent: `drop(value);`
+
+warning: path statement with no effect
+  --> src/config.rs:67:9
+   |
+67 |         value;
+   |         ^^^^^^
+
+Compiling lib/zenohex/nif.ex (it's taking more than 10s)
+warning: `zenohex_nif` (lib) generated 11 warnings (run `cargo fix --lib -p zenohex_nif` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 1m 04s
