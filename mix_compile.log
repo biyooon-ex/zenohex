@@ -1,74 +1,6 @@
 Compiling 3 files (.ex)
 Compiling crate zenohex_nif in release mode (native/zenohex_nif)
    Compiling zenohex_nif v0.3.2 (/Users/takasehideki/research/zenoh/zenohex/native/zenohex_nif)
-error[E0308]: mismatched types
-  --> src/session.rs:33:68
-   |
-33 |         Ok(subscriber) => Ok(ResourceArc::new(crate::SubscriberRef(subscriber))),
-   |                                               -------------------- ^^^^^^^^^^ expected `Subscriber<Receiver<Sample>>`, found `Subscriber<FifoChannelHandler<...>>`
-   |                                               |
-   |                                               arguments to this struct are incorrect
-   |
-   = note: expected struct `Subscriber<flume::Receiver<Sample>>`
-              found struct `Subscriber<FifoChannelHandler<Sample>>`
-note: tuple struct defined here
-  --> src/lib.rs:29:8
-   |
-29 | struct SubscriberRef(Subscriber<Receiver<Sample>>);
-   |        ^^^^^^^^^^^^^
-
-error[E0308]: mismatched types
-  --> src/session.rs:50:66
-   |
-50 |         Ok(queryable) => Ok(ResourceArc::new(crate::QueryableRef(queryable))),
-   |                                              ------------------- ^^^^^^^^^ expected `Queryable<Receiver<Query>>`, found `Queryable<FifoChannelHandler<...>>`
-   |                                              |
-   |                                              arguments to this struct are incorrect
-   |
-   = note: expected struct `Queryable<flume::Receiver<zenoh::query::Query>>`
-              found struct `Queryable<FifoChannelHandler<zenoh::query::Query>>`
-note: tuple struct defined here
-  --> src/lib.rs:30:8
-   |
-30 | struct QueryableRef(Queryable<Receiver<Query>>);
-   |        ^^^^^^^^^^^^
-
-error[E0308]: mismatched types
-   --> src/session.rs:116:69
-    |
-116 |         Ok(receiver) => Ok(ResourceArc::new(crate::ReplyReceiverRef(receiver))),
-    |                                             ----------------------- ^^^^^^^^ expected `Receiver<Reply>`, found `FifoChannelHandler<Reply>`
-    |                                             |
-    |                                             arguments to this struct are incorrect
-    |
-    = note: expected struct `flume::Receiver<zenoh::query::Reply>`
-               found struct `FifoChannelHandler<zenoh::query::Reply>`
-note: tuple struct defined here
-   --> src/lib.rs:31:8
-    |
-31  | struct ReplyReceiverRef(Receiver<Reply>);
-    |        ^^^^^^^^^^^^^^^^
-
-error[E0609]: no field `sample` on type `zenoh::query::Reply`
-   --> src/session.rs:129:34
-    |
-129 |         Ok(reply) => match reply.sample {
-    |                                  ^^^^^^ unknown field
-
-error[E0107]: struct takes 0 lifetime arguments but 1 lifetime argument was supplied
-   --> src/subscriber.rs:13:22
-    |
-13  |     let subscriber: &Subscriber<'_, Receiver<Sample>> = &resource.0;
-    |                      ^^^^^^^^^^ -- help: remove the lifetime argument
-    |                      |
-    |                      expected 0 lifetime arguments
-    |
-note: struct defined here, with 0 lifetime parameters
-   --> /Users/takasehideki/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zenoh-1.0.0/src/api/subscriber.rs:142:12
-    |
-142 | pub struct Subscriber<Handler> {
-    |            ^^^^^^^^^^
-
 error[E0599]: no method named `encoding` found for reference `&ZBytes` in the current scope
   --> src/value.rs:12:21
    |
@@ -81,9 +13,9 @@ error[E0507]: cannot move out of a shared reference
 59 |     match query.reply(sample.key_expr(), *sample.payload()).wait() {
    |                                          ^^^^^^^^^^^^^^^^^ move occurs because value has type `ZBytes`, which does not implement the `Copy` trait
 
-Some errors have detailed explanations: E0107, E0308, E0507, E0599, E0609.
-For more information about an error, try `rustc --explain E0107`.
-error: could not compile `zenohex_nif` (lib) due to 7 previous errors
+Some errors have detailed explanations: E0507, E0599.
+For more information about an error, try `rustc --explain E0507`.
+error: could not compile `zenohex_nif` (lib) due to 2 previous errors
 
 == Compilation error in file lib/zenohex/nif.ex ==
 ** (RuntimeError) Rust NIF compile error (rustc exit code 101)

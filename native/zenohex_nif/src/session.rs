@@ -1,8 +1,12 @@
-use std::{sync::Arc, time::Duration};
+// use std::{sync::Arc, time::Duration};
 
-use flume::{Receiver, RecvTimeoutError};
+// use flume::{Receiver, RecvTimeoutError};
+
+use std::sync::Arc;
+
 use rustler::{types::atom, Binary, Encoder, Env, ResourceArc, Term};
-use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
+// use zenoh::{bytes::ZBytes, query::Reply, session::Session, Wait};
+use zenoh::{bytes::ZBytes, session::Session, Wait};
 
 #[rustler::nif]
 fn declare_publisher(
@@ -22,6 +26,7 @@ fn declare_publisher(
     }
 }
 
+/*
 #[rustler::nif]
 fn declare_subscriber(
     resource: ResourceArc<crate::SessionRef>,
@@ -51,6 +56,7 @@ fn declare_queryable(
         Err(error) => Err(error.to_string()),
     }
 }
+*/
 
 /*
 #[rustler::nif]
@@ -97,6 +103,7 @@ fn session_put_impl<T: Into<zenoh::bytes::ZBytes>>(
     }
 }
 
+/*
 #[rustler::nif]
 fn session_get_reply_receiver(
     resource: ResourceArc<crate::SessionRef>,
@@ -134,6 +141,7 @@ fn session_get_reply_timeout(
         Err(RecvTimeoutError::Disconnected) => Err(crate::atoms::disconnected().encode(env)),
     }
 }
+*/
 
 #[rustler::nif]
 fn session_delete(env: Env, resource: ResourceArc<crate::SessionRef>, key_expr: String) -> Term {

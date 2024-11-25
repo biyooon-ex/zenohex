@@ -1,9 +1,10 @@
-use std::time::Duration;
+// use std::time::Duration;
 
-use flume::{Receiver, RecvTimeoutError};
-use rustler::{Encoder, Env, ResourceArc, Term};
-use zenoh::{pubsub::Subscriber, sample::Sample};
+// use flume::{Receiver, RecvTimeoutError};
+// use rustler::{Encoder, Env, ResourceArc, Term};
+// use zenoh::{pubsub::Subscriber, sample::Sample};
 
+/*
 #[rustler::nif(schedule = "DirtyIo")]
 fn subscriber_recv_timeout(
     env: Env,
@@ -17,6 +18,7 @@ fn subscriber_recv_timeout(
         Err(RecvTimeoutError::Disconnected) => Err(crate::atoms::disconnected().encode(env)),
     }
 }
+*/
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Subscriber.Options"]
