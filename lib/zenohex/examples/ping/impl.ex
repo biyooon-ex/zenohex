@@ -46,26 +46,27 @@ defmodule Zenohex.Examples.Ping.Impl do
   end
 
   def handle_call(:start_ping_process, _from, state) do
+    IO.inspect(state, label: "State in ping_loop")
     IO.puts("Warming up for #{state.warmup}s...")
     warmup_end = DateTime.utc_now() |> DateTime.add(state.warmup, :second)
     state = Map.put(state, :warmup_end, warmup_end)
     send(self(), :warmup_loop)
 
-    # send(self(), :measurement)
-
     {:reply, :ok, state}
   end
 
   def handle_info(:warmup_loop, state) do
-    IO.inspect(state, label: "State in warmup_loop")
 
     current_time = DateTime.utc_now()
 
-    if current_time < state.warmup_end do
+    if DateTime.compare(current_time, state.warmup_end) == :lt do
       :ok = Zenohex.Publisher.put(state.publisher, state.data)
       recv_timeout(state)
       send(self(), :warmup_loop)
+      {:noreply, state}
     else
+      IO.puts("Warmup complete")
+      send(self(), :measurement)
       {:noreply, state}
     end
   end
@@ -73,18 +74,21 @@ defmodule Zenohex.Examples.Ping.Impl do
   def handle_info(:measurement, state) do
     sample_list = Enum.reduce(0..state.samples, [],
     fn _i, acc ->
-      write_time = DateTime.utc_now()
+      write_time = System.monotonic_time(:nanosecond)
       :ok = Zenohex.Publisher.put(state.publisher, state.data)
       recv_timeout(state)
+      end_time = System.monotonic_time(:nanosecond)
+      elapsed_time = end_time - write_time
 
-      [round(DateTime.diff(DateTime.utc_now(), write_time)) | acc]
+      [elapsed_time | acc]
     end)
 
     sample_list = Enum.reverse(sample_list)
+    Process.sleep(100)
 
     Enum.with_index(sample_list)
     |> Enum.each(
-    fn{i, rtt}
+    fn{rtt, i}
     -> IO.puts("#{state.payload_size} bytes: seq=#{i} rtt=#{rtt}μs lat=#{rtt / 2}μs")
     end)
 

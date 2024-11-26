@@ -15,7 +15,7 @@ defmodule Zenohex.Examples.Ping do
     callback = Map.get(args, :callback, &Logger.debug(inspect(&1)))
 
     payload_size = Map.get(args, :payload_size, 64)
-    warmup = Map.get(args, :warmup, 10)
+    warmup = Map.get(args, :warmup, 1)
     samples = Map.get(args, :samples, 10)
 
     Supervisor.start_link(__MODULE__, %{session: session, ping_key_expr: ping_key_expr, pong_key_expr: pong_key_expr, callback: callback, payload_size: payload_size, warmup: warmup, samples: samples}, name: __MODULE__)
