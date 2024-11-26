@@ -31,19 +31,13 @@ defmodule Zenohex.Examples.Pong.Impl do
 
   def handle_call(:start_pong_process, _from, state) do
     send(self(), :start_pong_process)
-
     {:reply, :ok, state}
   end
 
   def handle_info(:start_pong_process, state) do
     IO.puts("Pong process started")
-
-    recv_timeout(state)
-    :ok = Zenohex.Publisher.put(state.publisher, "a")
-
-    Process.sleep(100)
-    send(self(), :start_pong_process)
-
+    IO.inspect(state, label: "State in pong_loop")
+    send(self(), :loop)
     {:noreply, state}
   end
 
@@ -56,6 +50,7 @@ defmodule Zenohex.Examples.Pong.Impl do
     case Zenohex.Subscriber.recv_timeout(state.subscriber) do
       {:ok, sample} ->
         state.callback.(sample)
+        :ok = Zenohex.Publisher.put(state.publisher, sample.value)
         send(self(), :loop)
 
       {:error, :timeout} ->

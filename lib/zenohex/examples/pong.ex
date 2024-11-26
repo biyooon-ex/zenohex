@@ -17,7 +17,7 @@ defmodule Zenohex.Examples.Pong do
     Supervisor.start_link(__MODULE__, %{session: session, ping_key_expr: ping_key_expr, pong_key_expr: pong_key_expr, callback: callback}, name: __MODULE__)
   end
 
-  @doc "Start Ping Process."
+  @doc "Start Pong Process."
   @spec start_pong_process() :: :ok
   defdelegate start_pong_process(), to: Pong.Impl
 
