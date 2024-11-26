@@ -14,7 +14,6 @@ defmodule Zenohex.Examples.Pong.Impl do
   end
 
   def init(args) do
-    IO.inspect(args, label: "Pong.Impl args")
     IO.inspect("Opening Session…")
 
     session = Map.fetch!(args, :session)
@@ -30,15 +29,9 @@ defmodule Zenohex.Examples.Pong.Impl do
   end
 
   def handle_call(:start_pong_process, _from, state) do
-    send(self(), :start_pong_process)
-    {:reply, :ok, state}
-  end
-
-  def handle_info(:start_pong_process, state) do
     IO.puts("Pong process started")
-    IO.inspect(state, label: "State in pong_loop")
     send(self(), :loop)
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
   def handle_info(:loop, state) do

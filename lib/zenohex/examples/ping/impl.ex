@@ -5,16 +5,6 @@ defmodule Zenohex.Examples.Ping.Impl do
 
   require Logger
 
-  defmodule Measurement do
-    defstruct measurement_time: nil, send_time: nil, recv_time: nil
-
-    @type t() :: %__MODULE__{
-            measurement_time: DateTime.t(),
-            send_time: integer(),
-            recv_time: integer()
-          }
-  end
-
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
@@ -24,8 +14,6 @@ defmodule Zenohex.Examples.Ping.Impl do
   end
 
   def init(args) do
-    IO.inspect(args, label: "Ping.Impl args")
-
     session = Map.fetch!(args, :session)
     ping_key_expr = Map.fetch!(args, :ping_key_expr)
     pong_key_expr = Map.fetch!(args, :pong_key_expr)
@@ -39,14 +27,13 @@ defmodule Zenohex.Examples.Ping.Impl do
 
     value = Enum.map(0..(payload_size-1), fn i -> rem(i, 10) end)
     data = :binary.list_to_bin(value)
-    IO.inspect(data, label: "Generated data")
 
     state = %{publisher: publisher, subscriber: subscriber, callback: callback, payload_size: payload_size, warmup: warmup, samples: samples, data: data}
     {:ok, state}
   end
 
   def handle_call(:start_ping_process, _from, state) do
-    IO.inspect(state, label: "State in ping_loop")
+    # IO.inspect(state, label: "State in ping_loop")
     IO.puts("Warming up for #{state.warmup}s...")
     warmup_end = DateTime.utc_now() |> DateTime.add(state.warmup, :second)
     state = Map.put(state, :warmup_end, warmup_end)
@@ -56,12 +43,12 @@ defmodule Zenohex.Examples.Ping.Impl do
   end
 
   def handle_info(:warmup_loop, state) do
-
     current_time = DateTime.utc_now()
 
     if DateTime.compare(current_time, state.warmup_end) == :lt do
       :ok = Zenohex.Publisher.put(state.publisher, state.data)
       recv_timeout(state)
+
       send(self(), :warmup_loop)
       {:noreply, state}
     else
@@ -72,12 +59,12 @@ defmodule Zenohex.Examples.Ping.Impl do
   end
 
   def handle_info(:measurement, state) do
-    sample_list = Enum.reduce(0..state.samples, [],
+    sample_list = Enum.reduce(0..state.samples-1, [],
     fn _i, acc ->
-      write_time = System.monotonic_time(:nanosecond)
+      write_time = System.monotonic_time(:microsecond)
       :ok = Zenohex.Publisher.put(state.publisher, state.data)
       recv_timeout(state)
-      end_time = System.monotonic_time(:nanosecond)
+      end_time = System.monotonic_time(:microsecond)
       elapsed_time = end_time - write_time
 
       [elapsed_time | acc]
@@ -100,7 +87,6 @@ defmodule Zenohex.Examples.Ping.Impl do
     {:noreply, state}
   end
 
-
   defp recv_timeout(state) do
     case Zenohex.Subscriber.recv_timeout(state.subscriber) do
       {:ok, sample} ->
@@ -114,6 +100,5 @@ defmodule Zenohex.Examples.Ping.Impl do
         Logger.error(inspect(error))
     end
   end
-
 
 end
