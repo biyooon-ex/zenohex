@@ -14,4 +14,4 @@ flume = "0.11.1"
 futures = "0.3.31"
 # WHY we specify NIF 2.15 https://github.com/biyooon-ex/zenohex/issues/71
 rustler = { version = "=0.34.0", features = ["nif_version_2_15"] }
-zenoh = "=0.11.0"
+zenoh = "=1.1.0"
