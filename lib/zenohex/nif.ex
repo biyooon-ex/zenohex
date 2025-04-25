@@ -10,6 +10,9 @@ defmodule Zenohex.Nif do
     crate: "zenohex_nif",
     version: version,
     base_url: "#{github_url}/releases/download/v#{version}",
+    # NOTE: Uncomment during zenohhex_nif development.
+    #       Setting `mode: :debug` makes `cargo build` skip the `--release` flag.
+    # mode: :debug,
     targets:
       RustlerPrecompiled.Config.default_targets()
       |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
