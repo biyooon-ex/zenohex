@@ -1,3 +1,5 @@
+mod session;
+
 fn load(_env: rustler::Env, _term: rustler::Term) -> bool {
     true
 }
