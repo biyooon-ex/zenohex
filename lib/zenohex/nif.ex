@@ -24,4 +24,7 @@ defmodule Zenohex.Nif do
 
   def session_open(), do: err()
   def session_close(_session), do: err()
+
+  def config_default(), do: err()
+  def config_from_json5(_binary), do: err()
 end
