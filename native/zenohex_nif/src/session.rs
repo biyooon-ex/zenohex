@@ -15,17 +15,25 @@ struct ZenohSessionId(zenoh::session::ZenohId);
 impl rustler::Resource for ZenohSessionId {}
 
 #[rustler::nif]
-fn session_open() -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<ZenohSessionId>)> {
-    match zenoh::open(zenoh::Config::default()).wait() {
-        Ok(session) => {
-            let mut map = SESSIONS.lock().unwrap();
-            let zenoh_id = session.zid();
-            map.insert(zenoh_id, session);
-            Ok((
-                rustler::types::atom::ok(),
-                rustler::ResourceArc::new(ZenohSessionId(zenoh_id)),
-            ))
-        }
+fn session_open(
+    json5_binary: &str,
+) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<ZenohSessionId>)> {
+    match zenoh::Config::from_json5(json5_binary) {
+        Ok(config) => match zenoh::open(config).wait() {
+            Ok(session) => {
+                let mut map = SESSIONS.lock().unwrap();
+                let zenoh_id = session.zid();
+                map.insert(zenoh_id, session);
+                Ok((
+                    rustler::types::atom::ok(),
+                    rustler::ResourceArc::new(ZenohSessionId(zenoh_id)),
+                ))
+            }
+            Err(error) => {
+                let reason = error.to_string();
+                Err(rustler::Error::Term(Box::new(reason)))
+            }
+        },
         Err(error) => {
             let reason = error.to_string();
             Err(rustler::Error::Term(Box::new(reason)))

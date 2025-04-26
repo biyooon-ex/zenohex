@@ -22,7 +22,7 @@ defmodule Zenohex.Nif do
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 
-  def session_open(), do: err()
+  def session_open(_json5_binary), do: err()
   def session_close(_session), do: err()
 
   def config_default(), do: err()
