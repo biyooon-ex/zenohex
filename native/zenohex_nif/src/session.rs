@@ -57,3 +57,22 @@ fn session_close(
         }
     }
 }
+
+#[rustler::nif]
+fn session_put(
+    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    key_expr: &str,
+    payload: &str,
+) -> rustler::NifResult<rustler::Atom> {
+    let map = SESSIONS.lock().unwrap();
+    match map.get(&zenoh_id_resource.0) {
+        Some(session) => match session.put(key_expr, payload).wait() {
+            Ok(_) => Ok(rustler::types::atom::ok()),
+            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        },
+        None => {
+            let reason = "session not found".to_string();
+            Err(rustler::Error::Term(Box::new(reason)))
+        }
+    }
+}

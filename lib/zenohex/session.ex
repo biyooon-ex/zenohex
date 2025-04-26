@@ -9,4 +9,7 @@ defmodule Zenohex.Session do
 
   @spec close(id()) :: :ok
   defdelegate close(id), to: Zenohex.Nif, as: :session_close
+
+  @spec put(id(), String.t(), String.t()) :: :ok
+  defdelegate put(id, key_expr, payload), to: Zenohex.Nif, as: :session_put
 end
