@@ -17,4 +17,9 @@ defmodule Zenohex.SessionTest do
     assert Zenohex.Session.put(session_id, "key/expr", "payload") == :ok
     :ok = Session.close(session_id)
   end
+
+  test "declare_publisher/2" do
+    {:ok, session_id} = Zenohex.Session.open()
+    assert {:ok, _publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
+  end
 end

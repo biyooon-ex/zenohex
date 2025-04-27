@@ -12,4 +12,7 @@ defmodule Zenohex.Session do
 
   @spec put(id(), String.t(), String.t()) :: :ok
   defdelegate put(id, key_expr, payload), to: Zenohex.Nif, as: :session_put
+
+  @spec declare_publisher(id(), String.t()) :: :ok
+  defdelegate declare_publisher(id, key_expr), to: Zenohex.Nif, as: :session_declare_publisher
 end

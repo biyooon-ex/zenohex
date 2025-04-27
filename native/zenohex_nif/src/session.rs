@@ -85,3 +85,32 @@ fn session_put(
         }
     }
 }
+
+#[rustler::nif]
+fn session_declare_publisher(
+    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    key_expr: String,
+) -> rustler::NifResult<(
+    rustler::Atom,
+    rustler::ResourceArc<crate::publisher::ZenohPublisherId>,
+)> {
+    let map = SESSIONS.lock().unwrap();
+    match map.get(&zenoh_id_resource.0) {
+        Some(session) => match session.declare_publisher(key_expr).wait() {
+            Ok(publisher) => {
+                let mut publishers = crate::publisher::PUBLISHERS.lock().unwrap();
+                let publisher_id = publisher.id();
+                publishers.insert(publisher_id, publisher);
+                Ok((
+                    rustler::types::atom::ok(),
+                    rustler::ResourceArc::new(crate::publisher::ZenohPublisherId(publisher_id)),
+                ))
+            }
+            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        },
+        None => {
+            let reason = "session not found".to_string();
+            Err(rustler::Error::Term(Box::new(reason)))
+        }
+    }
+}
