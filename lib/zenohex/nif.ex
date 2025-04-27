@@ -26,6 +26,7 @@ defmodule Zenohex.Nif do
   def session_close(_session_id), do: err()
   def session_put(_session_id, _key_expr, _payload), do: err()
   def session_declare_publisher(_session_id, _key_expr), do: err()
+  def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
 
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()

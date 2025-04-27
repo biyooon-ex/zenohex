@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::io::Write;
 use std::sync::{LazyLock, Mutex};
 
+use rustler::Encoder;
 use zenoh::Wait;
 
 static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>>> =
@@ -104,6 +106,71 @@ fn session_declare_publisher(
                 Ok((
                     rustler::types::atom::ok(),
                     rustler::ResourceArc::new(crate::publisher::ZenohPublisherId(publisher_id)),
+                ))
+            }
+            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        },
+        None => {
+            let reason = "session not found".to_string();
+            Err(rustler::Error::Term(Box::new(reason)))
+        }
+    }
+}
+
+#[rustler::nif]
+fn session_declare_subscriber(
+    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    key_expr: String,
+    pid: rustler::LocalPid,
+) -> rustler::NifResult<(
+    rustler::Atom,
+    rustler::ResourceArc<crate::subscriber::ZenohSubscriberId>,
+)> {
+    let map = SESSIONS.lock().unwrap();
+    match map.get(&zenoh_id_resource.0) {
+        Some(session) => match session
+            .declare_subscriber(key_expr)
+            .callback(move |sample| {
+                // WHY: Spawn a thread inside this callback.
+                //      If we don't spawn a thread, a panic will occur.
+                //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
+                std::thread::spawn(move || {
+                    let mut owned_env = rustler::OwnedEnv::new();
+                    let _ = owned_env.send_and_clear(&pid, |env| {
+                        let key_expr = sample.key_expr();
+                        let payload = sample.payload();
+
+                        let mut key_expr_binary =
+                            rustler::OwnedBinary::new(key_expr.len()).unwrap();
+                        key_expr_binary
+                            .as_mut_slice()
+                            .write_all(key_expr.as_str().as_bytes())
+                            .unwrap();
+
+                        let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+                        payload_binary
+                            .as_mut_slice()
+                            .write_all(&payload.to_bytes())
+                            .unwrap();
+
+                        (
+                            crate::atoms::zenohex_nif(),
+                            key_expr_binary.release(env),
+                            payload_binary.release(env),
+                        )
+                            .encode(env)
+                    });
+                });
+            })
+            .wait()
+        {
+            Ok(subscriber) => {
+                let mut subscribers = crate::subscriber::SUBSCRIBERS.lock().unwrap();
+                let subscriber_id = subscriber.id();
+                subscribers.insert(subscriber_id, subscriber);
+                Ok((
+                    rustler::types::atom::ok(),
+                    rustler::ResourceArc::new(crate::subscriber::ZenohSubscriberId(subscriber_id)),
                 ))
             }
             Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
