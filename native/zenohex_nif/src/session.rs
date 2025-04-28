@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-use std::io::Write;
 use std::sync::{LazyLock, Mutex};
 
-use rustler::Encoder;
 use zenoh::Wait;
 
 static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>>> =
@@ -137,28 +135,7 @@ fn session_declare_subscriber(
                 std::thread::spawn(move || {
                     let mut owned_env = rustler::OwnedEnv::new();
                     let _ = owned_env.send_and_clear(&pid, |env| {
-                        let key_expr = sample.key_expr();
-                        let payload = sample.payload();
-
-                        let mut key_expr_binary =
-                            rustler::OwnedBinary::new(key_expr.len()).unwrap();
-                        key_expr_binary
-                            .as_mut_slice()
-                            .write_all(key_expr.as_str().as_bytes())
-                            .unwrap();
-
-                        let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
-                        payload_binary
-                            .as_mut_slice()
-                            .write_all(&payload.to_bytes())
-                            .unwrap();
-
-                        (
-                            crate::atoms::zenohex_nif(),
-                            key_expr_binary.release(env),
-                            payload_binary.release(env),
-                        )
-                            .encode(env)
+                        crate::sample::ZenohexSample::from(env, sample)
                     });
                 });
             })

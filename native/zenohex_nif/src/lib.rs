@@ -1,5 +1,6 @@
 mod config;
 mod publisher;
+mod sample;
 mod session;
 mod subscriber;
 
