@@ -25,11 +25,15 @@ defmodule Zenohex.Nif do
   def session_open(_json5_binary), do: err()
   def session_close(_session_id), do: err()
   def session_put(_session_id, _key_expr, _payload, _encoding), do: err()
+  def session_get(_session_id, _selector, _timeout), do: err()
   def session_declare_publisher(_session_id, _key_expr, _encoding), do: err()
   def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
+  def session_declare_queryable(_session_id, _key_expr, _pid), do: err()
 
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()
 
   def publisher_put(_publisher_id, _payload), do: err()
+
+  def query_reply(_zenohex_query), do: err()
 end

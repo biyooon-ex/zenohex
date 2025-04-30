@@ -1,5 +1,7 @@
 mod config;
 mod publisher;
+mod query;
+mod queryable;
 mod sample;
 mod session;
 mod subscriber;

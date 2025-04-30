@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
+use std::time::Duration;
 
+use rustler::Encoder;
 use zenoh::Wait;
 
 static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>>> =
@@ -87,6 +89,43 @@ fn session_put(
     }
 }
 
+#[rustler::nif(schedule = "DirtyIo")]
+fn session_get<'a>(
+    env: rustler::Env<'a>,
+    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    selector: &'a str,
+    timeout: u64,
+) -> Result<crate::sample::ZenohexSample<'a>, rustler::Term<'a>> {
+    let map = SESSIONS.lock().unwrap();
+    match map.get(&zenoh_id_resource.0) {
+        Some(session) => match session.get(selector).wait() {
+            Ok(fifo_channel_handler) => {
+                match fifo_channel_handler.recv_timeout(Duration::from_millis(timeout)) {
+                    Ok(option_reply) => {
+                        if let Some(reply) = option_reply {
+                            match reply.result() {
+                                Ok(sample) => Ok(crate::sample::ZenohexSample::from(env, sample)),
+                                Err(reply_error) => {
+                                    Err(crate::query::ZenohexQueryReplyError::from(
+                                        env,
+                                        reply_error.clone(),
+                                    )
+                                    .encode(env))
+                                }
+                            }
+                        } else {
+                            Err("timeout".to_string().encode(env))
+                        }
+                    }
+                    Err(error) => Err(error.to_string().encode(env)),
+                }
+            }
+            Err(error) => Err(error.to_string().encode(env)),
+        },
+        None => Err("session not found".to_string().encode(env)),
+    }
+}
+
 #[rustler::nif]
 fn session_declare_publisher(
     zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
@@ -141,7 +180,7 @@ fn session_declare_subscriber(
                 std::thread::spawn(move || {
                     let mut owned_env = rustler::OwnedEnv::new();
                     let _ = owned_env.send_and_clear(&pid, |env| {
-                        crate::sample::ZenohexSample::from(env, sample)
+                        crate::sample::ZenohexSample::from(env, &sample)
                     });
                 });
             })
@@ -154,6 +193,49 @@ fn session_declare_subscriber(
                 Ok((
                     rustler::types::atom::ok(),
                     rustler::ResourceArc::new(crate::subscriber::ZenohSubscriberId(subscriber_id)),
+                ))
+            }
+            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        },
+        None => {
+            let reason = "session not found".to_string();
+            Err(rustler::Error::Term(Box::new(reason)))
+        }
+    }
+}
+
+#[rustler::nif]
+fn session_declare_queryable(
+    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    key_expr: String,
+    pid: rustler::LocalPid,
+) -> rustler::NifResult<(
+    rustler::Atom,
+    rustler::ResourceArc<crate::queryable::ZenohQueryableId>,
+)> {
+    let map = SESSIONS.lock().unwrap();
+    match map.get(&zenoh_id_resource.0) {
+        Some(session) => match session
+            .declare_queryable(key_expr)
+            .callback(move |query| {
+                // WHY: Spawn a thread inside this callback.
+                //      If we don't spawn a thread, a panic will occur.
+                //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
+                std::thread::spawn(move || {
+                    let mut owned_env = rustler::OwnedEnv::new();
+                    let _ = owned_env
+                        .send_and_clear(&pid, |env| crate::query::ZenohexQuery::from(env, query));
+                });
+            })
+            .wait()
+        {
+            Ok(queryable) => {
+                let mut queryables = crate::queryable::QUERYABLES.lock().unwrap();
+                let queryable_id = queryable.id();
+                queryables.insert(queryable_id, queryable);
+                Ok((
+                    rustler::types::atom::ok(),
+                    rustler::ResourceArc::new(crate::queryable::ZenohQueryableId(queryable_id)),
                 ))
             }
             Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),

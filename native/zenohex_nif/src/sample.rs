@@ -9,7 +9,7 @@ pub(crate) struct ZenohexSample<'a> {
 }
 
 impl<'a> ZenohexSample<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, sample: zenoh::sample::Sample) -> Self {
+    pub(crate) fn from(env: rustler::Env<'a>, sample: &zenoh::sample::Sample) -> Self {
         let payload = sample.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
         payload_binary
