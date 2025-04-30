@@ -5,6 +5,7 @@ use std::io::Write;
 pub(crate) struct ZenohexSample<'a> {
     key_expr: String,
     payload: rustler::Binary<'a>,
+    encoding: String,
 }
 
 impl<'a> ZenohexSample<'a> {
@@ -18,6 +19,7 @@ impl<'a> ZenohexSample<'a> {
         ZenohexSample {
             key_expr: sample.key_expr().to_string(),
             payload: payload_binary.release(env),
+            encoding: sample.encoding().to_string(),
         }
     }
 }

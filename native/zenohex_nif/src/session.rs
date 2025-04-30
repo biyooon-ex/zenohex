@@ -72,10 +72,11 @@ fn session_put(
     zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: &str,
     payload: &str,
+    encoding: &str,
 ) -> rustler::NifResult<rustler::Atom> {
     let map = SESSIONS.lock().unwrap();
     match map.get(&zenoh_id_resource.0) {
-        Some(session) => match session.put(key_expr, payload).wait() {
+        Some(session) => match session.put(key_expr, payload).encoding(encoding).wait() {
             Ok(_) => Ok(rustler::types::atom::ok()),
             Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
         },
@@ -90,13 +91,18 @@ fn session_put(
 fn session_declare_publisher(
     zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
+    encoding: &str,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::publisher::ZenohPublisherId>,
 )> {
     let map = SESSIONS.lock().unwrap();
     match map.get(&zenoh_id_resource.0) {
-        Some(session) => match session.declare_publisher(key_expr).wait() {
+        Some(session) => match session
+            .declare_publisher(key_expr)
+            .encoding(encoding)
+            .wait()
+        {
             Ok(publisher) => {
                 let mut publishers = crate::publisher::PUBLISHERS.lock().unwrap();
                 let publisher_id = publisher.id();
