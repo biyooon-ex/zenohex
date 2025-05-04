@@ -13,12 +13,12 @@ defmodule Zenohex.Session do
   defdelegate close(id), to: Zenohex.Nif, as: :session_close
 
   @spec put(id(), String.t(), String.t(), String.t()) :: :ok
-  defdelegate put(id, key_expr, payload, encoding \\ @zenoh_default_encoding),
+  defdelegate put(session_id, key_expr, payload, encoding \\ @zenoh_default_encoding),
     to: Zenohex.Nif,
     as: :session_put
 
   @spec declare_publisher(id(), String.t(), String.t()) :: :ok
-  defdelegate declare_publisher(id, key_expr, encoding \\ @zenoh_default_encoding),
+  defdelegate declare_publisher(session_id, key_expr, encoding \\ @zenoh_default_encoding),
     to: Zenohex.Nif,
     as: :session_declare_publisher
 end
