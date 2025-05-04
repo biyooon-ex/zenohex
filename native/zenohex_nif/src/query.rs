@@ -1,5 +1,7 @@
 use std::io::Write;
 
+use zenoh::Wait;
+
 struct ZenohQuery(zenoh::query::Query);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohQuery {}
@@ -63,8 +65,13 @@ impl<'a> ZenohexQueryReplyError<'a> {
 fn query_reply(zenohex_query: ZenohexQuery) -> rustler::NifResult<rustler::Atom> {
     let query = &zenohex_query.zenoh_query.0;
     if let Some(payload) = zenohex_query.payload {
-        let _ = query.reply(zenohex_query.key_expr, payload.as_slice());
-        Ok(rustler::types::atom::ok())
+        match query
+            .reply(zenohex_query.key_expr, payload.as_slice())
+            .wait()
+        {
+            Ok(()) => Ok(rustler::types::atom::ok()),
+            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        }
     } else {
         Err(rustler::Error::Term(Box::new(
             "payload not found".to_string(),
