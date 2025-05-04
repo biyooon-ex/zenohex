@@ -18,6 +18,7 @@ defmodule ZenohexTest do
   test "get/reply" do
     {:ok, session_id} = Zenohex.Session.open()
     {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
     task = Task.async(Zenohex.Session, :get, [session_id, "key/expr", 100])
 
     assert_receive %Zenohex.Query{
@@ -28,8 +29,13 @@ defmodule ZenohexTest do
                      zenoh_query: _zenoh_query
                    } = query
 
-    :ok = Zenohex.Query.reply(%{query | key_expr: "key/expr", payload: "Hello Zenoh Dragon"})
+    :ok = Zenohex.Query.reply(%{query | payload: "Hello Zenoh Dragon"})
 
-    assert {:ok, %Zenohex.Sample{}} = Task.await(task)
+    assert {:ok,
+            %Zenohex.Sample{
+              key_expr: "key/expr",
+              payload: "Hello Zenoh Dragon",
+              encoding: "zenoh/bytes"
+            }} = Task.await(task)
   end
 end

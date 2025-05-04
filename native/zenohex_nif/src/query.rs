@@ -1,8 +1,9 @@
 use std::io::Write;
+use std::sync::Mutex;
 
 use zenoh::Wait;
 
-struct ZenohQuery(zenoh::query::Query);
+struct ZenohQuery(Mutex<Option<zenoh::query::Query>>);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohQuery {}
 
@@ -34,7 +35,7 @@ impl<'a> ZenohexQuery<'a> {
             parameters: query.parameters().to_string(),
             payload: payload_binary,
             encoding,
-            zenoh_query: rustler::ResourceArc::new(ZenohQuery(query)),
+            zenoh_query: rustler::ResourceArc::new(ZenohQuery(Mutex::new(Some(query)))),
         }
     }
 }
@@ -63,14 +64,30 @@ impl<'a> ZenohexQueryReplyError<'a> {
 
 #[rustler::nif]
 fn query_reply(zenohex_query: ZenohexQuery) -> rustler::NifResult<rustler::Atom> {
-    let query = &zenohex_query.zenoh_query.0;
+    let mutex = &zenohex_query.zenoh_query.0;
+    let mut maybe_query = {
+        let mut guard = mutex.lock().unwrap();
+        guard.take()
+    };
     if let Some(payload) = zenohex_query.payload {
-        match query
-            .reply(zenohex_query.key_expr, payload.as_slice())
-            .wait()
-        {
-            Ok(()) => Ok(rustler::types::atom::ok()),
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+        match Option::take(&mut maybe_query) {
+            Some(query) => {
+                match query
+                    .reply(zenohex_query.key_expr, payload.as_slice())
+                    .wait()
+                {
+                    Ok(()) => {
+                        // NOTE: Dropping the query automatically sends a ResponseFinal.
+                        //       Therefore, we must drop the query explicitly at the end of the reply.
+                        drop(query);
+                        Ok(rustler::types::atom::ok())
+                    }
+                    Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
+                }
+            }
+            None => Err(rustler::Error::Term(Box::new(
+                "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.".to_string(),
+            ))),
         }
     } else {
         Err(rustler::Error::Term(Box::new(
