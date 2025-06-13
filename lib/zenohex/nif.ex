@@ -6,13 +6,15 @@ defmodule Zenohex.Nif do
   github_url = mix_config[:package][:links]["GitHub"]
 
   use RustlerPrecompiled,
+    # NOTE: FROM HERE Rustler opts which are passed through to Rustler
     otp_app: :zenohex,
     crate: "zenohex_nif",
-    version: version,
-    base_url: "#{github_url}/releases/download/v#{version}",
     # NOTE: Uncomment during zenohhex_nif development.
     #       Setting `mode: :debug` makes `cargo build` skip the `--release` flag.
     # mode: :debug,
+    # NOTE: FROM HERE RustlerPrecompiled opts
+    version: version,
+    base_url: "#{github_url}/releases/download/v#{version}",
     targets:
       RustlerPrecompiled.Config.default_targets()
       |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
