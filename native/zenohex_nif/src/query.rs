@@ -48,7 +48,7 @@ pub(crate) struct ZenohexQueryReplyError<'a> {
 }
 
 impl<'a> ZenohexQueryReplyError<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, reply_error: zenoh::query::ReplyError) -> Self {
+    pub(crate) fn from(env: rustler::Env<'a>, reply_error: &zenoh::query::ReplyError) -> Self {
         let payload = reply_error.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
         payload_binary

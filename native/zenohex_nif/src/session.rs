@@ -20,225 +20,208 @@ impl rustler::Resource for ZenohSessionId {}
 fn session_open(
     json5_binary: &str,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<ZenohSessionId>)> {
-    match zenoh::Config::from_json5(json5_binary) {
-        Ok(config) => match zenoh::open(config).wait() {
-            Ok(session) => {
-                let mut map = SESSIONS.lock().unwrap();
-                let zenoh_id = session.zid();
-                map.insert(zenoh_id, session);
-                Ok((
-                    rustler::types::atom::ok(),
-                    rustler::ResourceArc::new(ZenohSessionId(zenoh_id)),
-                ))
-            }
-            Err(error) => {
-                let reason = error.to_string();
-                Err(rustler::Error::Term(Box::new(reason)))
-            }
-        },
-        Err(error) => {
-            let reason = error.to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+    let config = zenoh::Config::from_json5(json5_binary)
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    let session = zenoh::open(config)
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    let mut sessions = SESSIONS.lock().unwrap();
+    let session_id = session.zid();
+    sessions.insert(session_id, session);
+
+    Ok((
+        rustler::types::atom::ok(),
+        rustler::ResourceArc::new(ZenohSessionId(session_id)),
+    ))
 }
 
 #[rustler::nif]
 fn session_close(
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let mut map = SESSIONS.lock().unwrap();
-    match map.remove(&zenoh_id_resource.0) {
-        Some(session) => {
-            let _ = session.close().wait();
-            Ok(rustler::types::atom::ok())
-        }
-        None => {
-            let reason = "session not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+    let mut sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_session_id_resource.0;
+
+    let session = sessions
+        .remove(&session_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
+
+    session
+        .close()
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    Ok(rustler::types::atom::ok())
 }
 
 #[rustler::nif]
 fn session_put(
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: &str,
     payload: &str,
     encoding: &str,
 ) -> rustler::NifResult<rustler::Atom> {
-    let map = SESSIONS.lock().unwrap();
-    match map.get(&zenoh_id_resource.0) {
-        Some(session) => match session.put(key_expr, payload).encoding(encoding).wait() {
-            Ok(_) => Ok(rustler::types::atom::ok()),
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-        },
-        None => {
-            let reason = "session not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
-}
+    let sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_session_id_resource.0;
 
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
+
+    session
+        .put(key_expr, payload)
+        .encoding(encoding)
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    Ok(rustler::types::atom::ok())
+}
 #[rustler::nif(schedule = "DirtyIo")]
 fn session_get<'a>(
     env: rustler::Env<'a>,
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     selector: &'a str,
     timeout: u64,
 ) -> Result<crate::sample::ZenohexSample<'a>, rustler::Term<'a>> {
-    let map = SESSIONS.lock().unwrap();
-    match map.get(&zenoh_id_resource.0) {
-        Some(session) => match session.get(selector).wait() {
-            Ok(fifo_channel_handler) => {
-                match fifo_channel_handler.recv_timeout(Duration::from_millis(timeout)) {
-                    Ok(option_reply) => {
-                        if let Some(reply) = option_reply {
-                            match reply.result() {
-                                Ok(sample) => Ok(crate::sample::ZenohexSample::from(env, sample)),
-                                Err(reply_error) => {
-                                    Err(crate::query::ZenohexQueryReplyError::from(
-                                        env,
-                                        reply_error.clone(),
-                                    )
-                                    .encode(env))
-                                }
-                            }
-                        } else {
-                            Err("timeout".to_string().encode(env))
-                        }
-                    }
-                    Err(error) => Err(error.to_string().encode(env)),
-                }
-            }
-            Err(error) => Err(error.to_string().encode(env)),
-        },
-        None => Err("session not found".to_string().encode(env)),
-    }
+    let sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_session_id_resource.0;
+
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| "session not found".encode(env))?;
+
+    let channel_handler = session
+        .get(selector)
+        .wait()
+        .map_err(|error| error.to_string().encode(env))?;
+
+    let option_reply = channel_handler
+        .recv_timeout(Duration::from_millis(timeout))
+        .map_err(|error| error.to_string().encode(env))?;
+
+    let reply = option_reply.ok_or_else(|| "timeout".encode(env))?;
+
+    let sample = reply.result().map_err(|reply_error| {
+        crate::query::ZenohexQueryReplyError::from(env, reply_error).encode(env)
+    })?;
+
+    Ok(crate::sample::ZenohexSample::from(env, sample))
 }
 
 #[rustler::nif]
 fn session_declare_publisher(
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
     encoding: &str,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::publisher::ZenohPublisherId>,
 )> {
-    let map = SESSIONS.lock().unwrap();
-    match map.get(&zenoh_id_resource.0) {
-        Some(session) => match session
-            .declare_publisher(key_expr)
-            .encoding(encoding)
-            .wait()
-        {
-            Ok(publisher) => {
-                let mut publishers = crate::publisher::PUBLISHERS.lock().unwrap();
-                let publisher_id = publisher.id();
-                publishers.insert(publisher_id, publisher);
-                Ok((
-                    rustler::types::atom::ok(),
-                    rustler::ResourceArc::new(crate::publisher::ZenohPublisherId(publisher_id)),
-                ))
-            }
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-        },
-        None => {
-            let reason = "session not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+    let sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_session_id_resource.0;
+
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
+
+    let publisher = session
+        .declare_publisher(key_expr)
+        .encoding(encoding)
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    let mut publishers = crate::publisher::PUBLISHERS.lock().unwrap();
+    let publisher_id = publisher.id();
+    publishers.insert(publisher_id, publisher);
+
+    Ok((
+        rustler::types::atom::ok(),
+        rustler::ResourceArc::new(crate::publisher::ZenohPublisherId(publisher_id)),
+    ))
 }
 
 #[rustler::nif]
 fn session_declare_subscriber(
     env: rustler::Env,
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::subscriber::ZenohSubscriberId>,
 )> {
     let sessions = SESSIONS.lock().unwrap();
-    let session_id = zenoh_id_resource.0;
+    let session_id = zenoh_session_id_resource.0;
     let pid = env.pid();
 
-    match sessions.get(&session_id) {
-        Some(session) => match session
-            .declare_subscriber(key_expr)
-            .callback(move |sample| {
-                // WHY: Spawn a thread inside this callback.
-                //      If we don't spawn a thread, a panic will occur.
-                //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-                std::thread::spawn(move || {
-                    let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                        env.send(&pid, crate::sample::ZenohexSample::from(env, &sample))
-                    });
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
+
+    let subscriber = session
+        .declare_subscriber(key_expr)
+        .callback(move |sample| {
+            // WHY: Spawn a thread inside this callback.
+            //      If we don't spawn a thread, a panic will occur.
+            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
+            std::thread::spawn(move || {
+                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
+                    env.send(&pid, crate::sample::ZenohexSample::from(env, &sample))
                 });
-            })
-            .wait()
-        {
-            Ok(subscriber) => {
-                let mut subscribers = crate::subscriber::SUBSCRIBERS.lock().unwrap();
-                let subscriber_id = subscriber.id();
-                subscribers.insert(subscriber_id, subscriber);
-                Ok((
-                    rustler::types::atom::ok(),
-                    rustler::ResourceArc::new(crate::subscriber::ZenohSubscriberId(subscriber_id)),
-                ))
-            }
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-        },
-        None => {
-            let reason = "session not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+            });
+        })
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    let mut subscribers = crate::subscriber::SUBSCRIBERS.lock().unwrap();
+    let subscriber_id = subscriber.id();
+    subscribers.insert(subscriber_id, subscriber);
+
+    Ok((
+        rustler::types::atom::ok(),
+        rustler::ResourceArc::new(crate::subscriber::ZenohSubscriberId(subscriber_id)),
+    ))
 }
 
 #[rustler::nif]
 fn session_declare_queryable(
     env: rustler::Env,
-    zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
+    zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::queryable::ZenohQueryableId>,
 )> {
     let sessions = SESSIONS.lock().unwrap();
-    let session_id = zenoh_id_resource.0;
+    let session_id = zenoh_session_id_resource.0;
     let pid = env.pid();
 
-    match sessions.get(&session_id) {
-        Some(session) => match session
-            .declare_queryable(key_expr)
-            .callback(move |query| {
-                // WHY: Spawn a thread inside this callback.
-                //      If we don't spawn a thread, a panic will occur.
-                //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-                std::thread::spawn(move || {
-                    let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                        env.send(&pid, crate::query::ZenohexQuery::from(env, &query))
-                    });
+    let session = sessions
+        .get(&session_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
+
+    let queryable = session
+        .declare_queryable(key_expr)
+        .callback(move |query| {
+            // WHY: Spawn a thread inside this callback.
+            //      If we don't spawn a thread, a panic will occur.
+            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
+            std::thread::spawn(move || {
+                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
+                    env.send(&pid, crate::query::ZenohexQuery::from(env, &query))
                 });
-            })
-            .wait()
-        {
-            Ok(queryable) => {
-                let mut queryables = crate::queryable::QUERYABLES.lock().unwrap();
-                let queryable_id = queryable.id();
-                queryables.insert(queryable_id, queryable);
-                Ok((
-                    rustler::types::atom::ok(),
-                    rustler::ResourceArc::new(crate::queryable::ZenohQueryableId(queryable_id)),
-                ))
-            }
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-        },
-        None => {
-            let reason = "session not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+            });
+        })
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    let mut queryables = crate::queryable::QUERYABLES.lock().unwrap();
+    let queryable_id = queryable.id();
+    queryables.insert(queryable_id, queryable);
+
+    Ok((
+        rustler::types::atom::ok(),
+        rustler::ResourceArc::new(crate::queryable::ZenohQueryableId(queryable_id)),
+    ))
 }
