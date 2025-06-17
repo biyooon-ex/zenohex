@@ -18,6 +18,11 @@ defmodule Zenohex.SessionTest do
     :ok = Session.close(session_id)
   end
 
+  test "get/3" do
+    {:ok, session_id} = Zenohex.Session.open()
+    assert {:error, _} = Zenohex.Session.get(session_id, "key/expr", 100)
+  end
+
   test "declare_publisher/2" do
     {:ok, session_id} = Zenohex.Session.open()
     assert {:ok, _publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
