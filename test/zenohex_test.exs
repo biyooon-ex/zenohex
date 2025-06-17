@@ -1,10 +1,17 @@
 defmodule ZenohexTest do
   use ExUnit.Case
 
-  test "pub/sub" do
+  setup do
     {:ok, session_id} = Zenohex.Session.open()
+
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
+
+    %{session_id: session_id}
+  end
+
+  test "pub/sub", %{session_id: session_id} do
     {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
-    {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
+    {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr")
 
     :ok = Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 
@@ -15,9 +22,8 @@ defmodule ZenohexTest do
     }
   end
 
-  test "get/reply" do
-    {:ok, session_id} = Zenohex.Session.open()
-    {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+  test "get/reply", %{session_id: session_id} do
+    {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr")
 
     task = Task.async(Zenohex.Session, :get, [session_id, "key/expr", 100])
 

@@ -18,7 +18,7 @@ pub(crate) struct ZenohexQuery<'a> {
 }
 
 impl<'a> ZenohexQuery<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, query: zenoh::query::Query) -> Self {
+    pub(crate) fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
         let payload_binary = query.payload().map(|payload| {
             let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
             payload_binary
@@ -35,7 +35,7 @@ impl<'a> ZenohexQuery<'a> {
             parameters: query.parameters().to_string(),
             payload: payload_binary,
             encoding,
-            zenoh_query: rustler::ResourceArc::new(ZenohQuery(Mutex::new(Some(query)))),
+            zenoh_query: rustler::ResourceArc::new(ZenohQuery(Mutex::new(Some(query.clone())))),
         }
     }
 }

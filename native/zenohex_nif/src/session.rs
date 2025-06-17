@@ -153,15 +153,18 @@ fn session_declare_publisher(
 
 #[rustler::nif]
 fn session_declare_subscriber(
+    env: rustler::Env,
     zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
-    pid: rustler::LocalPid,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::subscriber::ZenohSubscriberId>,
 )> {
-    let map = SESSIONS.lock().unwrap();
-    match map.get(&zenoh_id_resource.0) {
+    let sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_id_resource.0;
+    let pid = env.pid();
+
+    match sessions.get(&session_id) {
         Some(session) => match session
             .declare_subscriber(key_expr)
             .callback(move |sample| {
@@ -169,9 +172,8 @@ fn session_declare_subscriber(
                 //      If we don't spawn a thread, a panic will occur.
                 //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
                 std::thread::spawn(move || {
-                    let mut owned_env = rustler::OwnedEnv::new();
-                    let _ = owned_env.send_and_clear(&pid, |env| {
-                        crate::sample::ZenohexSample::from(env, &sample)
+                    let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
+                        env.send(&pid, crate::sample::ZenohexSample::from(env, &sample))
                     });
                 });
             })
@@ -197,15 +199,18 @@ fn session_declare_subscriber(
 
 #[rustler::nif]
 fn session_declare_queryable(
+    env: rustler::Env,
     zenoh_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
-    pid: rustler::LocalPid,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::queryable::ZenohQueryableId>,
 )> {
-    let map = SESSIONS.lock().unwrap();
-    match map.get(&zenoh_id_resource.0) {
+    let sessions = SESSIONS.lock().unwrap();
+    let session_id = zenoh_id_resource.0;
+    let pid = env.pid();
+
+    match sessions.get(&session_id) {
         Some(session) => match session
             .declare_queryable(key_expr)
             .callback(move |query| {
@@ -213,9 +218,9 @@ fn session_declare_queryable(
                 //      If we don't spawn a thread, a panic will occur.
                 //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
                 std::thread::spawn(move || {
-                    let mut owned_env = rustler::OwnedEnv::new();
-                    let _ = owned_env
-                        .send_and_clear(&pid, |env| crate::query::ZenohexQuery::from(env, query));
+                    let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
+                        env.send(&pid, crate::query::ZenohexQuery::from(env, &query))
+                    });
                 });
             })
             .wait()

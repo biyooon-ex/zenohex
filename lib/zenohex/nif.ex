@@ -1,6 +1,8 @@
 defmodule Zenohex.Nif do
   @moduledoc false
 
+  @type id :: reference()
+
   mix_config = Mix.Project.config()
   version = mix_config[:version]
   github_url = mix_config[:package][:links]["GitHub"]
@@ -25,13 +27,28 @@ defmodule Zenohex.Nif do
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 
+  @spec session_open(binary()) :: {:ok, id()} | {:error, reason :: term()}
   def session_open(_json5_binary), do: err()
+
+  @spec session_close(id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
+
+  @spec session_put(id(), String.t(), String.t(), String.t()) :: :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _encoding), do: err()
+
+  @spec session_get(id(), String.t(), non_neg_integer()) ::
+          {:ok, Zenohex.Sample.t()} | {:error, term()}
   def session_get(_session_id, _selector, _timeout), do: err()
+
+  @spec session_declare_publisher(id(), String.t(), String.t()) ::
+          {:ok, publisher_id :: id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _encoding), do: err()
-  def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
-  def session_declare_queryable(_session_id, _key_expr, _pid), do: err()
+
+  @spec session_declare_subscriber(id(), String.t()) :: {:ok, subscriber_id :: id()}
+  def session_declare_subscriber(_session_id, _key_expr), do: err()
+
+  @spec session_declare_queryable(id(), String.t()) :: {:ok, queryable_id :: id()}
+  def session_declare_queryable(_session_id, _key_expr), do: err()
 
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()
