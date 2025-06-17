@@ -21,10 +21,12 @@ impl<'a> ZenohexQuery<'a> {
     pub(crate) fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
         let payload_binary = query.payload().map(|payload| {
             let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+
             payload_binary
                 .as_mut_slice()
                 .write_all(&payload.to_bytes())
                 .unwrap();
+
             payload_binary.release(env)
         });
 
@@ -51,10 +53,12 @@ impl<'a> ZenohexQueryReplyError<'a> {
     pub(crate) fn from(env: rustler::Env<'a>, reply_error: &zenoh::query::ReplyError) -> Self {
         let payload = reply_error.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+
         payload_binary
             .as_mut_slice()
             .write_all(&payload.to_bytes())
             .unwrap();
+
         ZenohexQueryReplyError {
             payload: payload_binary.release(env),
             encoding: reply_error.encoding().to_string(),
@@ -64,34 +68,27 @@ impl<'a> ZenohexQueryReplyError<'a> {
 
 #[rustler::nif]
 fn query_reply(zenohex_query: ZenohexQuery) -> rustler::NifResult<rustler::Atom> {
-    let mutex = &zenohex_query.zenoh_query.0;
-    let mut maybe_query = {
-        let mut guard = mutex.lock().unwrap();
-        guard.take()
-    };
-    if let Some(payload) = zenohex_query.payload {
-        match Option::take(&mut maybe_query) {
-            Some(query) => {
-                match query
-                    .reply(zenohex_query.key_expr, payload.as_slice())
-                    .wait()
-                {
-                    Ok(()) => {
-                        // NOTE: Dropping the query automatically sends a ResponseFinal.
-                        //       Therefore, we must drop the query explicitly at the end of the reply.
-                        drop(query);
-                        Ok(rustler::types::atom::ok())
-                    }
-                    Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-                }
-            }
-            None => Err(rustler::Error::Term(Box::new(
-                "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.".to_string(),
-            ))),
-        }
-    } else {
-        Err(rustler::Error::Term(Box::new(
-            "payload not found".to_string(),
-        )))
-    }
+    let zenoh_query = &zenohex_query.zenoh_query.0;
+    let mut option_query = zenoh_query.lock().unwrap().take();
+
+    let query = option_query.take().ok_or_else(|| {
+        rustler::Error::Term(Box::new(
+            "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.",
+        ))
+    })?;
+
+    let payload = zenohex_query
+        .payload
+        .ok_or_else(|| rustler::Error::Term(Box::new("payload not found")))?;
+
+    query
+        .reply(zenohex_query.key_expr, payload.as_slice())
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    // NOTE: Dropping the query automatically sends a ResponseFinal.
+    //       Therefore, we must drop the query explicitly at the end of the reply.
+    drop(query);
+
+    Ok(rustler::types::atom::ok())
 }
