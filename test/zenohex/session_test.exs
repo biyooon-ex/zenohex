@@ -10,12 +10,12 @@ defmodule Zenohex.SessionTest do
   test "close/0" do
     {:ok, session_id} = Zenohex.Session.open()
     assert Session.close(session_id) == :ok
+    assert Session.close(session_id) == {:error, "session not found"}
   end
 
   test "put/3" do
     {:ok, session_id} = Zenohex.Session.open()
     assert Zenohex.Session.put(session_id, "key/expr", "payload") == :ok
-    :ok = Session.close(session_id)
   end
 
   test "get/3" do

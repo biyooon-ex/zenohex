@@ -15,7 +15,9 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_put
 
-  defdelegate get(session_id, key_expr, timeout),
+  def get(key_expr, timeout), do: get(open!(), key_expr, timeout)
+
+  defdelegate get(session_id, selector, timeout),
     to: Zenohex.Nif,
     as: :session_get
 
