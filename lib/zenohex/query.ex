@@ -11,5 +11,5 @@ defmodule Zenohex.Query do
 
   defstruct key_expr: "key/expr", parameters: "", payload: nil, encoding: nil, zenoh_query: nil
 
-  defdelegate reply(query), to: Zenohex.Nif, as: :query_reply
+  defdelegate reply(query, final? \\ true), to: Zenohex.Nif, as: :query_reply
 end

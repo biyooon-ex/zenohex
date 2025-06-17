@@ -55,5 +55,5 @@ defmodule Zenohex.Nif do
 
   def publisher_put(_publisher_id, _payload), do: err()
 
-  def query_reply(_zenohex_query), do: err()
+  def query_reply(_zenohex_query, _final?), do: err()
 end

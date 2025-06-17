@@ -67,7 +67,7 @@ impl<'a> ZenohexQueryReplyError<'a> {
 }
 
 #[rustler::nif]
-fn query_reply(zenohex_query: ZenohexQuery) -> rustler::NifResult<rustler::Atom> {
+fn query_reply(zenohex_query: ZenohexQuery, is_final: bool) -> rustler::NifResult<rustler::Atom> {
     let zenoh_query = &zenohex_query.zenoh_query.0;
     let mut option_query = zenoh_query.lock().unwrap().take();
 
@@ -86,9 +86,11 @@ fn query_reply(zenohex_query: ZenohexQuery) -> rustler::NifResult<rustler::Atom>
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    // NOTE: Dropping the query automatically sends a ResponseFinal.
-    //       Therefore, we must drop the query explicitly at the end of the reply.
-    drop(query);
+    if is_final {
+        // NOTE: Dropping the query automatically sends a ResponseFinal.
+        //       Therefore, we must drop the query explicitly at the end of the reply.
+        drop(query);
+    }
 
     Ok(rustler::types::atom::ok())
 }
