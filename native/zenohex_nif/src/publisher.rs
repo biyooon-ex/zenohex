@@ -26,6 +26,7 @@ fn publisher_put(
     publisher
         .put(payload)
         .wait()
-        .map(|_| rustler::types::atom::ok())
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    Ok(rustler::types::atom::ok())
 }
