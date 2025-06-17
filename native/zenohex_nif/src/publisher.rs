@@ -17,14 +17,15 @@ fn publisher_put(
     payload: &str,
 ) -> rustler::NifResult<rustler::Atom> {
     let publishers = PUBLISHERS.lock().unwrap();
-    match publishers.get(&zenoh_publisher_id_resource.0) {
-        Some(publisher) => match publisher.put(payload).wait() {
-            Ok(_) => Ok(rustler::types::atom::ok()),
-            Err(error) => Err(rustler::Error::Term(Box::new(error.to_string()))),
-        },
-        None => {
-            let reason = "publisher not found".to_string();
-            Err(rustler::Error::Term(Box::new(reason)))
-        }
-    }
+    let publisher_id = zenoh_publisher_id_resource.0;
+
+    let publisher = publishers
+        .get(&publisher_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
+
+    publisher
+        .put(payload)
+        .wait()
+        .map(|_| rustler::types::atom::ok())
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))
 }
