@@ -3,9 +3,13 @@ defmodule Zenohex.Session do
 
   def open(), do: open(Zenohex.Config.default())
 
+  def open!(), do: open() |> then(fn {:ok, session_id} -> session_id end)
+
   defdelegate open(json5_binary), to: Zenohex.Nif, as: :session_open
 
   defdelegate close(id), to: Zenohex.Nif, as: :session_close
+
+  def put(key_expr, payload), do: put(open!(), key_expr, payload)
 
   defdelegate put(session_id, key_expr, payload, encoding \\ @zenoh_default_encoding),
     to: Zenohex.Nif,
