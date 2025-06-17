@@ -15,15 +15,6 @@ static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>
 struct ZenohSessionId(zenoh::session::ZenohId);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohSessionId {}
-// NOTE: Release the Zenoh session when the Elixir process holding the ZenohSessionId terminates.
-impl Drop for ZenohSessionId {
-    fn drop(&mut self) {
-        let mut sessions = SESSIONS.lock().unwrap();
-        if let Some(session) = sessions.remove(&self.0) {
-            let _ = session.close().wait();
-        };
-    }
-}
 
 #[rustler::nif]
 fn session_open(

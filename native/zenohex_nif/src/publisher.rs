@@ -10,15 +10,6 @@ pub static PUBLISHERS: LazyLock<
 pub struct ZenohPublisherId(pub zenoh::session::EntityGlobalId);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohPublisherId {}
-// NOTE: Release the Zenoh publisher when the Elixir process holding the ZenohPublisherId terminates.
-impl Drop for ZenohPublisherId {
-    fn drop(&mut self) {
-        let mut publishers = PUBLISHERS.lock().unwrap();
-        if let Some(publisher) = publishers.remove(&self.0) {
-            let _ = publisher.undeclare().wait();
-        };
-    }
-}
 
 #[rustler::nif]
 fn publisher_put(
