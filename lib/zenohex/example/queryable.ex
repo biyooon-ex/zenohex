@@ -19,7 +19,7 @@ defmodule Zenohex.Example.Queryable do
 
     callback_payload = Keyword.get(args, :callback_payload, &inspect(&1))
 
-    {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, key_expr)
+    {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, key_expr, self())
 
     {:ok,
      %{

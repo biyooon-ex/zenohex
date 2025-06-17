@@ -16,7 +16,7 @@ defmodule Zenohex.Example.Subscriber do
     key_expr = Keyword.get(args, :key_expr, "key/expr")
     callback = Keyword.get(args, :callback, &Logger.debug("#{inspect(&1)}"))
 
-    {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, key_expr)
+    {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, key_expr, self())
 
     {:ok,
      %{

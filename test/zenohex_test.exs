@@ -11,7 +11,7 @@ defmodule ZenohexTest do
 
   test "pub/sub", %{session_id: session_id} do
     {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
-    {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr")
+    {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
 
     :ok = Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 
@@ -23,7 +23,7 @@ defmodule ZenohexTest do
   end
 
   test "get/reply", %{session_id: session_id} do
-    {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr")
+    {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
     task = Task.async(Zenohex.Session, :get, [session_id, "key/expr", 100])
 

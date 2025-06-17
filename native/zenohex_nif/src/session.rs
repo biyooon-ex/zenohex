@@ -144,16 +144,17 @@ fn session_declare_publisher(
 
 #[rustler::nif]
 fn session_declare_subscriber(
-    env: rustler::Env,
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
+    // WHY: Pass `pid` instead of using `env.pid()`
+    //      so the user can specify any receiver process
+    pid: rustler::LocalPid,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::subscriber::ZenohSubscriberId>,
 )> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
-    let pid = env.pid();
 
     let session = sessions
         .get(&session_id)
@@ -186,16 +187,17 @@ fn session_declare_subscriber(
 
 #[rustler::nif]
 fn session_declare_queryable(
-    env: rustler::Env,
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
+    // WHY: Pass `pid` instead of using `env.pid()`
+    //      so the user can specify any receiver process
+    pid: rustler::LocalPid,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::queryable::ZenohQueryableId>,
 )> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
-    let pid = env.pid();
 
     let session = sessions
         .get(&session_id)

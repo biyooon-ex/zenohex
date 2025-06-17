@@ -44,11 +44,11 @@ defmodule Zenohex.Nif do
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _encoding), do: err()
 
-  @spec session_declare_subscriber(id(), String.t()) :: {:ok, subscriber_id :: id()}
-  def session_declare_subscriber(_session_id, _key_expr), do: err()
+  @spec session_declare_subscriber(id(), String.t(), pid()) :: {:ok, subscriber_id :: id()}
+  def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
 
-  @spec session_declare_queryable(id(), String.t()) :: {:ok, queryable_id :: id()}
-  def session_declare_queryable(_session_id, _key_expr), do: err()
+  @spec session_declare_queryable(id(), String.t(), pid()) :: {:ok, queryable_id :: id()}
+  def session_declare_queryable(_session_id, _key_expr, _pid), do: err()
 
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()

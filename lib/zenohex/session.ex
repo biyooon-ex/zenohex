@@ -25,11 +25,11 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_declare_publisher
 
-  defdelegate declare_subscriber(session_id, key_expr),
+  defdelegate declare_subscriber(session_id, key_expr, pid),
     to: Zenohex.Nif,
     as: :session_declare_subscriber
 
-  defdelegate declare_queryable(session_id, key_expr),
+  defdelegate declare_queryable(session_id, key_expr, pid),
     to: Zenohex.Nif,
     as: :session_declare_queryable
 end
