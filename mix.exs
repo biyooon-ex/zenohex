@@ -19,11 +19,7 @@ defmodule Zenohex.MixProject do
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
-      dialyzer: dialyzer(),
-      aliases: [
-        {:test, [&suggest/1, "test"]},
-        {:"test.watch", [&suggest/1, "test.watch"]}
-      ]
+      dialyzer: dialyzer()
     ]
   end
 
@@ -74,20 +70,7 @@ defmodule Zenohex.MixProject do
   defp docs() do
     [
       extras: ["README.md", "LICENSE"],
-      main: "readme",
-      groups_for_modules: [
-        Configs: [
-          Zenohex.Config,
-          Zenohex.Config.Connect,
-          Zenohex.Config.Scouting
-        ],
-        Options: [
-          Zenohex.Publisher.Options,
-          Zenohex.Query.Options,
-          Zenohex.Queryable.Options,
-          Zenohex.Subscriber.Options
-        ]
-      ]
+      main: "readme"
     ]
   end
 
@@ -104,30 +87,5 @@ defmodule Zenohex.MixProject do
       plt_file: {:no_warn, "priv/plts/project.plt"},
       plt_core_path: "priv/plts/core.plt"
     ]
-  end
-
-  defp suggest(_args) do
-    if is_nil(System.get_env("API_OPEN_SESSION_DELAY")) do
-      """
-      ====================================================================
-      HEY, ZENOHEX DEVELOPER. IF YOU WANNA REDUCE TEST TIME, DO FOLLOWINGS
-      export API_OPEN_SESSION_DELAY=0 && mix compile --force
-      ====================================================================
-      """
-      |> String.trim_trailing()
-      |> Mix.shell().info()
-    end
-
-    if is_nil(System.get_env("SCOUTING_DELAY")) do
-      """
-      ====================================================================
-      HEY, ZENOHEX DEVELOPER. IF YOU WANNA REDUCE TEST TIME,
-      YOU CAN ADJUST SCOUTING DELAY, LIKE FOLLOWINGS
-      SCOUTING_DELAY=30 mix test
-      ====================================================================
-      """
-      |> String.trim_trailing()
-      |> Mix.shell().info()
-    end
   end
 end
