@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use rustler::{Encoder, ListIterator};
 use zenoh::Wait;
@@ -97,7 +97,7 @@ fn session_get<'a>(
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     selector: &'a str,
     timeout: u64,
-) -> Result<crate::sample::ZenohexSample<'a>, rustler::Term<'a>> {
+) -> Result<Vec<crate::sample::ZenohexSample<'a>>, rustler::Term<'a>> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
 
@@ -110,17 +110,33 @@ fn session_get<'a>(
         .wait()
         .map_err(|error| error.to_string().encode(env))?;
 
-    let option_reply = channel_handler
-        .recv_timeout(Duration::from_millis(timeout))
-        .map_err(|error| error.to_string().encode(env))?;
+    let deadline = Instant::now() + Duration::from_millis(timeout);
+    let mut samples = Vec::new();
 
-    let reply = option_reply.ok_or_else(|| "timeout".encode(env))?;
+    loop {
+        // NOTE: `recv_deadline` document says following,
+        //       > If the deadline has expired, this will return None.
+        let option_reply = channel_handler
+            .recv_deadline(deadline)
+            .map_err(|e| e.to_string().encode(env))?;
 
-    let sample = reply.result().map_err(|reply_error| {
-        crate::query::ZenohexQueryReplyError::from(env, reply_error).encode(env)
-    })?;
+        let Some(reply) = option_reply else {
+            // the deadline has expired
+            return Err("timeout".encode(env));
+        };
 
-    Ok(crate::sample::ZenohexSample::from(env, sample))
+        let sample = reply
+            .result()
+            .map_err(|e| crate::query::ZenohexQueryReplyError::from(env, e).encode(env))?;
+
+        samples.push(crate::sample::ZenohexSample::from(env, sample));
+
+        if channel_handler.is_empty() {
+            break;
+        }
+    }
+
+    Ok(samples)
 }
 
 #[rustler::nif]

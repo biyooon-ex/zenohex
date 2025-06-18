@@ -39,7 +39,7 @@ defmodule Zenohex.Nif do
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
   @spec session_get(id(), String.t(), non_neg_integer()) ::
-          {:ok, Zenohex.Sample.t()} | {:error, term()}
+          {:ok, [Zenohex.Sample.t()]} | {:error, :timeout} | {:error, term()}
   def session_get(_session_id, _selector, _timeout), do: err()
 
   @spec session_declare_publisher(id(), String.t(), keyword()) ::

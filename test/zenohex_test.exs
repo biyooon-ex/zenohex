@@ -38,10 +38,12 @@ defmodule ZenohexTest do
     :ok = Zenohex.Query.reply(%{query | payload: "Hello Zenoh Dragon"})
 
     assert {:ok,
-            %Zenohex.Sample{
-              key_expr: "key/expr",
-              payload: "Hello Zenoh Dragon",
-              encoding: "zenoh/bytes"
-            }} = Task.await(task)
+            [
+              %Zenohex.Sample{
+                key_expr: "key/expr",
+                payload: "Hello Zenoh Dragon",
+                encoding: "zenoh/bytes"
+              }
+            ]} = Task.await(task)
   end
 end
