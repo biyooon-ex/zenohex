@@ -69,17 +69,17 @@ impl<'a> ZenohexQueryReplyError<'a> {
 #[rustler::nif]
 fn query_reply(zenohex_query: ZenohexQuery, is_final: bool) -> rustler::NifResult<rustler::Atom> {
     let zenoh_query = &zenohex_query.zenoh_query.0;
-    let mut option_query = zenoh_query.lock().unwrap().take();
-
-    let query = option_query.take().ok_or_else(|| {
-        rustler::Error::Term(Box::new(
-            "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.",
-        ))
-    })?;
+    let mut option_query = zenoh_query.lock().unwrap();
 
     let payload = zenohex_query
         .payload
         .ok_or_else(|| rustler::Error::Term(Box::new("payload not found")))?;
+
+    let query = option_query.as_ref().ok_or_else(|| {
+        rustler::Error::Term(Box::new(
+            "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.",
+        ))
+    })?;
 
     query
         .reply(zenohex_query.key_expr, payload.as_slice())
@@ -89,7 +89,7 @@ fn query_reply(zenohex_query: ZenohexQuery, is_final: bool) -> rustler::NifResul
     if is_final {
         // NOTE: Dropping the query automatically sends a ResponseFinal.
         //       Therefore, we must drop the query explicitly at the end of the reply.
-        drop(query);
+        option_query.take();
     }
 
     Ok(rustler::types::atom::ok())
