@@ -11,7 +11,7 @@ defmodule Zenohex.Example.SubscriberTest do
         restart: :temporary
       )
 
-    :ok = Zenohex.Session.put("key/expr", "payload")
+    :ok = Zenohex.put("key/expr", "payload")
 
     assert_receive %Zenohex.Sample{}
   end

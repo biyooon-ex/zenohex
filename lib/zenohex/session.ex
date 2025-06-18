@@ -7,13 +7,9 @@ defmodule Zenohex.Session do
 
   defdelegate close(id), to: Zenohex.Nif, as: :session_close
 
-  def put(key_expr, payload), do: put(open!(), key_expr, payload)
-
   defdelegate put(session_id, key_expr, payload, opts \\ []),
     to: Zenohex.Nif,
     as: :session_put
-
-  def get(key_expr, timeout), do: get(open!(), key_expr, timeout)
 
   defdelegate get(session_id, selector, timeout),
     to: Zenohex.Nif,
