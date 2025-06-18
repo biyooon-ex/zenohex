@@ -61,7 +61,7 @@ fn session_put(
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: &str,
     payload: &str,
-    encoding: &str,
+    opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
@@ -70,9 +70,22 @@ fn session_put(
         .get(&session_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
 
-    session
-        .put(key_expr, payload)
-        .encoding(encoding)
+    let mut opts_iter: ListIterator = opts.decode()?;
+
+    let publication_builder = session.put(key_expr, payload);
+
+    let publication_builder = opts_iter.try_fold(publication_builder, |builder, pair| {
+        let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
+        match k {
+            k if k == crate::publisher::encoding() => {
+                let encoding: &str = v.decode()?;
+                Ok(builder.encoding(encoding))
+            }
+            _ => Ok(builder),
+        }
+    })?;
+
+    publication_builder
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 

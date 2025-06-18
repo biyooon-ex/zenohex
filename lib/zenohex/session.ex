@@ -11,7 +11,7 @@ defmodule Zenohex.Session do
 
   def put(key_expr, payload), do: put(open!(), key_expr, payload)
 
-  defdelegate put(session_id, key_expr, payload, encoding \\ @zenoh_default_encoding),
+  defdelegate put(session_id, key_expr, payload, opts \\ []),
     to: Zenohex.Nif,
     as: :session_put
 

@@ -33,8 +33,8 @@ defmodule Zenohex.Nif do
   @spec session_close(id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
 
-  @spec session_put(id(), String.t(), String.t(), String.t()) :: :ok | {:error, reason :: term()}
-  def session_put(_session_id, _key_expr, _payload, _encoding), do: err()
+  @spec session_put(id(), String.t(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
+  def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
   @spec session_get(id(), String.t(), non_neg_integer()) ::
           {:ok, Zenohex.Sample.t()} | {:error, term()}
