@@ -1,0 +1,19 @@
+defmodule Zenohex.QueryableTest do
+  use ExUnit.Case
+
+  setup do
+    {:ok, session_id} = Zenohex.Session.open()
+    {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
+    %{
+      session_id: session_id,
+      queryable_id: queryable_id
+    }
+  end
+
+  test "undeclare/1", context do
+    assert :ok = Zenohex.Queryable.undeclare(context.queryable_id)
+    # confirm already undeclare
+    assert {:error, _} = Zenohex.Queryable.undeclare(context.queryable_id)
+  end
+end

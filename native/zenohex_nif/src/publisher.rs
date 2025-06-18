@@ -34,3 +34,22 @@ fn publisher_put(
 
     Ok(rustler::types::atom::ok())
 }
+
+#[rustler::nif]
+fn publisher_undeclare(
+    zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,
+) -> rustler::NifResult<rustler::Atom> {
+    let mut publishers = PUBLISHERS.lock().unwrap();
+    let publisher_id = zenoh_publisher_id_resource.0;
+
+    let publisher = publishers
+        .remove(&publisher_id)
+        .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
+
+    publisher
+        .undeclare()
+        .wait()
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+
+    Ok(rustler::types::atom::ok())
+}

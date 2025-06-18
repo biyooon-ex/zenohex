@@ -17,4 +17,10 @@ defmodule Zenohex.PublisherTest do
     :ok = Zenohex.Session.close(context.session_id)
     assert {:error, _reason} = Zenohex.Publisher.put(context.publisher_id, "payload")
   end
+
+  test "undeclare/1", context do
+    assert :ok = Zenohex.Publisher.undeclare(context.publisher_id)
+    # confirm already undeclare
+    assert {:error, _} = Zenohex.Publisher.undeclare(context.publisher_id)
+  end
 end

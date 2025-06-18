@@ -27,6 +27,8 @@ defmodule Zenohex.Nif do
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 
+  # Session
+
   @spec session_open(binary()) :: {:ok, id()} | {:error, reason :: term()}
   def session_open(_json5_binary), do: err()
 
@@ -50,10 +52,31 @@ defmodule Zenohex.Nif do
   @spec session_declare_queryable(id(), String.t(), pid()) :: {:ok, queryable_id :: id()}
   def session_declare_queryable(_session_id, _key_expr, _pid), do: err()
 
-  def config_default(), do: err()
-  def config_from_json5(_binary), do: err()
+  # Publisher
 
+  @spec publisher_undeclare(id()) :: :ok | {:error, reason :: term()}
+  def publisher_undeclare(_publisher_id), do: err()
+
+  @spec publisher_put(id(), binary()) :: :ok | {:error, reason :: term()}
   def publisher_put(_publisher_id, _payload), do: err()
 
+  # Subscriber
+
+  @spec subscriber_undeclare(id()) :: :ok | {:error, reason :: term()}
+  def subscriber_undeclare(_subscriber_id), do: err()
+
+  # Queryable
+
+  @spec queryable_undeclare(id()) :: :ok | {:error, reason :: term()}
+  def queryable_undeclare(_queryable_id), do: err()
+
+  # Query
+
+  @spec query_reply(Zenohex.Query.t(), boolean()) :: :ok | {:error, reason :: term()}
   def query_reply(_zenohex_query, _final?), do: err()
+
+  # Config
+
+  def config_default(), do: err()
+  def config_from_json5(_binary), do: err()
 end
