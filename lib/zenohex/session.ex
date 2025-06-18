@@ -1,6 +1,4 @@
 defmodule Zenohex.Session do
-  @zenoh_default_encoding "zenoh/bytes"
-
   def open(), do: open(Zenohex.Config.default())
 
   def open!(), do: open() |> then(fn {:ok, session_id} -> session_id end)

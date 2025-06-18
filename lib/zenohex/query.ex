@@ -1,6 +1,4 @@
 defmodule Zenohex.Query do
-  @zenoh_default_encoding "zenoh/bytes"
-
   @type t :: %__MODULE__{
           key_expr: String.t(),
           parameters: String.t(),
