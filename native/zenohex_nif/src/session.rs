@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
-use rustler::Encoder;
+use rustler::{Encoder, ListIterator};
 use zenoh::Wait;
 
 static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>>> =
@@ -114,7 +114,7 @@ fn session_get<'a>(
 fn session_declare_publisher(
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     key_expr: String,
-    encoding: &str,
+    opts: rustler::Term,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::publisher::ZenohPublisherId>,
@@ -126,9 +126,22 @@ fn session_declare_publisher(
         .get(&session_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
 
-    let publisher = session
-        .declare_publisher(key_expr)
-        .encoding(encoding)
+    let mut opts_iter: ListIterator = opts.decode()?;
+
+    let publisher_builder = session.declare_publisher(key_expr);
+
+    let publisher_builder = opts_iter.try_fold(publisher_builder, |builder, pair| {
+        let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
+        match k {
+            k if k == crate::publisher::encoding() => {
+                let encoding: &str = v.decode()?;
+                Ok(builder.encoding(encoding))
+            }
+            _ => Ok(builder),
+        }
+    })?;
+
+    let publisher = publisher_builder
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 

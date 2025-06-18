@@ -21,7 +21,7 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_get
 
-  defdelegate declare_publisher(session_id, key_expr, encoding \\ @zenoh_default_encoding),
+  defdelegate declare_publisher(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_publisher
 

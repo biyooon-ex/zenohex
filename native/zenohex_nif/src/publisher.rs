@@ -11,6 +11,10 @@ pub struct ZenohPublisherId(pub zenoh::session::EntityGlobalId);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohPublisherId {}
 
+rustler::atoms! {
+    encoding,
+}
+
 #[rustler::nif]
 fn publisher_put(
     zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,

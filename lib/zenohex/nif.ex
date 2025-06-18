@@ -40,9 +40,9 @@ defmodule Zenohex.Nif do
           {:ok, Zenohex.Sample.t()} | {:error, term()}
   def session_get(_session_id, _selector, _timeout), do: err()
 
-  @spec session_declare_publisher(id(), String.t(), String.t()) ::
+  @spec session_declare_publisher(id(), String.t(), keyword()) ::
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
-  def session_declare_publisher(_session_id, _key_expr, _encoding), do: err()
+  def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
 
   @spec session_declare_subscriber(id(), String.t(), pid()) :: {:ok, subscriber_id :: id()}
   def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
