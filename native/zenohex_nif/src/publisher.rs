@@ -11,8 +11,10 @@ pub struct ZenohPublisherId(pub zenoh::session::EntityGlobalId);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohPublisherId {}
 
-rustler::atoms! {
-    encoding,
+pub mod atoms {
+    rustler::atoms! {
+        encoding,
+    }
 }
 
 #[rustler::nif]

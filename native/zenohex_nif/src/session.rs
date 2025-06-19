@@ -77,7 +77,7 @@ fn session_put(
     let publication_builder = opts_iter.try_fold(publication_builder, |builder, pair| {
         let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
         match k {
-            k if k == crate::publisher::encoding() => {
+            k if k == crate::publisher::atoms::encoding() => {
                 let encoding: &str = v.decode()?;
                 Ok(builder.encoding(encoding))
             }
@@ -162,7 +162,7 @@ fn session_declare_publisher(
     let publisher_builder = opts_iter.try_fold(publisher_builder, |builder, pair| {
         let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
         match k {
-            k if k == crate::publisher::encoding() => {
+            k if k == crate::publisher::atoms::encoding() => {
                 let encoding: &str = v.decode()?;
                 Ok(builder.encoding(encoding))
             }
