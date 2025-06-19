@@ -1,5 +1,6 @@
 defmodule Zenohex.Query do
   @type t :: %__MODULE__{
+          selector: String.t(),
           key_expr: String.t(),
           parameters: String.t(),
           payload: binary(),
@@ -7,7 +8,12 @@ defmodule Zenohex.Query do
           zenoh_query: Zenohex.Nif.zenoh_query()
         }
 
-  defstruct key_expr: "key/expr", parameters: "", payload: nil, encoding: nil, zenoh_query: nil
+  defstruct selector: "key/expr",
+            key_expr: "key/expr",
+            parameters: "",
+            payload: nil,
+            encoding: nil,
+            zenoh_query: nil
 
   defmodule ReplyError do
     @zenoh_default_encoding "zenoh/bytes"

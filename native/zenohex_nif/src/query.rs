@@ -10,6 +10,7 @@ impl rustler::Resource for ZenohQuery {}
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
 pub(crate) struct ZenohexQuery<'a> {
+    selector: String,
     key_expr: String,
     parameters: String,
     payload: Option<rustler::Binary<'a>>,
@@ -39,6 +40,7 @@ impl<'a> ZenohexQuery<'a> {
         let encoding: Option<String> = query.encoding().map(|encoding| encoding.to_string());
 
         ZenohexQuery {
+            selector: query.selector().to_string(),
             key_expr: query.key_expr().to_string(),
             parameters: query.parameters().to_string(),
             payload: payload_binary,
