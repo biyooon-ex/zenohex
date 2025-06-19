@@ -17,6 +17,12 @@ pub(crate) struct ZenohexQuery<'a> {
     zenoh_query: rustler::ResourceArc<ZenohQuery>,
 }
 
+mod atoms {
+    rustler::atoms! {
+        is_final = "final?",
+    }
+}
+
 impl<'a> ZenohexQuery<'a> {
     pub(crate) fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
         let payload_binary = query.payload().map(|payload| {
@@ -67,13 +73,36 @@ impl<'a> ZenohexQueryReplyError<'a> {
 }
 
 #[rustler::nif]
-fn query_reply(zenohex_query: ZenohexQuery, is_final: bool) -> rustler::NifResult<rustler::Atom> {
-    let zenoh_query = &zenohex_query.zenoh_query.0;
-    let mut option_query = zenoh_query.lock().unwrap();
+fn query_reply(
+    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    key_expr: &str,
+    payload: &str,
+    opts: rustler::Term,
+) -> rustler::NifResult<rustler::Atom> {
+    handle_reply(zenoh_query, opts, |query| {
+        query.reply(key_expr, payload).wait()
+    })
+}
 
-    let payload = zenohex_query
-        .payload
-        .ok_or_else(|| rustler::Error::Term(Box::new("payload not found")))?;
+#[rustler::nif]
+fn query_reply_error(
+    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    payload: &str,
+    opts: rustler::Term,
+) -> rustler::NifResult<rustler::Atom> {
+    handle_reply(zenoh_query, opts, |query| query.reply_err(payload).wait())
+}
+
+fn handle_reply<F>(
+    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    opts: rustler::Term,
+    reply_fn: F,
+) -> rustler::NifResult<rustler::Atom>
+where
+    F: FnOnce(&zenoh::query::Query) -> Result<(), zenoh::Error>,
+{
+    let zenoh_query = &zenoh_query.0;
+    let mut option_query = zenoh_query.lock().unwrap();
 
     let query = option_query.as_ref().ok_or_else(|| {
         rustler::Error::Term(Box::new(
@@ -81,16 +110,32 @@ fn query_reply(zenohex_query: ZenohexQuery, is_final: bool) -> rustler::NifResul
         ))
     })?;
 
-    query
-        .reply(zenohex_query.key_expr, payload.as_slice())
-        .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+    reply_fn(query).map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    if is_final {
+    if let Some(opt_value) = get_opt_value(opts, crate::query::atoms::is_final())? {
         // NOTE: Dropping the query automatically sends a ResponseFinal.
         //       Therefore, we must drop the query explicitly at the end of the reply.
-        option_query.take();
+        let is_final: bool = opt_value.decode()?;
+        if is_final {
+            option_query.take();
+        }
     }
 
     Ok(rustler::types::atom::ok())
+}
+
+fn get_opt_value(
+    opts: rustler::Term,
+    key: rustler::Atom,
+) -> rustler::NifResult<Option<rustler::Term>> {
+    let opts_iter: rustler::ListIterator = opts.decode()?;
+
+    for opt in opts_iter {
+        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+        if k == key {
+            return Ok(Some(v));
+        }
+    }
+
+    Ok(None)
 }

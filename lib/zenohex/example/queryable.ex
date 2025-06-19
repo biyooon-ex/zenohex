@@ -30,11 +30,11 @@ defmodule Zenohex.Example.Queryable do
      }}
   end
 
-  def handle_info(%Zenohex.Query{} = query, state) do
-    %{callback: callback, callback_payload: callback_payload} = state
+  def handle_info(%Zenohex.Query{zenoh_query: zenoh_query} = query, state) do
+    %{key_expr: key_expr, callback: callback, callback_payload: callback_payload} = state
 
     callback.(query)
-    :ok = Zenohex.Query.reply(%{query | payload: callback_payload.(query)})
+    :ok = Zenohex.Query.reply(zenoh_query, key_expr, callback_payload.(query))
 
     {:noreply, state}
   end

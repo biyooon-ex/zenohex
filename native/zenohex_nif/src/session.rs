@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
-use rustler::{Encoder, ListIterator};
+use rustler::Encoder;
 use zenoh::Wait;
 
 static SESSIONS: LazyLock<Mutex<HashMap<zenoh::session::ZenohId, zenoh::Session>>> =
@@ -70,7 +70,7 @@ fn session_put(
         .get(&session_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
 
-    let mut opts_iter: ListIterator = opts.decode()?;
+    let mut opts_iter: rustler::ListIterator = opts.decode()?;
 
     let publication_builder = session.put(key_expr, payload);
 
@@ -97,7 +97,7 @@ fn session_get<'a>(
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     selector: &'a str,
     timeout: u64,
-) -> Result<Vec<crate::sample::ZenohexSample<'a>>, rustler::Term<'a>> {
+) -> Result<Vec<rustler::Term<'a>>, rustler::Term<'a>> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
 
@@ -111,7 +111,7 @@ fn session_get<'a>(
         .map_err(|error| error.to_string().encode(env))?;
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
-    let mut samples = Vec::new();
+    let mut replies = Vec::new();
 
     loop {
         // NOTE: `recv_deadline` document says following,
@@ -125,18 +125,21 @@ fn session_get<'a>(
             return Err("timeout".encode(env));
         };
 
-        let sample = reply
-            .result()
-            .map_err(|e| crate::query::ZenohexQueryReplyError::from(env, e).encode(env))?;
+        let term = match reply.result() {
+            Ok(sample) => crate::sample::ZenohexSample::from(env, sample).encode(env),
+            Err(reply_error) => {
+                crate::query::ZenohexQueryReplyError::from(env, reply_error).encode(env)
+            }
+        };
 
-        samples.push(crate::sample::ZenohexSample::from(env, sample));
+        replies.push(term);
 
         if channel_handler.is_empty() {
             break;
         }
     }
 
-    Ok(samples)
+    Ok(replies)
 }
 
 #[rustler::nif]
@@ -155,7 +158,7 @@ fn session_declare_publisher(
         .get(&session_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
 
-    let mut opts_iter: ListIterator = opts.decode()?;
+    let mut opts_iter: rustler::ListIterator = opts.decode()?;
 
     let publisher_builder = session.declare_publisher(key_expr);
 

@@ -2,6 +2,7 @@ defmodule Zenohex.Nif do
   @moduledoc false
 
   @type id :: reference()
+  @type zenoh_query :: reference()
 
   mix_config = Mix.Project.config()
   version = mix_config[:version]
@@ -39,7 +40,9 @@ defmodule Zenohex.Nif do
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
   @spec session_get(id(), String.t(), non_neg_integer()) ::
-          {:ok, [Zenohex.Sample.t()]} | {:error, :timeout} | {:error, term()}
+          {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
+          | {:error, :timeout}
+          | {:error, term()}
   def session_get(_session_id, _selector, _timeout), do: err()
 
   @spec session_declare_publisher(id(), String.t(), keyword()) ::
@@ -72,8 +75,13 @@ defmodule Zenohex.Nif do
 
   # Query
 
-  @spec query_reply(Zenohex.Query.t(), boolean()) :: :ok | {:error, reason :: term()}
-  def query_reply(_zenohex_query, _final?), do: err()
+  @spec query_reply(zenoh_query(), String.t(), binary(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def query_reply(_zenoh_query, _key_expr, _payload, _opts), do: err()
+
+  @spec query_reply_error(zenoh_query(), binary(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def query_reply_error(_zenoh_query, _payload, _opts), do: err()
 
   # Config
 

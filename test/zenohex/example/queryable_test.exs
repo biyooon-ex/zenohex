@@ -14,7 +14,7 @@ defmodule Zenohex.Example.QueryableTest do
         restart: :temporary
       )
 
-    {:ok, [%Zenohex.Sample{}]} = Zenohex.get("key/expr", 100)
+    {:ok, [%Zenohex.Sample{}]} = Zenohex.get("key/expr/**", 100)
 
     assert_receive %Zenohex.Query{}
   end

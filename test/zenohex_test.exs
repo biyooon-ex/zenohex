@@ -28,36 +28,33 @@ defmodule ZenohexTest do
     task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
 
     assert_receive %Zenohex.Query{
-                     key_expr: "key/expr/**",
-                     parameters: "",
-                     payload: nil,
-                     encoding: nil,
-                     zenoh_query: _zenoh_query
-                   } = query
+      key_expr: "key/expr/**",
+      parameters: "",
+      payload: nil,
+      encoding: nil,
+      zenoh_query: zenoh_query
+    }
 
-    :ok = Zenohex.Query.reply(%{query | key_expr: "key/expr/1", payload: "payload"}, false)
-    :ok = Zenohex.Query.reply(%{query | key_expr: "key/expr/2", payload: "payload"}, false)
-    :ok = Zenohex.Query.reply(%{query | key_expr: "key/expr/3", payload: "payload"}, true)
+    :ok = Zenohex.Query.reply(zenoh_query, "key/expr/1", <<1>>, final?: false)
+    :ok = Zenohex.Query.reply_error(zenoh_query, <<2>>, final?: false)
+    :ok = Zenohex.Query.reply(zenoh_query, "key/expr/3", <<3>>, final?: true)
 
-    assert {:ok, samples} = Task.await(task)
+    assert {:ok, replies} = Task.await(task)
 
     # Check equality ignoring order
-    assert MapSet.new(samples) ==
+    assert MapSet.new(replies) ==
              MapSet.new([
                %Zenohex.Sample{
                  key_expr: "key/expr/1",
-                 payload: "payload",
-                 encoding: "zenoh/bytes"
+                 payload: <<1>>
                },
-               %Zenohex.Sample{
-                 key_expr: "key/expr/2",
-                 payload: "payload",
+               %Zenohex.Query.ReplyError{
+                 payload: <<2>>,
                  encoding: "zenoh/bytes"
                },
                %Zenohex.Sample{
                  key_expr: "key/expr/3",
-                 payload: "payload",
-                 encoding: "zenoh/bytes"
+                 payload: <<3>>
                }
              ])
   end
