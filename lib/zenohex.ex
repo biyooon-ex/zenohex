@@ -9,11 +9,11 @@ defmodule Zenohex do
     end
   end
 
-  def get(key_expr, timeout) do
+  def get(selector, timeout) do
     session_id = Zenohex.Session.open!()
 
     try do
-      Zenohex.Session.get(session_id, key_expr, timeout)
+      Zenohex.Session.get(session_id, selector, timeout)
     after
       Zenohex.Session.close(session_id)
     end
