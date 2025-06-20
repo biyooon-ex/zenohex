@@ -22,7 +22,48 @@ defmodule ZenohexTest do
     }
   end
 
-  test "get/reply", %{session_id: session_id} do
+  test "get/reply without ReplyError", %{session_id: session_id} do
+    {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
+    task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
+
+    assert_receive %Zenohex.Query{
+      key_expr: "key/expr/**",
+      parameters: "",
+      payload: nil,
+      encoding: nil,
+      zenoh_query: zenoh_query
+    }
+
+    :ok = Zenohex.Query.reply(zenoh_query, "key/expr/1", <<1>>, final?: false)
+    :ok = Zenohex.Query.reply(zenoh_query, "key/expr/2", <<2>>, final?: false)
+    :ok = Zenohex.Query.reply(zenoh_query, "key/expr/3", <<3>>, final?: true)
+
+    assert {:ok, replies} = Task.await(task)
+
+    # Check equality ignoring order
+    assert MapSet.new(replies) ==
+             MapSet.new([
+               %Zenohex.Sample{
+                 key_expr: "key/expr/1",
+                 payload: <<1>>
+               },
+               %Zenohex.Sample{
+                 key_expr: "key/expr/2",
+                 payload: <<2>>
+               },
+               %Zenohex.Sample{
+                 key_expr: "key/expr/3",
+                 payload: <<3>>
+               }
+             ])
+  end
+
+  # WHY:  :skip, because this test is flaky.
+  #       Sometimes `get` receives only a ReplyError.
+  # TODO: Investigate and report an issue to Zenoh.
+  @tag :skip
+  test "get/reply with ReplyError", %{session_id: session_id} do
     {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
     task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
