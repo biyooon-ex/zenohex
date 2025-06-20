@@ -16,6 +16,12 @@ struct ZenohSessionId(zenoh::session::ZenohId);
 #[rustler::resource_impl]
 impl rustler::Resource for ZenohSessionId {}
 
+mod atoms {
+    rustler::atoms! {
+        attachment,
+    }
+}
+
 #[rustler::nif]
 fn session_open(
     json5_binary: &str,
@@ -91,24 +97,43 @@ fn session_put(
 
     Ok(rustler::types::atom::ok())
 }
+
 #[rustler::nif(schedule = "DirtyIo")]
 fn session_get<'a>(
     env: rustler::Env<'a>,
     zenoh_session_id_resource: rustler::ResourceArc<ZenohSessionId>,
     selector: &'a str,
     timeout: u64,
-) -> Result<Vec<rustler::Term<'a>>, rustler::Term<'a>> {
+    opts: rustler::Term,
+) -> rustler::NifResult<(rustler::Atom, Vec<rustler::Term<'a>>)> {
     let sessions = SESSIONS.lock().unwrap();
     let session_id = zenoh_session_id_resource.0;
 
     let session = sessions
         .get(&session_id)
-        .ok_or_else(|| "session not found".encode(env))?;
+        .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
 
-    let channel_handler = session
-        .get(selector)
+    let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+    let session_get_builder = session.get(selector);
+
+    let session_get_builder = opts_iter.try_fold(session_get_builder, |builder, opt| {
+        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+        match k {
+            k if k == crate::session::atoms::attachment() => {
+                if let Some(payload) = v.decode::<Option<&str>>()? {
+                    Ok(builder.attachment(payload))
+                } else {
+                    Ok(builder)
+                }
+            }
+            _ => Ok(builder),
+        }
+    })?;
+
+    let channel_handler = session_get_builder
         .wait()
-        .map_err(|error| error.to_string().encode(env))?;
+        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();
@@ -118,11 +143,11 @@ fn session_get<'a>(
         //       > If the deadline has expired, this will return None.
         let option_reply = channel_handler
             .recv_deadline(deadline)
-            .map_err(|error| error.to_string().encode(env))?;
+            .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
         let Some(reply) = option_reply else {
             // the deadline has expired
-            return Err("timeout".encode(env));
+            return Err(rustler::Error::Term(Box::new("timeout")));
         };
 
         let term = match reply.result() {
@@ -139,7 +164,7 @@ fn session_get<'a>(
         }
     }
 
-    Ok(replies)
+    Ok((rustler::types::atom::ok(), replies))
 }
 
 #[rustler::nif]

@@ -39,11 +39,11 @@ defmodule Zenohex.Nif do
   @spec session_put(id(), String.t(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
-  @spec session_get(id(), String.t(), non_neg_integer()) ::
+  @spec session_get(id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
-  def session_get(_session_id, _selector, _timeout), do: err()
+  def session_get(_session_id, _selector, _timeout, _opts), do: err()
 
   @spec session_declare_publisher(id(), String.t(), keyword()) ::
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
@@ -87,4 +87,8 @@ defmodule Zenohex.Nif do
 
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()
+
+  # Helper
+
+  def keyword_get_value(_keyword, _key), do: err()
 end

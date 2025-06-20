@@ -3,17 +3,13 @@ defmodule Zenohex.Query do
           selector: String.t(),
           key_expr: String.t(),
           parameters: String.t(),
-          payload: binary(),
-          encoding: String.t(),
+          payload: binary() | nil,
+          encoding: String.t() | nil,
+          attachment: binary() | nil,
           zenoh_query: Zenohex.Nif.zenoh_query()
         }
 
-  defstruct selector: "key/expr",
-            key_expr: "key/expr",
-            parameters: "",
-            payload: nil,
-            encoding: nil,
-            zenoh_query: nil
+  defstruct [:selector, :key_expr, :parameters, :payload, :encoding, :attachment, :zenoh_query]
 
   defmodule ReplyError do
     @zenoh_default_encoding "zenoh/bytes"

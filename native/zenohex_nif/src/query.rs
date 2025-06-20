@@ -15,6 +15,7 @@ pub(crate) struct ZenohexQuery<'a> {
     parameters: String,
     payload: Option<rustler::Binary<'a>>,
     encoding: Option<String>,
+    attachment: Option<rustler::Binary<'a>>,
     zenoh_query: rustler::ResourceArc<ZenohQuery>,
 }
 
@@ -37,6 +38,17 @@ impl<'a> ZenohexQuery<'a> {
             payload_binary.release(env)
         });
 
+        let attachment_binary = query.attachment().map(|attachment| {
+            let mut attachment_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
+
+            attachment_binary
+                .as_mut_slice()
+                .write_all(&attachment.to_bytes())
+                .unwrap();
+
+            attachment_binary.release(env)
+        });
+
         let encoding: Option<String> = query.encoding().map(|encoding| encoding.to_string());
 
         ZenohexQuery {
@@ -45,6 +57,7 @@ impl<'a> ZenohexQuery<'a> {
             parameters: query.parameters().to_string(),
             payload: payload_binary,
             encoding,
+            attachment: attachment_binary,
             zenoh_query: rustler::ResourceArc::new(ZenohQuery(Mutex::new(Some(query.clone())))),
         }
     }
@@ -114,7 +127,9 @@ where
 
     reply_fn(query).map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    if let Some(opt_value) = get_opt_value(opts, crate::query::atoms::is_final())? {
+    if let Some(opt_value) =
+        crate::helper::keyword::get_value(opts, crate::query::atoms::is_final())?
+    {
         // NOTE: Dropping the query automatically sends a ResponseFinal.
         //       Therefore, we must drop the query explicitly at the end of the reply.
         let is_final: bool = opt_value.decode()?;
@@ -124,20 +139,4 @@ where
     }
 
     Ok(rustler::types::atom::ok())
-}
-
-fn get_opt_value(
-    opts: rustler::Term,
-    key: rustler::Atom,
-) -> rustler::NifResult<Option<rustler::Term>> {
-    let opts_iter: rustler::ListIterator = opts.decode()?;
-
-    for opt in opts_iter {
-        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
-        if k == key {
-            return Ok(Some(v));
-        }
-    }
-
-    Ok(None)
 }

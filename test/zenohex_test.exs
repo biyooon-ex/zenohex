@@ -25,13 +25,20 @@ defmodule ZenohexTest do
   test "get/reply without ReplyError", %{session_id: session_id} do
     {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
-    task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
+    task =
+      Task.async(Zenohex.Session, :get, [
+        session_id,
+        "key/expr/**",
+        100,
+        [attachment: <<0>>]
+      ])
 
     assert_receive %Zenohex.Query{
       key_expr: "key/expr/**",
       parameters: "",
       payload: nil,
       encoding: nil,
+      attachment: <<0>>,
       zenoh_query: zenoh_query
     }
 
