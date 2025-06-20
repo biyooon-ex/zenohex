@@ -74,8 +74,8 @@ fn session_put(
 
     let publication_builder = session.put(key_expr, payload);
 
-    let publication_builder = opts_iter.try_fold(publication_builder, |builder, pair| {
-        let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
+    let publication_builder = opts_iter.try_fold(publication_builder, |builder, opt| {
+        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
         match k {
             k if k == crate::publisher::atoms::encoding() => {
                 let encoding: &str = v.decode()?;
@@ -118,7 +118,7 @@ fn session_get<'a>(
         //       > If the deadline has expired, this will return None.
         let option_reply = channel_handler
             .recv_deadline(deadline)
-            .map_err(|e| e.to_string().encode(env))?;
+            .map_err(|error| error.to_string().encode(env))?;
 
         let Some(reply) = option_reply else {
             // the deadline has expired
@@ -162,8 +162,8 @@ fn session_declare_publisher(
 
     let publisher_builder = session.declare_publisher(key_expr);
 
-    let publisher_builder = opts_iter.try_fold(publisher_builder, |builder, pair| {
-        let (k, v): (rustler::Atom, rustler::Term) = pair.decode()?;
+    let publisher_builder = opts_iter.try_fold(publisher_builder, |builder, opt| {
+        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
         match k {
             k if k == crate::publisher::atoms::encoding() => {
                 let encoding: &str = v.decode()?;
