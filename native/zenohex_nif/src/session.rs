@@ -35,7 +35,6 @@ fn session_open(
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
     let session_id = session.zid();
-
     insert_session(session_id, session)?;
 
     Ok((
@@ -187,9 +186,9 @@ fn session_declare_publisher(
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    let mut publishers = crate::publisher::PUBLISHERS.lock().unwrap();
     let publisher_id = publisher.id();
-    publishers.insert(publisher_id, publisher);
+    let mut map = crate::publisher::PUBLISHER_MAP.lock().unwrap();
+    map.insert(publisher_id, publisher);
 
     Ok((
         rustler::types::atom::ok(),
@@ -226,9 +225,9 @@ fn session_declare_subscriber(
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    let mut subscribers = crate::subscriber::SUBSCRIBERS.lock().unwrap();
     let subscriber_id = subscriber.id();
-    subscribers.insert(subscriber_id, subscriber);
+    let mut map = crate::subscriber::SUBSCRIBER_MAP.lock().unwrap();
+    map.insert(subscriber_id, subscriber);
 
     Ok((
         rustler::types::atom::ok(),
@@ -265,9 +264,9 @@ fn session_declare_queryable(
         .wait()
         .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    let mut queryables = crate::queryable::QUERYABLES.lock().unwrap();
     let queryable_id = queryable.id();
-    queryables.insert(queryable_id, queryable);
+    let mut map = crate::queryable::QUERYABLE_MAP.lock().unwrap();
+    map.insert(queryable_id, queryable);
 
     Ok((
         rustler::types::atom::ok(),
@@ -279,29 +278,22 @@ fn insert_session(
     session_id: zenoh::session::ZenohId,
     session: zenoh::Session,
 ) -> rustler::NifResult<rustler::Atom> {
-    SESSION_MAP
-        .lock()
-        .unwrap()
-        .insert(session_id, session)
-        .map_or_else(
-            || Ok(rustler::types::atom::ok()),
-            |_| Err(rustler::Error::Term(Box::new("session already inserted"))),
-        )
+    let mut map = SESSION_MAP.lock().unwrap();
+    map.insert(session_id, session).map_or_else(
+        || Ok(rustler::types::atom::ok()),
+        |_| Err(rustler::Error::Term(Box::new("session already inserted"))),
+    )
 }
 
 fn get_session(session_id: &zenoh::session::ZenohId) -> rustler::NifResult<zenoh::Session> {
-    SESSION_MAP
-        .lock()
-        .unwrap()
-        .get(session_id)
+    let map = SESSION_MAP.lock().unwrap();
+    map.get(session_id)
         .cloned()
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
 }
 
 fn remove_session(session_id: &zenoh::session::ZenohId) -> rustler::NifResult<zenoh::Session> {
-    SESSION_MAP
-        .lock()
-        .unwrap()
-        .remove(session_id)
+    let mut map = SESSION_MAP.lock().unwrap();
+    map.remove(session_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
 }

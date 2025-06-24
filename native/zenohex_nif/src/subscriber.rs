@@ -3,7 +3,7 @@ use std::sync::{LazyLock, Mutex};
 
 use zenoh::Wait;
 
-pub static SUBSCRIBERS: LazyLock<
+pub static SUBSCRIBER_MAP: LazyLock<
     Mutex<HashMap<zenoh::session::EntityGlobalId, zenoh::pubsub::Subscriber<()>>>,
 > = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -15,10 +15,10 @@ impl rustler::Resource for ZenohSubscriberId {}
 fn subscriber_undeclare(
     zenoh_subscriber_id_resource: rustler::ResourceArc<ZenohSubscriberId>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let mut subscribers = SUBSCRIBERS.lock().unwrap();
     let subscriber_id = zenoh_subscriber_id_resource.0;
+    let mut map = SUBSCRIBER_MAP.lock().unwrap();
 
-    let subscriber = subscribers
+    let subscriber = map
         .remove(&subscriber_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("subscriber not found")))?;
 

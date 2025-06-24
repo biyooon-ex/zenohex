@@ -3,7 +3,7 @@ use std::sync::{LazyLock, Mutex};
 
 use zenoh::Wait;
 
-pub static PUBLISHERS: LazyLock<
+pub static PUBLISHER_MAP: LazyLock<
     Mutex<HashMap<zenoh::session::EntityGlobalId, zenoh::pubsub::Publisher>>,
 > = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -22,10 +22,10 @@ fn publisher_put(
     zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,
     payload: &str,
 ) -> rustler::NifResult<rustler::Atom> {
-    let publishers = PUBLISHERS.lock().unwrap();
     let publisher_id = zenoh_publisher_id_resource.0;
+    let map = PUBLISHER_MAP.lock().unwrap();
 
-    let publisher = publishers
+    let publisher = map
         .get(&publisher_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
 
@@ -41,10 +41,10 @@ fn publisher_put(
 fn publisher_undeclare(
     zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let mut publishers = PUBLISHERS.lock().unwrap();
     let publisher_id = zenoh_publisher_id_resource.0;
+    let mut map = PUBLISHER_MAP.lock().unwrap();
 
-    let publisher = publishers
+    let publisher = map
         .remove(&publisher_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
 

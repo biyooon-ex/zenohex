@@ -3,7 +3,7 @@ use std::sync::{LazyLock, Mutex};
 
 use zenoh::Wait;
 
-pub static QUERYABLES: LazyLock<
+pub static QUERYABLE_MAP: LazyLock<
     Mutex<HashMap<zenoh::session::EntityGlobalId, zenoh::query::Queryable<()>>>,
 > = LazyLock::new(|| Mutex::new(HashMap::new()));
 
@@ -15,10 +15,10 @@ impl rustler::Resource for ZenohQueryableId {}
 fn queryable_undeclare(
     zenoh_queryable_id_resource: rustler::ResourceArc<ZenohQueryableId>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let mut queryables = QUERYABLES.lock().unwrap();
     let queryable_id = zenoh_queryable_id_resource.0;
+    let mut map = QUERYABLE_MAP.lock().unwrap();
 
-    let queryable = queryables
+    let queryable = map
         .remove(&queryable_id)
         .ok_or_else(|| rustler::Error::Term(Box::new("queryable not found")))?;
 
