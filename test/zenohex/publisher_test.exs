@@ -2,7 +2,11 @@ defmodule Zenohex.PublisherTest do
   use ExUnit.Case
 
   setup do
-    {:ok, session_id} = Zenohex.Session.open()
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
+
     {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
 
     %{

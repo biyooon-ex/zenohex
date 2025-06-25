@@ -2,7 +2,10 @@ defmodule ZenohexTest do
   use ExUnit.Case
 
   setup do
-    {:ok, session_id} = Zenohex.Session.open()
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
 
     on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 

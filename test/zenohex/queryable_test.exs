@@ -2,7 +2,11 @@ defmodule Zenohex.QueryableTest do
   use ExUnit.Case
 
   setup do
-    {:ok, session_id} = Zenohex.Session.open()
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
+
     {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
     %{
