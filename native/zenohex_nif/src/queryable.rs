@@ -1,31 +1,26 @@
-use std::collections::HashMap;
-use std::sync::{LazyLock, Mutex};
-
 use zenoh::Wait;
-
-pub static QUERYABLE_MAP: LazyLock<
-    Mutex<HashMap<zenoh::session::EntityGlobalId, zenoh::query::Queryable<()>>>,
-> = LazyLock::new(|| Mutex::new(HashMap::new()));
-
-pub struct ZenohQueryableId(pub zenoh::session::EntityGlobalId);
-#[rustler::resource_impl]
-impl rustler::Resource for ZenohQueryableId {}
 
 #[rustler::nif]
 fn queryable_undeclare(
-    zenoh_queryable_id_resource: rustler::ResourceArc<ZenohQueryableId>,
+    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let queryable_id = zenoh_queryable_id_resource.0;
-    let mut map = QUERYABLE_MAP.lock().unwrap();
+    let session_id = &entity_id_resource.0.zid();
+    let entity_id = &entity_id_resource.0;
 
-    let queryable = map
-        .remove(&queryable_id)
-        .ok_or_else(|| rustler::Error::Term(Box::new("queryable not found")))?;
+    let session =
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+    let mut locked_session = session.write().unwrap();
+    let entity = locked_session.remove_entity(entity_id)?;
 
-    queryable
-        .undeclare()
-        .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+    match entity {
+        crate::session::Entity::Queryable(queryable) => {
+            queryable
+                .undeclare()
+                .wait()
+                .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    Ok(rustler::types::atom::ok())
+            Ok(rustler::types::atom::ok())
+        }
+        other => unreachable!("unexpected entity: {:#?}", other),
+    }
 }

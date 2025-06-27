@@ -1,15 +1,4 @@
-use std::collections::HashMap;
-use std::sync::{LazyLock, Mutex};
-
 use zenoh::Wait;
-
-pub static PUBLISHER_MAP: LazyLock<
-    Mutex<HashMap<zenoh::session::EntityGlobalId, zenoh::pubsub::Publisher>>,
-> = LazyLock::new(|| Mutex::new(HashMap::new()));
-
-pub struct ZenohPublisherId(pub zenoh::session::EntityGlobalId);
-#[rustler::resource_impl]
-impl rustler::Resource for ZenohPublisherId {}
 
 pub mod atoms {
     rustler::atoms! {
@@ -19,39 +8,51 @@ pub mod atoms {
 
 #[rustler::nif]
 fn publisher_put(
-    zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,
-    payload: &str,
+    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
+    payload: String,
 ) -> rustler::NifResult<rustler::Atom> {
-    let publisher_id = zenoh_publisher_id_resource.0;
-    let map = PUBLISHER_MAP.lock().unwrap();
+    let session_id = &entity_id_resource.0.zid();
+    let entity_id = &entity_id_resource.0;
 
-    let publisher = map
-        .get(&publisher_id)
-        .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
+    let session =
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+    let locked_session = session.read().unwrap();
+    let entity = locked_session.get_entity(entity_id)?;
 
-    publisher
-        .put(payload)
-        .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+    match entity {
+        crate::session::Entity::Publisher(publisher) => {
+            publisher
+                .put(payload)
+                .wait()
+                .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    Ok(rustler::types::atom::ok())
+            Ok(rustler::types::atom::ok())
+        }
+        other => unreachable!("unexpected entity: {:#?}", other),
+    }
 }
 
 #[rustler::nif]
 fn publisher_undeclare(
-    zenoh_publisher_id_resource: rustler::ResourceArc<ZenohPublisherId>,
+    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let publisher_id = zenoh_publisher_id_resource.0;
-    let mut map = PUBLISHER_MAP.lock().unwrap();
+    let session_id = &entity_id_resource.0.zid();
+    let entity_id = &entity_id_resource.0;
 
-    let publisher = map
-        .remove(&publisher_id)
-        .ok_or_else(|| rustler::Error::Term(Box::new("publisher not found")))?;
+    let session =
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+    let mut locked_session = session.write().unwrap();
+    let entity = locked_session.remove_entity(entity_id)?;
 
-    publisher
-        .undeclare()
-        .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+    match entity {
+        crate::session::Entity::Publisher(publisher) => {
+            publisher
+                .undeclare()
+                .wait()
+                .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    Ok(rustler::types::atom::ok())
+            Ok(rustler::types::atom::ok())
+        }
+        other => unreachable!("unexpected entity: {:#?}", other),
+    }
 }
