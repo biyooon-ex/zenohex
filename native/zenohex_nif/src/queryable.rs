@@ -13,7 +13,7 @@ fn queryable_undeclare(
     let entity = locked_session.remove_entity(entity_id)?;
 
     match entity {
-        crate::session::Entity::Queryable(queryable) => {
+        crate::session::Entity::Queryable(queryable, _) => {
             queryable
                 .undeclare()
                 .wait()
@@ -21,6 +21,6 @@ fn queryable_undeclare(
 
             Ok(rustler::types::atom::ok())
         }
-        other => unreachable!("unexpected entity: {:#?}", other),
+        _ => unreachable!("unexpected entity"),
     }
 }

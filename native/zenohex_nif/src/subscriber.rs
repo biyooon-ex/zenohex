@@ -13,7 +13,7 @@ fn subscriber_undeclare(
     let entity = locked_session.remove_entity(entity_id)?;
 
     match entity {
-        crate::session::Entity::Subscriber(subscriber) => {
+        crate::session::Entity::Subscriber(subscriber, _) => {
             subscriber
                 .undeclare()
                 .wait()
@@ -21,6 +21,6 @@ fn subscriber_undeclare(
 
             Ok(rustler::types::atom::ok())
         }
-        other => unreachable!("unexpected entity: {:#?}", other),
+        _ => unreachable!("unexpected entity"),
     }
 }

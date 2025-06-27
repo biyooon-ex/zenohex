@@ -20,7 +20,7 @@ fn publisher_put(
     let entity = locked_session.get_entity(entity_id)?;
 
     match entity {
-        crate::session::Entity::Publisher(publisher) => {
+        crate::session::Entity::Publisher(publisher, _) => {
             publisher
                 .put(payload)
                 .wait()
@@ -28,7 +28,7 @@ fn publisher_put(
 
             Ok(rustler::types::atom::ok())
         }
-        other => unreachable!("unexpected entity: {:#?}", other),
+        _ => unreachable!("unexpected entity"),
     }
 }
 
@@ -45,7 +45,7 @@ fn publisher_undeclare(
     let entity = locked_session.remove_entity(entity_id)?;
 
     match entity {
-        crate::session::Entity::Publisher(publisher) => {
+        crate::session::Entity::Publisher(publisher, _) => {
             publisher
                 .undeclare()
                 .wait()
@@ -53,6 +53,6 @@ fn publisher_undeclare(
 
             Ok(rustler::types::atom::ok())
         }
-        other => unreachable!("unexpected entity: {:#?}", other),
+        _ => unreachable!("unexpected entity"),
     }
 }
