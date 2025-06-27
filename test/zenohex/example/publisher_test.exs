@@ -1,18 +1,38 @@
 defmodule Zenohex.Example.PublisherTest do
   use ExUnit.Case
 
-  test "put correctly" do
+  setup do
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
+
+    %{session_id: session_id}
+  end
+
+  test "put correctly", context do
     me = self()
 
     {:ok, _pid} =
       start_supervised(
         {Zenohex.Example.Subscriber,
-         [key_expr: "key/expr", callback: fn sample -> send(me, sample) end]},
+         [
+           session_id: context.session_id,
+           key_expr: "key/expr",
+           callback: fn sample -> send(me, sample) end
+         ]},
         restart: :temporary
       )
 
     {:ok, _pid} =
-      start_supervised({Zenohex.Example.Publisher, [key_expr: "key/expr"]}, restart: :temporary)
+      start_supervised(
+        {Zenohex.Example.Publisher,
+         [
+           session_id: context.session_id,
+           key_expr: "key/expr"
+         ]},
+        restart: :temporary
+      )
 
     :ok = Zenohex.Example.Publisher.put("payload")
 
