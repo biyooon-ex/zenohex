@@ -88,6 +88,9 @@ defmodule Zenohex.Nif do
   def config_default(), do: err()
   def config_from_json5(_binary), do: err()
 
+  # Logger
+  def logger_init(_pid), do: err()
+
   # Helper
 
   def keyword_get_value(_keyword, _key), do: err()

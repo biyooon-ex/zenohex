@@ -123,13 +123,15 @@ impl Drop for SessionIdResource {
         match SessionMap::remove_session(&SESSION_MAP, session_id) {
             Ok(session) => {
                 let locked_session = session.write().unwrap();
-                if !locked_session.inner.is_closed() {
+                if locked_session.inner.is_closed() {
+                    crate::helper::logger::logger_debug("session already closed.")
+                } else {
                     locked_session.inner.close().wait().unwrap();
+                    crate::helper::logger::logger_debug("session closed by drop.")
                 }
             }
-            Err(_error) => println!("session already dropped."),
+            Err(_error) => crate::helper::logger::logger_debug("session already removed."),
         }
-        println!("SessionIdResourceArc dropped!!");
     }
 }
 
