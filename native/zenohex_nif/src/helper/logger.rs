@@ -46,22 +46,22 @@ fn logger_init(pid: rustler::LocalPid) -> rustler::NifResult<rustler::Atom> {
 }
 
 #[allow(dead_code)]
-pub(crate) fn logger_debug<T: AsRef<str>>(message: T) {
+pub fn logger_debug<T: AsRef<str>>(message: T) {
     logger_impl(atoms::debug(), message.as_ref());
 }
 
 #[allow(dead_code)]
-pub(crate) fn logger_info<T: AsRef<str>>(message: T) {
+pub fn logger_info<T: AsRef<str>>(message: T) {
     logger_impl(atoms::info(), message.as_ref());
 }
 
 #[allow(dead_code)]
-pub(crate) fn logger_warning<T: AsRef<str>>(message: T) {
+pub fn logger_warning<T: AsRef<str>>(message: T) {
     logger_impl(atoms::warning(), message.as_ref());
 }
 
 #[allow(dead_code)]
-pub(crate) fn logger_error<T: AsRef<str>>(message: T) {
+pub fn logger_error<T: AsRef<str>>(message: T) {
     logger_impl(atoms::error(), message.as_ref());
 }
 

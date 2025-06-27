@@ -2,14 +2,14 @@ use std::io::Write;
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Sample"]
-pub(crate) struct ZenohexSample<'a> {
+pub struct ZenohexSample<'a> {
     key_expr: String,
     payload: rustler::Binary<'a>,
     encoding: String,
 }
 
 impl<'a> ZenohexSample<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, sample: &zenoh::sample::Sample) -> Self {
+    pub fn from(env: rustler::Env<'a>, sample: &zenoh::sample::Sample) -> Self {
         let payload = sample.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
 

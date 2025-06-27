@@ -2,15 +2,15 @@ use zenoh::Wait;
 
 #[rustler::nif]
 fn queryable_undeclare(
-    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
+    entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_id_resource.0.zid();
-    let entity_id = &entity_id_resource.0;
+    let session_id = &entity_global_id_resource.zid();
+    let entity_global_id = &entity_global_id_resource;
 
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
-    let mut locked_session = session.write().unwrap();
-    let entity = locked_session.remove_entity(entity_id)?;
+    let mut session_locked = session.write().unwrap();
+    let entity = session_locked.remove_entity(entity_global_id)?;
 
     match entity {
         crate::session::Entity::Queryable(queryable, _) => {

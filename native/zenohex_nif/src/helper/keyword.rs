@@ -6,7 +6,7 @@ fn keyword_get_value(
     get_value(keyword, key)
 }
 
-pub(crate) fn get_value(
+pub fn get_value(
     keyword: rustler::Term,
     key: rustler::Atom,
 ) -> rustler::NifResult<Option<rustler::Term>> {

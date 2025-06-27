@@ -1,32 +1,42 @@
 use std::io::Write;
+use std::ops::Deref;
 use std::sync::Mutex;
 
 use zenoh::Wait;
 
-struct ZenohQuery(Mutex<Option<zenoh::query::Query>>);
+struct QueryResource(Mutex<Option<zenoh::query::Query>>);
+
 #[rustler::resource_impl]
-impl rustler::Resource for ZenohQuery {}
+impl rustler::Resource for QueryResource {}
+
+impl Deref for QueryResource {
+    type Target = Mutex<Option<zenoh::query::Query>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl QueryResource {
+    fn new(query: zenoh::query::Query) -> QueryResource {
+        QueryResource(Mutex::new(Some(query)))
+    }
+}
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
-pub(crate) struct ZenohexQuery<'a> {
+pub struct ZenohexQuery<'a> {
     selector: String,
     key_expr: String,
     parameters: String,
     payload: Option<rustler::Binary<'a>>,
     encoding: Option<String>,
     attachment: Option<rustler::Binary<'a>>,
-    zenoh_query: rustler::ResourceArc<ZenohQuery>,
-}
-
-mod atoms {
-    rustler::atoms! {
-        is_final = "final?",
-    }
+    zenoh_query: rustler::ResourceArc<QueryResource>,
 }
 
 impl<'a> ZenohexQuery<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
+    pub fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
         let payload_binary = query.payload().map(|payload| {
             let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
 
@@ -58,20 +68,20 @@ impl<'a> ZenohexQuery<'a> {
             payload: payload_binary,
             encoding,
             attachment: attachment_binary,
-            zenoh_query: rustler::ResourceArc::new(ZenohQuery(Mutex::new(Some(query.clone())))),
+            zenoh_query: rustler::ResourceArc::new(QueryResource::new(query.clone())),
         }
     }
 }
 
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query.ReplyError"]
-pub(crate) struct ZenohexQueryReplyError<'a> {
+pub struct ZenohexQueryReplyError<'a> {
     payload: rustler::Binary<'a>,
     encoding: String,
 }
 
 impl<'a> ZenohexQueryReplyError<'a> {
-    pub(crate) fn from(env: rustler::Env<'a>, reply_error: &zenoh::query::ReplyError) -> Self {
+    pub fn from(env: rustler::Env<'a>, reply_error: &zenoh::query::ReplyError) -> Self {
         let payload = reply_error.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
 
@@ -89,47 +99,47 @@ impl<'a> ZenohexQueryReplyError<'a> {
 
 #[rustler::nif]
 fn query_reply(
-    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    query_resource: rustler::ResourceArc<QueryResource>,
     key_expr: &str,
     payload: &str,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    handle_reply(zenoh_query, opts, |query| {
+    handle_reply(query_resource, opts, |query| {
         query.reply(key_expr, payload).wait()
     })
 }
 
 #[rustler::nif]
 fn query_reply_error(
-    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    query_resource: rustler::ResourceArc<QueryResource>,
     payload: &str,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    handle_reply(zenoh_query, opts, |query| query.reply_err(payload).wait())
+    handle_reply(query_resource, opts, |query| {
+        query.reply_err(payload).wait()
+    })
 }
 
 fn handle_reply<F>(
-    zenoh_query: rustler::ResourceArc<ZenohQuery>,
+    query_resource: rustler::ResourceArc<QueryResource>,
     opts: rustler::Term,
     reply_fn: F,
 ) -> rustler::NifResult<rustler::Atom>
 where
     F: FnOnce(&zenoh::query::Query) -> Result<(), zenoh::Error>,
 {
-    let zenoh_query = &zenoh_query.0;
-    let mut option_query = zenoh_query.lock().unwrap();
+    let query_resource = &query_resource;
+    let mut option_query = query_resource.lock().unwrap();
 
     let query = option_query.as_ref().ok_or_else(|| {
         rustler::Error::Term(Box::new(
-            "ZenohQuery has already been dropped, which means ResponseFinal has already been sent.",
+            "QueryResource has already been dropped, which means ResponseFinal has already been sent.",
         ))
     })?;
 
     reply_fn(query).map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
 
-    if let Some(opt_value) =
-        crate::helper::keyword::get_value(opts, crate::query::atoms::is_final())?
-    {
+    if let Some(opt_value) = crate::helper::keyword::get_value(opts, crate::atoms::is_final())? {
         // NOTE: Dropping the query automatically sends a ResponseFinal.
         //       Therefore, we must drop the query explicitly at the end of the reply.
         let is_final: bool = opt_value.decode()?;

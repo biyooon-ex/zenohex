@@ -9,7 +9,10 @@ mod subscriber;
 
 mod atoms {
     rustler::atoms! {
-        zenohex_nif = "Elixir.Zenohex.Nif"
+        attachment,
+        encoding,
+        is_final = "final?",
+        zenohex_nif = "Elixir.Zenohex.Nif",
     }
 }
 

@@ -1,23 +1,17 @@
 use zenoh::Wait;
 
-pub mod atoms {
-    rustler::atoms! {
-        encoding,
-    }
-}
-
 #[rustler::nif]
 fn publisher_put(
-    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
+    entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     payload: String,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_id_resource.0.zid();
-    let entity_id = &entity_id_resource.0;
+    let session_id = &entity_global_id_resource.zid();
+    let entity_global_id = &entity_global_id_resource;
 
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
-    let locked_session = session.read().unwrap();
-    let entity = locked_session.get_entity(entity_id)?;
+    let session_locked = session.read().unwrap();
+    let entity = session_locked.get_entity(entity_global_id)?;
 
     match entity {
         crate::session::Entity::Publisher(publisher, _) => {
@@ -34,15 +28,15 @@ fn publisher_put(
 
 #[rustler::nif]
 fn publisher_undeclare(
-    entity_id_resource: rustler::ResourceArc<crate::session::EntityIdResource>,
+    entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_id_resource.0.zid();
-    let entity_id = &entity_id_resource.0;
+    let session_id = &entity_global_id_resource.zid();
+    let entity_global_id = &entity_global_id_resource;
 
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
-    let mut locked_session = session.write().unwrap();
-    let entity = locked_session.remove_entity(entity_id)?;
+    let mut session_locked = session.write().unwrap();
+    let entity = session_locked.remove_entity(entity_global_id)?;
 
     match entity {
         crate::session::Entity::Publisher(publisher, _) => {
