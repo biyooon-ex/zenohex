@@ -200,11 +200,11 @@ fn session_open(
     json5_binary: &str,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<SessionIdResource>)> {
     let config = zenoh::Config::from_json5(json5_binary)
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let session = zenoh::open(config)
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let session_id = session.zid();
 
@@ -227,7 +227,7 @@ fn session_close(
     session_locked
         .close()
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     Ok(rustler::types::atom::ok())
 }
@@ -260,7 +260,7 @@ fn session_put(
 
     publication_builder
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     Ok(rustler::types::atom::ok())
 }
@@ -297,7 +297,7 @@ fn session_get<'a>(
 
     let channel_handler = session_get_builder
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();
@@ -307,7 +307,7 @@ fn session_get<'a>(
         //       > If the deadline has expired, this will return None.
         let option_reply = channel_handler
             .recv_deadline(deadline)
-            .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
         let Some(reply) = option_reply else {
             // the deadline has expired
@@ -356,7 +356,7 @@ fn session_declare_publisher(
 
     let publisher = publisher_builder
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let publisher_id = publisher.id();
     session_locked.insert_entity(
@@ -395,7 +395,7 @@ fn session_declare_subscriber(
             });
         })
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
@@ -434,7 +434,7 @@ fn session_declare_queryable(
             });
         })
         .wait()
-        .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let queryable_id = queryable.id();
     session_locked.insert_entity(

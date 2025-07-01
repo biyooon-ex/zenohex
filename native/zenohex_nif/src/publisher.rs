@@ -18,7 +18,7 @@ fn publisher_put(
             publisher
                 .put(payload)
                 .wait()
-                .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+                .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
             Ok(rustler::types::atom::ok())
         }
@@ -43,7 +43,7 @@ fn publisher_undeclare(
             publisher
                 .undeclare()
                 .wait()
-                .map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+                .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
             Ok(rustler::types::atom::ok())
         }

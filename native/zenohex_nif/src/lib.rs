@@ -1,3 +1,15 @@
+#[macro_export]
+macro_rules! zenoh_error {
+    ($error:expr) => {
+        Box::new(format!(
+            "native/zenohex_nif/{}:{}: {}",
+            file!(),
+            line!(),
+            $error.to_string()
+        ))
+    };
+}
+
 mod config;
 mod helper;
 mod publisher;

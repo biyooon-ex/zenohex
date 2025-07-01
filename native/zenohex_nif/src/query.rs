@@ -137,7 +137,7 @@ where
         ))
     })?;
 
-    reply_fn(query).map_err(|error| rustler::Error::Term(Box::new(error.to_string())))?;
+    reply_fn(query).map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     if let Some(opt_value) = crate::helper::keyword::get_value(opts, crate::atoms::is_final())? {
         // NOTE: Dropping the query automatically sends a ResponseFinal.
