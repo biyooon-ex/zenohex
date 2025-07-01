@@ -89,7 +89,13 @@ defmodule Zenohex.Nif do
   def config_from_json5(_binary), do: err()
 
   # Logger
-  def logger_init(_pid), do: err()
+  def nif_logger_init(_pid), do: err()
+  def nif_logger_enable(), do: err()
+  def nif_logger_disable(), do: err()
+  def nif_logger_get_target(), do: err()
+  def nif_logger_set_target(_target), do: err()
+  def nif_logger_get_level(), do: err()
+  def nif_logger_set_level(_level), do: err()
 
   # Helper
 

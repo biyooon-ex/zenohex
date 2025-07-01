@@ -1,4 +1,4 @@
-defmodule Zenohex.Logger.Supervisor do
+defmodule Zenohex.Nif.Logger.Supervisor do
   use Supervisor
 
   def start_link(args) do
@@ -7,7 +7,7 @@ defmodule Zenohex.Logger.Supervisor do
 
   def init(_args) do
     children = [
-      {Zenohex.Logger.GenServer, []}
+      {Zenohex.Nif.Logger.GenServer, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

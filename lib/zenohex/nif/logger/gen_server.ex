@@ -1,4 +1,4 @@
-defmodule Zenohex.Logger.GenServer do
+defmodule Zenohex.Nif.Logger.GenServer do
   use GenServer
 
   require Logger
@@ -8,7 +8,7 @@ defmodule Zenohex.Logger.GenServer do
   end
 
   def init(_args) do
-    :ok = Zenohex.Nif.logger_init(self())
+    :ok = Zenohex.Nif.Logger.init(self())
     {:ok, %{}}
   end
 

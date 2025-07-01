@@ -3727,6 +3727,7 @@ dependencies = [
 name = "zenohex_nif"
 version = "0.3.2"
 dependencies = [
+ "log",
  "rustler",
  "zenoh",
 ]

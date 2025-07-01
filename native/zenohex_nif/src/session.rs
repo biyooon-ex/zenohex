@@ -152,9 +152,9 @@ impl Drop for SessionIdResource {
                     session_locked.close().wait().unwrap();
                     "session closed by drop."
                 };
-                crate::helper::logger::logger_debug(message)
+                log::debug!("{}", message)
             }
-            Err(_error) => crate::helper::logger::logger_debug("session already removed."),
+            Err(_error) => log::debug!(target: module_path!(), "session already removed."),
         };
     }
 }
@@ -190,7 +190,7 @@ impl Drop for EntityGlobalIdResource {
                 Ok(_) => "entity removed by drop.",
                 Err(_) => "entity already removed.",
             };
-            crate::helper::logger::logger_debug(message);
+            log::debug!("{}", message);
         }
     }
 }

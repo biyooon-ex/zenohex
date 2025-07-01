@@ -1,26 +1,116 @@
 use std::sync::mpsc;
+use std::sync::Arc;
 use std::sync::LazyLock;
 use std::sync::RwLock;
 
-type LogTuple = (rustler::Atom, String);
-type Sender = std::sync::mpsc::Sender<LogTuple>;
-type Receiver = std::sync::mpsc::Receiver<LogTuple>;
+static NIF_LOGGER: LazyLock<Arc<NifLogger>> = LazyLock::new(|| Arc::new(NifLogger::new()));
 
-static SENDER: LazyLock<RwLock<Option<Sender>>> = LazyLock::new(|| RwLock::new(None));
+struct NifLoggerInner {
+    enabled: bool,
+    target: String,
+    level: log::LevelFilter,
+}
 
-mod atoms {
-    rustler::atoms! {
-        debug,
-        info,
-        warning,
-        error
+struct NifLogger {
+    inner: RwLock<NifLoggerInner>,
+}
+
+impl NifLogger {
+    fn new() -> NifLogger {
+        let inner = RwLock::new(NifLoggerInner {
+            enabled: false,
+            target: String::from("zenohex_nif"),
+            level: log::LevelFilter::Debug,
+        });
+
+        NifLogger { inner }
+    }
+    fn enable(&self) {
+        let mut inner = self.inner.write().unwrap();
+        inner.enabled = true;
+    }
+
+    fn disable(&self) {
+        let mut inner = self.inner.write().unwrap();
+        inner.enabled = false;
+    }
+
+    fn get_target(&self) -> String {
+        let inner = self.inner.read().unwrap();
+        inner.target.clone()
+    }
+
+    fn set_target(&self, target: String) {
+        let mut inner = self.inner.write().unwrap();
+        inner.target = target;
+    }
+
+    fn get_level(&self) -> log::LevelFilter {
+        let inner = self.inner.read().unwrap();
+        inner.level
+    }
+
+    fn set_level(&self, level: log::LevelFilter) {
+        let mut inner = self.inner.write().unwrap();
+        inner.level = level;
     }
 }
 
+impl log::Log for NifLogger {
+    fn enabled(&self, metadata: &log::Metadata) -> bool {
+        let inner = self.inner.read().unwrap();
+        inner.enabled && metadata.target().starts_with(&inner.target)
+    }
+
+    fn log(&self, record: &log::Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
+        let message = if let Some(message) = record.args().as_str() {
+            message
+        } else {
+            &record.args().to_string()
+        };
+
+        let message = format!("[{}] {}", record.target(), message);
+
+        match record.level() {
+            log::Level::Error => nif_logger_send(NifLoggerLevel::Error, message.as_ref()),
+            log::Level::Warn => nif_logger_send(NifLoggerLevel::Warning, message.as_ref()),
+            log::Level::Info => nif_logger_send(NifLoggerLevel::Info, message.as_ref()),
+            log::Level::Debug => nif_logger_send(NifLoggerLevel::Debug, message.as_ref()),
+            log::Level::Trace => unimplemented!(),
+        }
+    }
+
+    fn flush(&self) {
+        unimplemented!()
+    }
+}
+
+#[derive(rustler::NifUnitEnum)]
+enum NifLoggerLevel {
+    Error,
+    Warning,
+    Info,
+    Debug,
+}
+
+type NifLoggerTuple = (NifLoggerLevel, String);
+type NifLoggerSender = std::sync::mpsc::Sender<NifLoggerTuple>;
+type NifLoggerReceiver = std::sync::mpsc::Receiver<NifLoggerTuple>;
+
+static NIF_LOG_SENDER: LazyLock<RwLock<Option<NifLoggerSender>>> =
+    LazyLock::new(|| RwLock::new(None));
+
 #[rustler::nif]
-fn logger_init(pid: rustler::LocalPid) -> rustler::NifResult<rustler::Atom> {
-    let (tx, rx): (Sender, Receiver) = mpsc::channel();
-    let mut sender = SENDER.write().unwrap();
+fn nif_logger_init(pid: rustler::LocalPid) -> rustler::NifResult<rustler::Atom> {
+    log::set_boxed_logger(Box::new(NIF_LOGGER.clone())).unwrap();
+    log::set_max_level(NIF_LOGGER.get_level());
+
+    let (tx, rx): (NifLoggerSender, NifLoggerReceiver) = mpsc::channel();
+    let mut sender = NIF_LOG_SENDER.write().unwrap();
     *sender = Some(tx);
 
     std::thread::spawn(move || {
@@ -45,28 +135,58 @@ fn logger_init(pid: rustler::LocalPid) -> rustler::NifResult<rustler::Atom> {
     Ok(rustler::types::atom::ok())
 }
 
-#[allow(dead_code)]
-pub fn logger_debug<T: AsRef<str>>(message: T) {
-    logger_impl(atoms::debug(), message.as_ref());
+#[rustler::nif]
+fn nif_logger_enable() -> rustler::NifResult<rustler::Atom> {
+    NIF_LOGGER.enable();
+    Ok(rustler::types::atom::ok())
 }
 
-#[allow(dead_code)]
-pub fn logger_info<T: AsRef<str>>(message: T) {
-    logger_impl(atoms::info(), message.as_ref());
+#[rustler::nif]
+fn nif_logger_disable() -> rustler::NifResult<rustler::Atom> {
+    NIF_LOGGER.disable();
+    Ok(rustler::types::atom::ok())
 }
 
-#[allow(dead_code)]
-pub fn logger_warning<T: AsRef<str>>(message: T) {
-    logger_impl(atoms::warning(), message.as_ref());
+#[rustler::nif]
+fn nif_logger_get_target() -> rustler::NifResult<(rustler::Atom, String)> {
+    let target = NIF_LOGGER.get_target();
+    Ok((rustler::types::atom::ok(), target))
 }
 
-#[allow(dead_code)]
-pub fn logger_error<T: AsRef<str>>(message: T) {
-    logger_impl(atoms::error(), message.as_ref());
+#[rustler::nif]
+fn nif_logger_set_target(target: String) -> rustler::NifResult<rustler::Atom> {
+    NIF_LOGGER.set_target(target);
+    Ok(rustler::types::atom::ok())
 }
 
-fn logger_impl(level: rustler::Atom, message: &str) {
-    let sender = SENDER.read().unwrap();
+#[rustler::nif]
+fn nif_logger_get_level() -> rustler::NifResult<(rustler::Atom, NifLoggerLevel)> {
+    let level = match NIF_LOGGER.get_level() {
+        log::LevelFilter::Off => unimplemented!(),
+        log::LevelFilter::Error => NifLoggerLevel::Error,
+        log::LevelFilter::Warn => NifLoggerLevel::Warning,
+        log::LevelFilter::Info => NifLoggerLevel::Info,
+        log::LevelFilter::Debug => NifLoggerLevel::Debug,
+        log::LevelFilter::Trace => unimplemented!(),
+    };
+    Ok((rustler::types::atom::ok(), level))
+}
+
+#[rustler::nif]
+fn nif_logger_set_level(level: NifLoggerLevel) -> rustler::NifResult<rustler::Atom> {
+    let level = match level {
+        NifLoggerLevel::Error => log::LevelFilter::Error,
+        NifLoggerLevel::Warning => log::LevelFilter::Warn,
+        NifLoggerLevel::Info => log::LevelFilter::Info,
+        NifLoggerLevel::Debug => log::LevelFilter::Debug,
+    };
+    NIF_LOGGER.set_level(level);
+    log::set_max_level(level);
+    Ok(rustler::types::atom::ok())
+}
+
+fn nif_logger_send(level: NifLoggerLevel, message: &str) {
+    let sender = NIF_LOG_SENDER.read().unwrap();
     if let Some(tx) = sender.as_ref() {
         match tx.send((level, message.to_string())) {
             Ok(_) => {}
