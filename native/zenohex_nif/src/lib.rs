@@ -28,6 +28,7 @@ mod atoms {
         express,
         is_final = "final?",
         priority,
+        timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }
 }

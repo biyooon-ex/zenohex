@@ -4,9 +4,10 @@ defmodule Zenohex.Session do
   """
 
   @type put_opts :: [
+          attachment: binary() | nil,
           congestion_control: :drop | :block,
-          express: boolean(),
           encoding: String.t(),
+          express: boolean(),
           priority:
             :real_time
             | :interactive_high

@@ -52,6 +52,13 @@ pub fn put_build(
     let builder = opts_iter.try_fold(builder, |builder, opt| {
         let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
         match k {
+            k if k == crate::atoms::attachment() => {
+                if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                    Ok(builder.attachment(binary.as_slice()))
+                } else {
+                    Ok(builder)
+                }
+            }
             k if k == crate::atoms::congestion_control() => {
                 Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
             }
@@ -60,6 +67,7 @@ pub fn put_build(
             k if k == crate::atoms::priority() => {
                 Ok(builder.priority(v.decode::<Priority>()?.into()))
             }
+            k if k == crate::atoms::timestamp() => todo!(),
             _ => Ok(builder),
         }
     })?;
