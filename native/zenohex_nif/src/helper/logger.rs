@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::sync::LazyLock;
 use std::sync::RwLock;
 
-static NIF_LOGGER: LazyLock<Arc<NifLogger>> = LazyLock::new(|| Arc::new(NifLogger::new()));
+pub static NIF_LOGGER: LazyLock<Arc<NifLogger>> = LazyLock::new(|| Arc::new(NifLogger::new()));
 
 struct NifLoggerInner {
     enabled: bool,
@@ -11,7 +11,7 @@ struct NifLoggerInner {
     level: log::LevelFilter,
 }
 
-struct NifLogger {
+pub struct NifLogger {
     inner: RwLock<NifLoggerInner>,
 }
 
@@ -106,7 +106,6 @@ static NIF_LOG_SENDER: LazyLock<RwLock<Option<NifLoggerSender>>> =
 
 #[rustler::nif]
 fn nif_logger_init(pid: rustler::LocalPid) -> rustler::NifResult<rustler::Atom> {
-    log::set_boxed_logger(Box::new(NIF_LOGGER.clone())).unwrap();
     log::set_max_level(NIF_LOGGER.get_level());
 
     let (tx, rx): (NifLoggerSender, NifLoggerReceiver) = mpsc::channel();

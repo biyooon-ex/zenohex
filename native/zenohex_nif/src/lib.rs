@@ -29,6 +29,9 @@ mod atoms {
 }
 
 fn load(_env: rustler::Env, _term: rustler::Term) -> bool {
+    // NOTE: `log::set_boxed_logger` must be called only once during the program's lifetime.
+    log::set_boxed_logger(Box::new(helper::logger::NIF_LOGGER.clone())).unwrap();
+
     true
 }
 
