@@ -249,6 +249,22 @@ fn session_put(
     Ok(rustler::types::atom::ok())
 }
 
+#[rustler::nif]
+fn session_delete(
+    session_id_resource: rustler::ResourceArc<SessionIdResource>,
+    key_expr: &str,
+    opts: rustler::Term,
+) -> rustler::NifResult<rustler::Atom> {
+    let session_id = &session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_locked = session.read().unwrap();
+    let publication_builder = session_locked.delete(key_expr);
+
+    crate::publication_builder::delete_build(publication_builder, opts)?;
+
+    Ok(rustler::types::atom::ok())
+}
+
 #[rustler::nif(schedule = "DirtyIo")]
 fn session_get<'a>(
     env: rustler::Env<'a>,

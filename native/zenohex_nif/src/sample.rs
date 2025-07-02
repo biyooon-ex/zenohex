@@ -1,11 +1,27 @@
 use std::io::Write;
 
+#[derive(rustler::NifUnitEnum)]
+enum SampleKind {
+    Put,
+    Delete,
+}
+
+impl From<zenoh::sample::SampleKind> for SampleKind {
+    fn from(value: zenoh::sample::SampleKind) -> Self {
+        match value {
+            zenoh::sample::SampleKind::Put => SampleKind::Put,
+            zenoh::sample::SampleKind::Delete => SampleKind::Delete,
+        }
+    }
+}
+
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Sample"]
 pub struct ZenohexSample<'a> {
-    key_expr: String,
-    payload: rustler::Binary<'a>,
     encoding: String,
+    key_expr: String,
+    kind: SampleKind,
+    payload: rustler::Binary<'a>,
 }
 
 impl<'a> ZenohexSample<'a> {
@@ -19,9 +35,10 @@ impl<'a> ZenohexSample<'a> {
             .unwrap();
 
         ZenohexSample {
-            key_expr: sample.key_expr().to_string(),
-            payload: payload_binary.release(env),
             encoding: sample.encoding().to_string(),
+            key_expr: sample.key_expr().to_string(),
+            kind: SampleKind::from(sample.kind()),
+            payload: payload_binary.release(env),
         }
     }
 }

@@ -25,7 +25,9 @@ defmodule Zenohex.Example.SubscriberTest do
       )
 
     :ok = Zenohex.put("key/expr", "payload")
+    :ok = Zenohex.delete("key/expr")
 
-    assert_receive %Zenohex.Sample{}
+    assert_receive %Zenohex.Sample{kind: :put}
+    assert_receive %Zenohex.Sample{kind: :delete}
   end
 end

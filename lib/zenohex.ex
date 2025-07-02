@@ -27,6 +27,17 @@ defmodule Zenohex do
     end
   end
 
+  @spec delete(String.t(), keyword()) :: :ok | {:error, reason :: term()}
+  def delete(key_expr, opts \\ []) do
+    {:ok, session_id} = Zenohex.Session.open()
+
+    try do
+      Zenohex.Session.delete(session_id, key_expr, opts)
+    after
+      Zenohex.Session.close(session_id)
+    end
+  end
+
   @doc """
   Query data with the given `selector`.
 

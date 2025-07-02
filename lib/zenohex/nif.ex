@@ -40,6 +40,9 @@ defmodule Zenohex.Nif do
   @spec session_put(id(), String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
+  @spec session_delete(id(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
+  def session_delete(_session_id, _key_expr, _opts), do: err()
+
   @spec session_get(id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}

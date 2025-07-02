@@ -83,6 +83,10 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_put
 
+  defdelegate delete(session_id, key_expr, opts \\ []),
+    to: Zenohex.Nif,
+    as: :session_delete
+
   defdelegate get(session_id, selector, timeout, opts \\ []),
     to: Zenohex.Nif,
     as: :session_get

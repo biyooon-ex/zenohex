@@ -34,6 +34,11 @@ defmodule Zenohex.SessionTest do
     assert Zenohex.Session.put(session_id, "key/expr", "payload") == :ok
   end
 
+  test "delete/2", context do
+    session_id = context.session_id
+    assert Zenohex.Session.delete(session_id, "key/expr") == :ok
+  end
+
   test "get/3", context do
     session_id = context.session_id
     assert {:error, _} = Zenohex.Session.get(session_id, "key/expr", 100)

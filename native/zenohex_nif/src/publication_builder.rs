@@ -76,3 +76,39 @@ pub fn put_build(
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))
 }
+
+pub fn delete_build(
+    builder: zenoh::pubsub::PublicationBuilder<
+        zenoh::pubsub::PublisherBuilder<'_, '_>,
+        zenoh::pubsub::PublicationBuilderDelete,
+    >,
+    opts: rustler::Term,
+) -> rustler::NifResult<()> {
+    let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+    let builder = opts_iter.try_fold(builder, |builder, opt| {
+        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+        match k {
+            k if k == crate::atoms::attachment() => {
+                if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                    Ok(builder.attachment(binary.as_slice()))
+                } else {
+                    Ok(builder)
+                }
+            }
+            k if k == crate::atoms::congestion_control() => {
+                Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
+            }
+            k if k == crate::atoms::express() => Ok(builder.express(v.decode::<bool>()?)),
+            k if k == crate::atoms::priority() => {
+                Ok(builder.priority(v.decode::<Priority>()?.into()))
+            }
+            k if k == crate::atoms::timestamp() => todo!(),
+            _ => Ok(builder),
+        }
+    })?;
+
+    builder
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))
+}
