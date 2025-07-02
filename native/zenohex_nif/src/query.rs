@@ -101,22 +101,22 @@ impl<'a> ZenohexQueryReplyError<'a> {
 fn query_reply(
     query_resource: rustler::ResourceArc<QueryResource>,
     key_expr: &str,
-    payload: &str,
+    payload: rustler::Binary,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     handle_reply(query_resource, opts, |query| {
-        query.reply(key_expr, payload).wait()
+        query.reply(key_expr, payload.as_slice()).wait()
     })
 }
 
 #[rustler::nif]
 fn query_reply_error(
     query_resource: rustler::ResourceArc<QueryResource>,
-    payload: &str,
+    payload: rustler::Binary,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     handle_reply(query_resource, opts, |query| {
-        query.reply_err(payload).wait()
+        query.reply_err(payload.as_slice()).wait()
     })
 }
 

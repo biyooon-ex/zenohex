@@ -236,13 +236,13 @@ fn session_close(
 fn session_put(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
     key_expr: &str,
-    payload: &str,
+    payload: rustler::Binary,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
-    let publication_builder = session_locked.put(key_expr, payload);
+    let publication_builder = session_locked.put(key_expr, payload.as_slice());
 
     crate::publication_builder::put_build(publication_builder, opts)?;
 

@@ -3,7 +3,7 @@ use zenoh::Wait;
 #[rustler::nif]
 fn publisher_put(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
-    payload: String,
+    payload: rustler::Binary,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &entity_global_id_resource.zid();
     let entity_global_id = &entity_global_id_resource;
@@ -16,7 +16,7 @@ fn publisher_put(
     match entity {
         crate::session::Entity::Publisher(publisher, _) => {
             publisher
-                .put(payload)
+                .put(payload.as_slice())
                 .wait()
                 .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
