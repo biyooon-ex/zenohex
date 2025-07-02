@@ -17,7 +17,7 @@ defmodule Zenohex do
   """
 
   @spec put(String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
-  def put(key_expr, payload, opts) do
+  def put(key_expr, payload, opts \\ []) do
     {:ok, session_id} = Zenohex.Session.open()
 
     try do
@@ -42,7 +42,7 @@ defmodule Zenohex do
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
-  def get(selector, timeout, opts) do
+  def get(selector, timeout, opts \\ []) do
     {:ok, session_id} = Zenohex.Session.open()
 
     try do

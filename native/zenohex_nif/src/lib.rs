@@ -12,6 +12,7 @@ macro_rules! zenoh_error {
 
 mod config;
 mod helper;
+mod publication_builder;
 mod publisher;
 mod query;
 mod queryable;
@@ -22,8 +23,11 @@ mod subscriber;
 mod atoms {
     rustler::atoms! {
         attachment,
+        congestion_control,
         encoding,
+        express,
         is_final = "final?",
+        priority,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }
 }

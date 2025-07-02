@@ -242,25 +242,9 @@ fn session_put(
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
-
-    let mut opts_iter: rustler::ListIterator = opts.decode()?;
-
     let publication_builder = session_locked.put(key_expr, payload);
 
-    let publication_builder = opts_iter.try_fold(publication_builder, |builder, opt| {
-        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
-        match k {
-            k if k == crate::atoms::encoding() => {
-                let encoding: &str = v.decode()?;
-                Ok(builder.encoding(encoding))
-            }
-            _ => Ok(builder),
-        }
-    })?;
-
-    publication_builder
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    crate::publication_builder::put_build(publication_builder, opts)?;
 
     Ok(rustler::types::atom::ok())
 }
