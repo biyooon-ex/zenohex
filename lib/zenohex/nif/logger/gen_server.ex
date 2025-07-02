@@ -1,4 +1,6 @@
 defmodule Zenohex.Nif.Logger.GenServer do
+  @moduledoc false
+
   use GenServer
 
   require Logger

@@ -1,5 +1,6 @@
 defmodule Zenohex.Nif do
-  @moduledoc false
+  @moduledoc """
+  """
 
   @type id :: reference()
   @type zenoh_query :: reference()
@@ -36,7 +37,7 @@ defmodule Zenohex.Nif do
   @spec session_close(id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
 
-  @spec session_put(id(), String.t(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
+  @spec session_put(id(), String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
   @spec session_get(id(), String.t(), non_neg_integer(), keyword()) ::

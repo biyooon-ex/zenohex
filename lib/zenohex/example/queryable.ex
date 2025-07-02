@@ -1,4 +1,6 @@
 defmodule Zenohex.Example.Queryable do
+  @moduledoc false
+
   use GenServer
 
   require Logger

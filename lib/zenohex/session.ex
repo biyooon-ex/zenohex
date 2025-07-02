@@ -1,8 +1,6 @@
 defmodule Zenohex.Session do
   def open(), do: open(Zenohex.Config.default())
 
-  def open!(), do: open() |> then(fn {:ok, session_id} -> session_id end)
-
   defdelegate open(json5_binary), to: Zenohex.Nif, as: :session_open
 
   defdelegate close(id), to: Zenohex.Nif, as: :session_close

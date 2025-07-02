@@ -1,4 +1,6 @@
 defmodule Zenohex.Example.Subscriber do
+  @moduledoc false
+
   use GenServer
 
   require Logger

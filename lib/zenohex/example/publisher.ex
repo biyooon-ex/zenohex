@@ -1,4 +1,6 @@
 defmodule Zenohex.Example.Publisher do
+  @moduledoc false
+
   use GenServer
 
   def put(payload) do
