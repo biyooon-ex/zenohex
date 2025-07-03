@@ -24,10 +24,13 @@ mod atoms {
     rustler::atoms! {
         attachment,
         congestion_control,
+        consolidation,
         encoding,
         express,
         is_final = "final?",
+        payload,
         priority,
+        target,
         timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }

@@ -38,6 +38,42 @@ impl From<Priority> for zenoh::qos::Priority {
     }
 }
 
+#[derive(rustler::NifUnitEnum)]
+enum QueryTarget {
+    BestMatching,
+    All,
+    AllComplete,
+}
+
+impl From<QueryTarget> for zenoh::query::QueryTarget {
+    fn from(value: QueryTarget) -> Self {
+        match value {
+            QueryTarget::BestMatching => zenoh::query::QueryTarget::BestMatching,
+            QueryTarget::All => zenoh::query::QueryTarget::All,
+            QueryTarget::AllComplete => zenoh::query::QueryTarget::AllComplete,
+        }
+    }
+}
+
+#[derive(rustler::NifUnitEnum)]
+enum QueryConsolidation {
+    Auto,
+    None,
+    Monotonic,
+    Latest,
+}
+
+impl From<QueryConsolidation> for zenoh::query::ConsolidationMode {
+    fn from(value: QueryConsolidation) -> Self {
+        match value {
+            QueryConsolidation::Auto => zenoh::query::ConsolidationMode::Auto,
+            QueryConsolidation::None => zenoh::query::ConsolidationMode::None,
+            QueryConsolidation::Monotonic => zenoh::query::ConsolidationMode::Monotonic,
+            QueryConsolidation::Latest => zenoh::query::ConsolidationMode::Latest,
+        }
+    }
+}
+
 pub trait Builder: Sized {
     fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self>
     where
@@ -119,11 +155,34 @@ impl Builder for zenoh::session::SessionGetBuilder<'_, '_, zenoh::handlers::Defa
             let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
             match k {
                 k if k == crate::atoms::attachment() => {
-                    if let Some(payload) = v.decode::<Option<&str>>()? {
-                        Ok(builder.attachment(payload))
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.attachment(binary.as_slice()))
                     } else {
                         Ok(builder)
                     }
+                }
+                k if k == crate::atoms::congestion_control() => {
+                    Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
+                }
+                k if k == crate::atoms::consolidation() => {
+                    let consolidation: zenoh::query::ConsolidationMode =
+                        v.decode::<QueryConsolidation>()?.into();
+                    Ok(builder.consolidation(consolidation))
+                }
+                k if k == crate::atoms::express() => Ok(builder.express(v.decode::<bool>()?)),
+                k if k == crate::atoms::encoding() => Ok(builder.encoding(v.decode::<&str>()?)),
+                k if k == crate::atoms::payload() => {
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.payload(binary.as_slice()))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                k if k == crate::atoms::priority() => {
+                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                }
+                k if k == crate::atoms::target() => {
+                    Ok(builder.target(v.decode::<QueryTarget>()?.into()))
                 }
                 _ => Ok(builder),
             }
