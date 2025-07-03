@@ -9,6 +9,8 @@ use std::time::Instant;
 use rustler::Encoder;
 use zenoh::Wait;
 
+use crate::builder::Builder;
+
 pub enum Entity<'a> {
     Publisher(
         zenoh::pubsub::Publisher<'a>,
@@ -244,7 +246,10 @@ fn session_put(
     let session_locked = session.read().unwrap();
     let publication_builder = session_locked.put(key_expr, payload.as_slice());
 
-    crate::publication_builder::put_build(publication_builder, opts)?;
+    publication_builder
+        .apply_opts(opts)?
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     Ok(rustler::types::atom::ok())
 }
@@ -260,7 +265,10 @@ fn session_delete(
     let session_locked = session.read().unwrap();
     let publication_builder = session_locked.delete(key_expr);
 
-    crate::publication_builder::delete_build(publication_builder, opts)?;
+    publication_builder
+        .apply_opts(opts)?
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     Ok(rustler::types::atom::ok())
 }
@@ -276,26 +284,10 @@ fn session_get<'a>(
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
-
-    let mut opts_iter: rustler::ListIterator = opts.decode()?;
-
     let session_get_builder = session_locked.get(selector);
 
-    let session_get_builder = opts_iter.try_fold(session_get_builder, |builder, opt| {
-        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
-        match k {
-            k if k == crate::atoms::attachment() => {
-                if let Some(payload) = v.decode::<Option<&str>>()? {
-                    Ok(builder.attachment(payload))
-                } else {
-                    Ok(builder)
-                }
-            }
-            _ => Ok(builder),
-        }
-    })?;
-
     let channel_handler = session_get_builder
+        .apply_opts(opts)?
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
@@ -340,21 +332,11 @@ fn session_declare_publisher(
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let mut session_locked = session.write().unwrap();
-    let mut opts_iter: rustler::ListIterator = opts.decode()?;
 
     let publisher_builder = session_locked.declare_publisher(key_expr);
-    let publisher_builder = opts_iter.try_fold(publisher_builder, |builder, opt| {
-        let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
-        match k {
-            k if k == crate::atoms::encoding() => {
-                let encoding: &str = v.decode()?;
-                Ok(builder.encoding(encoding))
-            }
-            _ => Ok(builder),
-        }
-    })?;
 
     let publisher = publisher_builder
+        .apply_opts(opts)?
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 

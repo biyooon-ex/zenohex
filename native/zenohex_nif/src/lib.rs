@@ -10,9 +10,9 @@ macro_rules! zenoh_error {
     };
 }
 
+mod builder;
 mod config;
 mod helper;
-mod publication_builder;
 mod publisher;
 mod query;
 mod queryable;
