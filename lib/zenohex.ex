@@ -6,14 +6,13 @@ defmodule Zenohex do
   @doc """
   Publishes a payload to the specified `key_expr`.
 
-  Internally opens a Zenoh session, performs the publish operation, and ensures
-  the session is closed afterward.
+  Internally opens a session, performs the publish, and ensures the session is closed.
 
   ## Parameters
 
-  - `key_expr` (`String.t`): The key expression to publish to.
-  - `payload` (`binary`): The binary payload to publish.
-  - `opts` (`keyword`): Additional options. See `Zenohex.Session.put/4` for details.
+  - `key_expr` : The key expression to publish to.
+  - `payload` : The binary payload to publish.
+  - `opts` : Additional options. See `Zenohex.Session.put/4` for details.
   """
 
   @spec put(String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
@@ -27,6 +26,16 @@ defmodule Zenohex do
     end
   end
 
+  @doc """
+  Deletes data matching the given key expression.
+
+  Internally opens a session, deletes the data, and ensures the session is closed.
+
+  ## Parameters
+
+  - `key_expr` : The key expression to delete.
+  - `opts` : Additional options. See `Zenohex.Session.delete/3` for details.
+  """
   @spec delete(String.t(), keyword()) :: :ok | {:error, reason :: term()}
   def delete(key_expr, opts \\ []) do
     {:ok, session_id} = Zenohex.Session.open()
@@ -41,13 +50,13 @@ defmodule Zenohex do
   @doc """
   Query data with the given `selector`.
 
-  Internally opens a Zenoh session, performs the query, and ensures the session is closed.
+  Internally opens a session, performs the query, and ensures the session is closed.
 
   ## Parameters
 
-  - `selector` (`String.t`): The key expression or selector to query.
-  - `timeout` (`non_neg_integer`): Timeout in milliseconds to wait for query replies.
-  - `opts` (`keyword`): Additional options. See `Zenohex.Session.get/4` for details.
+  - `selector` : The selector to query.
+  - `timeout` : Timeout in milliseconds to wait for query replies.
+  - `opts` : Additional options. See `Zenohex.Session.get/4` for details.
   """
   @spec get(String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}

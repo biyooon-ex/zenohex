@@ -18,6 +18,38 @@ defmodule Zenohex.Session do
             | :background
         ]
 
+  @type delete_opts :: [
+          attachment: binary() | nil,
+          congestion_control: :drop | :block,
+          express: boolean(),
+          priority:
+            :real_time
+            | :interactive_high
+            | :interactive_low
+            | :data_high
+            | :data
+            | :data_low
+            | :background
+        ]
+
+  @type get_opts :: [
+          attachment: binary() | nil,
+          congestion_control: :drop | :block,
+          soncolidation: :auto | :none | :monotonic | :latest,
+          encoding: String.t(),
+          express: boolean(),
+          payload: binary() | nil,
+          priority:
+            :real_time
+            | :interactive_high
+            | :interactive_low
+            | :data_high
+            | :data
+            | :data_low
+            | :background,
+          target: :best_matching | :all | :all_complete
+        ]
+
   @doc """
   Opens a session using Zenoh default config.
 
@@ -53,7 +85,7 @@ defmodule Zenohex.Session do
 
   ## Parameters
 
-  - `session_id` (`Zenohex.Nif.id()`): The session identifier returned by `open/1`.
+  - `session_id` : The session identifier returned by `open/1`.
   """
   @spec close(session_id :: Zenohex.Nif.id()) :: :ok | {:error, reason :: term()}
   defdelegate close(session_id), to: Zenohex.Nif, as: :session_close
@@ -62,11 +94,10 @@ defmodule Zenohex.Session do
   Publishes a payload to the given `key_expr` within an open session.
 
   This function sends a value (as a binary) to the specified key expression.
-  You must provide a valid session ID, which can be obtained using `open/0` or `open/1`.
 
   ## Parameters
 
-  - `session_id` : The session identifier returned by `open/1`.
+  - `session_id` : The session identifier returned by `open/0` or `open/1`.
   - `key_expr` : The key expression to publish to.
   - `payload` : The value to publish, as a binary.
   - `opts` : Options for the publish operation.
@@ -83,10 +114,41 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_put
 
+  @doc """
+  Deletes data matching the given `key_expr`.
+
+  ## Parameters
+
+  - `session_id` : The session identifier returned by `open/0` or `open/1`.
+  - `key_expr` : The key expression to delete.
+  - `opts` : Options for the delete operation.
+
+  ## Examples
+
+    iex> {:ok, session_id} = Zenohex.Session.open()
+    iex> Zenohex.Session.delete(session_id, "key/expr")
+    :ok
+  """
+  @spec delete(session_id :: Zenohex.Nif.id(), String.t(), delete_opts()) ::
+          :ok | {:error, reason :: term()}
   defdelegate delete(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
     as: :session_delete
 
+  @doc """
+  Query data with the given `selector`.
+
+  ## Parameters
+
+  - `session_id` : The session identifier returned by `open/0` or `open/1`.
+  - `selector` : The selector to query.
+  - `timeout` : Timeout in milliseconds to wait for query replies.
+  - `opts` : Options for the get operation.
+  """
+  @spec get(session_id :: Zenohex.Nif.id(), String.t(), non_neg_integer(), get_opts()) ::
+          {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
+          | {:error, :timeout}
+          | {:error, term()}
   defdelegate get(session_id, selector, timeout, opts \\ []),
     to: Zenohex.Nif,
     as: :session_get
