@@ -3,51 +3,54 @@ defmodule Zenohex.Session do
   Documentation #{__MODULE__}
   """
 
+  @type congestion_control :: :drop | :block
+
+  @type priority ::
+          :real_time
+          | :interactive_high
+          | :interactive_low
+          | :data_high
+          | :data
+          | :data_low
+          | :background
+
   @type put_opts :: [
           attachment: binary() | nil,
-          congestion_control: :drop | :block,
+          congestion_control: congestion_control(),
           encoding: String.t(),
           express: boolean(),
-          priority:
-            :real_time
-            | :interactive_high
-            | :interactive_low
-            | :data_high
-            | :data
-            | :data_low
-            | :background
+          priority: priority()
         ]
 
   @type delete_opts :: [
           attachment: binary() | nil,
-          congestion_control: :drop | :block,
+          congestion_control: congestion_control(),
           express: boolean(),
-          priority:
-            :real_time
-            | :interactive_high
-            | :interactive_low
-            | :data_high
-            | :data
-            | :data_low
-            | :background
+          priority: priority()
         ]
 
   @type get_opts :: [
           attachment: binary() | nil,
-          congestion_control: :drop | :block,
-          soncolidation: :auto | :none | :monotonic | :latest,
+          congestion_control: congestion_control(),
+          consolidation: :auto | :none | :monotonic | :latest,
           encoding: String.t(),
           express: boolean(),
           payload: binary() | nil,
-          priority:
-            :real_time
-            | :interactive_high
-            | :interactive_low
-            | :data_high
-            | :data
-            | :data_low
-            | :background,
+          priority: priority(),
           target: :best_matching | :all | :all_complete
+        ]
+
+  @type publisher_opts :: [
+          congestion_control: congestion_control(),
+          encoding: String.t(),
+          express: boolean(),
+          priority: priority()
+        ]
+
+  @type subscriber_opts :: []
+
+  @type queryable_opts :: [
+          complete: boolean()
         ]
 
   @doc """
@@ -104,9 +107,9 @@ defmodule Zenohex.Session do
 
   ## Examples
 
-    iex> {:ok, session_id} = Zenohex.Session.open()
-    iex> Zenohex.Session.put(session_id, "key/expr", "payload")
-    :ok
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> Zenohex.Session.put(session_id, "key/expr", "payload")
+      :ok
   """
   @spec put(session_id :: Zenohex.Nif.id(), String.t(), binary(), put_opts()) ::
           :ok | {:error, reason :: term()}
@@ -125,9 +128,9 @@ defmodule Zenohex.Session do
 
   ## Examples
 
-    iex> {:ok, session_id} = Zenohex.Session.open()
-    iex> Zenohex.Session.delete(session_id, "key/expr")
-    :ok
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> Zenohex.Session.delete(session_id, "key/expr")
+      :ok
   """
   @spec delete(session_id :: Zenohex.Nif.id(), String.t(), delete_opts()) ::
           :ok | {:error, reason :: term()}
@@ -144,6 +147,12 @@ defmodule Zenohex.Session do
   - `selector` : The selector to query.
   - `timeout` : Timeout in milliseconds to wait for query replies.
   - `opts` : Options for the get operation.
+
+  ## Examples
+
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> Zenohex.Session.get(session_id, "key/expr")
+      {:ok, [%Zenohex.Sample{}]}
   """
   @spec get(session_id :: Zenohex.Nif.id(), String.t(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
@@ -153,15 +162,52 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_get
 
+  @doc """
+  Declares a publisher associated with the given session and `key_expr`.
+
+  ## Parameters
+
+    - `session_id`: Identifier of the session returned by `open/0` or `open/1`.
+    - `key_expr`: Key expression to publish under.
+    - `opts`: Options for configuring the publisher.
+  """
+  @spec declare_publisher(session_id :: Zenohex.Nif.id(), String.t(), keyword()) ::
+          {:ok, publisher_id :: Zenohex.Nif.id()} | {:error, reason :: term()}
   defdelegate declare_publisher(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_publisher
 
-  defdelegate declare_subscriber(session_id, key_expr, pid \\ self()),
+  @doc """
+  Declares a subscriber for the specified `key_expr`.
+
+  ## Parameters
+
+    - `session_id`: Identifier of the session returned by `open/0` or `open/1`.
+    - `key_expr`: Key expression to subscribe to.
+    - `pid`: Process to receive subscription messages. Defaults to the calling process.
+      - Messages are delivered as `Zenohex.Sample`.
+    - `opts`: Options for configuring the subscriber.
+  """
+  @spec declare_subscriber(session_id :: Zenohex.Nif.id(), String.t(), pid(), subscriber_opts()) ::
+          {:ok, subscriber_id :: Zenohex.Nif.id()}
+  defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_subscriber
 
-  defdelegate declare_queryable(session_id, key_expr, pid \\ self()),
+  @doc """
+  Declares a queryable for the specified `key_expr`.
+
+  ## Parameters
+
+    - `session_id`: Identifier of the session returned by `open/0` or `open/1`.
+    - `key_expr`: Key expression that the queryable will handle.
+    - `pid`: Process to receive query messages. Defaults to the calling process.
+       - Messages are delivered as `Zenohex.Query`
+    - `opts`: Options for configuring the queryable.
+  """
+  @spec declare_queryable(session_id :: Zenohex.Nif.id(), String.t(), pid(), queryable_opts()) ::
+          {:ok, queryable_id :: Zenohex.Nif.id()}
+  defdelegate declare_queryable(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_queryable
 end

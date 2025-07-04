@@ -53,11 +53,13 @@ defmodule Zenohex.Nif do
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
 
-  @spec session_declare_subscriber(id(), String.t(), pid()) :: {:ok, subscriber_id :: id()}
-  def session_declare_subscriber(_session_id, _key_expr, _pid), do: err()
+  @spec session_declare_subscriber(id(), String.t(), pid(), keyword()) ::
+          {:ok, subscriber_id :: id()}
+  def session_declare_subscriber(_session_id, _key_expr, _pid, _opts), do: err()
 
-  @spec session_declare_queryable(id(), String.t(), pid()) :: {:ok, queryable_id :: id()}
-  def session_declare_queryable(_session_id, _key_expr, _pid), do: err()
+  @spec session_declare_queryable(id(), String.t(), pid(), keyword()) ::
+          {:ok, queryable_id :: id()}
+  def session_declare_queryable(_session_id, _key_expr, _pid, _opts), do: err()
 
   # Publisher
 

@@ -100,10 +100,17 @@ impl Builder
                     }
                 }
                 k if k == crate::atoms::congestion_control() => {
-                    Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
                 }
-                k if k == crate::atoms::express() => Ok(builder.express(v.decode::<bool>()?)),
-                k if k == crate::atoms::encoding() => Ok(builder.encoding(v.decode::<&str>()?)),
+                k if k == crate::atoms::encoding() => {
+                    let encoding = v.decode::<&str>()?;
+                    Ok(builder.encoding(encoding))
+                }
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
                 k if k == crate::atoms::priority() => {
                     Ok(builder.priority(v.decode::<Priority>()?.into()))
                 }
@@ -134,9 +141,13 @@ impl Builder
                     }
                 }
                 k if k == crate::atoms::congestion_control() => {
-                    Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
                 }
-                k if k == crate::atoms::express() => Ok(builder.express(v.decode::<bool>()?)),
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
                 k if k == crate::atoms::priority() => {
                     Ok(builder.priority(v.decode::<Priority>()?.into()))
                 }
@@ -162,15 +173,22 @@ impl Builder for zenoh::session::SessionGetBuilder<'_, '_, zenoh::handlers::Defa
                     }
                 }
                 k if k == crate::atoms::congestion_control() => {
-                    Ok(builder.congestion_control(v.decode::<CongestionControl>()?.into()))
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
                 }
                 k if k == crate::atoms::consolidation() => {
-                    let consolidation: zenoh::query::ConsolidationMode =
-                        v.decode::<QueryConsolidation>()?.into();
-                    Ok(builder.consolidation(consolidation))
+                    let consolidation = v.decode::<QueryConsolidation>()?;
+                    Ok(builder
+                        .consolidation::<zenoh::query::ConsolidationMode>(consolidation.into()))
                 }
-                k if k == crate::atoms::express() => Ok(builder.express(v.decode::<bool>()?)),
-                k if k == crate::atoms::encoding() => Ok(builder.encoding(v.decode::<&str>()?)),
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
+                k if k == crate::atoms::encoding() => {
+                    let encoding = v.decode::<&str>()?;
+                    Ok(builder.encoding(encoding))
+                }
                 k if k == crate::atoms::payload() => {
                     if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
                         Ok(builder.payload(binary.as_slice()))
@@ -179,10 +197,12 @@ impl Builder for zenoh::session::SessionGetBuilder<'_, '_, zenoh::handlers::Defa
                     }
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 k if k == crate::atoms::target() => {
-                    Ok(builder.target(v.decode::<QueryTarget>()?.into()))
+                    let target = v.decode::<QueryTarget>()?;
+                    Ok(builder.target(target.into()))
                 }
                 _ => Ok(builder),
             }
@@ -197,9 +217,48 @@ impl Builder for zenoh::pubsub::PublisherBuilder<'_, '_> {
         opts_iter.try_fold(self, |builder, opt| {
             let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
             match k {
+                k if k == crate::atoms::congestion_control() => {
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
+                }
                 k if k == crate::atoms::encoding() => {
-                    let encoding: &str = v.decode()?;
+                    let encoding = v.decode::<&str>()?;
                     Ok(builder.encoding(encoding))
+                }
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
+                k if k == crate::atoms::priority() => {
+                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
+impl Builder for zenoh::pubsub::SubscriberBuilder<'_, '_, zenoh::handlers::DefaultHandler> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (_k, _v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            Ok(builder)
+        })
+    }
+}
+
+impl Builder for zenoh::query::QueryableBuilder<'_, '_, zenoh::handlers::DefaultHandler> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::complete() => {
+                    let complete = v.decode()?;
+                    Ok(builder.complete(complete))
                 }
                 _ => Ok(builder),
             }

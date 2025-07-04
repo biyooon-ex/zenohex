@@ -23,6 +23,7 @@ mod subscriber;
 mod atoms {
     rustler::atoms! {
         attachment,
+        complete,
         congestion_control,
         consolidation,
         encoding,

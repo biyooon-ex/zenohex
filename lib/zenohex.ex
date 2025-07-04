@@ -4,7 +4,7 @@ defmodule Zenohex do
   """
 
   @doc """
-  Publishes a payload to the specified `key_expr`.
+  Publishes a `payload` to the specified `key_expr`.
 
   Internally opens a session, performs the publish, and ensures the session is closed.
 
@@ -27,7 +27,7 @@ defmodule Zenohex do
   end
 
   @doc """
-  Deletes data matching the given key expression.
+  Deletes data matching the given `key_expr`.
 
   Internally opens a session, deletes the data, and ensures the session is closed.
 

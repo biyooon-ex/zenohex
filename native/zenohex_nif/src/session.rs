@@ -359,13 +359,16 @@ fn session_declare_subscriber(
     // WHY: Pass `pid` instead of using `env.pid()`
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
+    opts: rustler::Term,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let mut session_locked = session.write().unwrap();
 
-    let subscriber = session_locked
-        .declare_subscriber(key_expr)
+    let subscriber_buidler = session_locked.declare_subscriber(key_expr);
+
+    let subscriber = subscriber_buidler
+        .apply_opts(opts)?
         .callback(move |sample| {
             // WHY: Spawn a thread inside this callback.
             //      If we don't spawn a thread, a panic will occur.
@@ -398,13 +401,16 @@ fn session_declare_queryable(
     // WHY: Pass `pid` instead of using `env.pid()`
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
+    opts: rustler::Term,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
     let mut session_locked = session.write().unwrap();
 
-    let queryable = session_locked
-        .declare_queryable(key_expr)
+    let queryable_builder = session_locked.declare_queryable(key_expr);
+
+    let queryable = queryable_builder
+        .apply_opts(opts)?
         .callback(move |query| {
             // WHY: Spawn a thread inside this callback.
             //      If we don't spawn a thread, a panic will occur.
