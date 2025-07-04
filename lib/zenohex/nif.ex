@@ -1,6 +1,5 @@
 defmodule Zenohex.Nif do
-  @moduledoc """
-  """
+  @moduledoc false
 
   @type id :: reference()
   @type zenoh_query :: reference()
@@ -95,6 +94,7 @@ defmodule Zenohex.Nif do
   def config_from_json5(_binary), do: err()
 
   # Logger
+
   def nif_logger_init(_pid), do: err()
   def nif_logger_enable(), do: err()
   def nif_logger_disable(), do: err()

@@ -1,7 +1,25 @@
 defmodule Zenohex.Session do
   @moduledoc """
-  Documentation #{__MODULE__}
+  Interface for managing Zenoh sessions and related operations.
+
+  This module provides functions to open and close Zenoh sessions, publish
+  and retrieve data, and declare publishers, subscribers, and queryables.
+
+  Internally, all operations are forwarded to the native layer via NIFs.
+
+  Typical usage starts with `open/0` or `open/1` to create a session,
+  followed by operations such as `put/4`, `get/4`, or `declare_publisher/3`.
+
+  ## Examples
+
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> Zenohex.Session.put(session_id, "key/expr", "payload")
+      iex> Zenohex.Session.close(session_id)
+
+  This module serves as the main entry point for using Zenoh in Elixir.
   """
+
+  @type id :: reference()
 
   @type congestion_control :: :drop | :block
 
@@ -58,7 +76,7 @@ defmodule Zenohex.Session do
 
   Internally opens a session via `open/1`, using `Zenohex.Config.default/0`.
   """
-  @spec open() :: {:ok, session_id :: Zenohex.Nif.id()} | {:error, reason :: term()}
+  @spec open() :: {:ok, session_id :: id()} | {:error, reason :: term()}
   def open(), do: open(Zenohex.Config.default())
 
   @doc """
@@ -77,7 +95,7 @@ defmodule Zenohex.Session do
       ...> File.read!("test/support/fixtures/DEFAULT_CONFIG.json5") |>
       ...> Zenohex.Session.open()
   """
-  @spec open(String.t()) :: {:ok, session_id :: Zenohex.Nif.id()} | {:error, reason :: term()}
+  @spec open(String.t()) :: {:ok, session_id :: id()} | {:error, reason :: term()}
   defdelegate open(json5_binary), to: Zenohex.Nif, as: :session_open
 
   @doc """
@@ -90,7 +108,7 @@ defmodule Zenohex.Session do
 
   - `session_id` : The session identifier returned by `open/1`.
   """
-  @spec close(session_id :: Zenohex.Nif.id()) :: :ok | {:error, reason :: term()}
+  @spec close(session_id :: id()) :: :ok | {:error, reason :: term()}
   defdelegate close(session_id), to: Zenohex.Nif, as: :session_close
 
   @doc """
@@ -111,7 +129,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.put(session_id, "key/expr", "payload")
       :ok
   """
-  @spec put(session_id :: Zenohex.Nif.id(), String.t(), binary(), put_opts()) ::
+  @spec put(session_id :: id(), String.t(), binary(), put_opts()) ::
           :ok | {:error, reason :: term()}
   defdelegate put(session_id, key_expr, payload, opts \\ []),
     to: Zenohex.Nif,
@@ -132,7 +150,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.delete(session_id, "key/expr")
       :ok
   """
-  @spec delete(session_id :: Zenohex.Nif.id(), String.t(), delete_opts()) ::
+  @spec delete(session_id :: id(), String.t(), delete_opts()) ::
           :ok | {:error, reason :: term()}
   defdelegate delete(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
@@ -154,7 +172,7 @@ defmodule Zenohex.Session do
       iex> Zenohex.Session.get(session_id, "key/expr")
       {:ok, [%Zenohex.Sample{}]}
   """
-  @spec get(session_id :: Zenohex.Nif.id(), String.t(), non_neg_integer(), get_opts()) ::
+  @spec get(session_id :: id(), String.t(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
@@ -171,8 +189,8 @@ defmodule Zenohex.Session do
     - `key_expr`: Key expression to publish under.
     - `opts`: Options for configuring the publisher.
   """
-  @spec declare_publisher(session_id :: Zenohex.Nif.id(), String.t(), keyword()) ::
-          {:ok, publisher_id :: Zenohex.Nif.id()} | {:error, reason :: term()}
+  @spec declare_publisher(session_id :: id(), String.t(), keyword()) ::
+          {:ok, publisher_id :: Zenohex.Publisher.id()} | {:error, reason :: term()}
   defdelegate declare_publisher(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_publisher
@@ -188,8 +206,8 @@ defmodule Zenohex.Session do
       - Messages are delivered as `Zenohex.Sample`.
     - `opts`: Options for configuring the subscriber.
   """
-  @spec declare_subscriber(session_id :: Zenohex.Nif.id(), String.t(), pid(), subscriber_opts()) ::
-          {:ok, subscriber_id :: Zenohex.Nif.id()}
+  @spec declare_subscriber(session_id :: id(), String.t(), pid(), subscriber_opts()) ::
+          {:ok, subscriber_id :: Zenohex.Subscriber.id()}
   defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_subscriber
@@ -205,8 +223,8 @@ defmodule Zenohex.Session do
        - Messages are delivered as `Zenohex.Query`
     - `opts`: Options for configuring the queryable.
   """
-  @spec declare_queryable(session_id :: Zenohex.Nif.id(), String.t(), pid(), queryable_opts()) ::
-          {:ok, queryable_id :: Zenohex.Nif.id()}
+  @spec declare_queryable(session_id :: id(), String.t(), pid(), queryable_opts()) ::
+          {:ok, queryable_id :: Zenohex.Queryable.id()}
   defdelegate declare_queryable(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_queryable
