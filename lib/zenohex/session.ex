@@ -37,7 +37,8 @@ defmodule Zenohex.Session do
           congestion_control: congestion_control(),
           encoding: String.t(),
           express: boolean(),
-          priority: priority()
+          priority: priority(),
+          timestamp: String.t()
         ]
 
   @type delete_opts :: [
@@ -179,6 +180,25 @@ defmodule Zenohex.Session do
   defdelegate get(session_id, selector, timeout, opts \\ []),
     to: Zenohex.Nif,
     as: :session_get
+
+  @doc """
+  New zenoh timestamp string associated with the given session.
+
+  ## Parameters
+
+  - `session_id` : The session identifier returned by `open/0` or `open/1`.
+
+  ## Examples
+
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> {:ok, zenoh_timestamp} = Zenohex.Session.new_timestamp(session_id)
+      iex> [timestamp, zenoh_id_string] = String.split(zenoh_timestamp, "/")
+      iex> {:ok, %DateTime{}, 0} = DateTime.from_iso8601(timestamp)
+  """
+  @spec new_timestamp(session_id :: id()) :: {:ok, String.t()} | {:error, term()}
+  defdelegate new_timestamp(session_id),
+    to: Zenohex.Nif,
+    as: :session_new_timestamp
 
   @doc """
   Declares a publisher associated with the given session and `key_expr`.

@@ -324,6 +324,18 @@ fn session_get<'a>(
 }
 
 #[rustler::nif]
+fn session_new_timestamp(
+    session_id_resource: rustler::ResourceArc<SessionIdResource>,
+) -> rustler::NifResult<(rustler::Atom, String)> {
+    let session_id = &session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_locked = session.read().unwrap();
+    let timestamp = session_locked.new_timestamp().to_string_rfc3339_lossy();
+
+    Ok((rustler::types::atom::ok(), timestamp))
+}
+
+#[rustler::nif]
 fn session_declare_publisher(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
     key_expr: String,
