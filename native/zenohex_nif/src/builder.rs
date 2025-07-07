@@ -298,3 +298,108 @@ impl Builder for zenoh::query::QueryableBuilder<'_, '_, zenoh::handlers::Default
         })
     }
 }
+
+impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderPut> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::attachment() => {
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.attachment(binary.as_slice()))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                k if k == crate::atoms::congestion_control() => {
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
+                }
+                k if k == crate::atoms::encoding() => {
+                    let encoding = v.decode::<&str>()?;
+                    Ok(builder.encoding(encoding))
+                }
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
+                k if k == crate::atoms::priority() => {
+                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                }
+                k if k == crate::atoms::timestamp() => {
+                    if let Some(timestamp) = v.decode::<Option<String>>()? {
+                        let timestamp =
+                            zenoh::time::Timestamp::parse_rfc3339(&timestamp).map_err(|error| {
+                                rustler::Error::Term(crate::zenoh_error!(error.cause))
+                            })?;
+                        Ok(builder.timestamp(timestamp))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
+impl Builder for zenoh::query::ReplyErrBuilder<'_> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::encoding() => {
+                    let encoding = v.decode::<&str>()?;
+                    Ok(builder.encoding(encoding))
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
+impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderDelete> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::attachment() => {
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.attachment(binary.as_slice()))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                k if k == crate::atoms::congestion_control() => {
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
+                }
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
+                k if k == crate::atoms::priority() => {
+                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                }
+                k if k == crate::atoms::timestamp() => {
+                    if let Some(timestamp) = v.decode::<Option<String>>()? {
+                        let timestamp =
+                            zenoh::time::Timestamp::parse_rfc3339(&timestamp).map_err(|error| {
+                                rustler::Error::Term(crate::zenoh_error!(error.cause))
+                            })?;
+                        Ok(builder.timestamp(timestamp))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}

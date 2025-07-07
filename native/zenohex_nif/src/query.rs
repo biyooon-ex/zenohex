@@ -4,6 +4,8 @@ use std::sync::Mutex;
 
 use zenoh::Wait;
 
+use crate::builder::Builder;
+
 struct QueryResource(Mutex<Option<zenoh::query::Query>>);
 
 #[rustler::resource_impl]
@@ -105,7 +107,14 @@ fn query_reply(
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     handle_reply(query_resource, opts, |query| {
-        query.reply(key_expr, payload.as_slice()).wait()
+        let reply_builder = query.reply(key_expr, payload.as_slice());
+
+        reply_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+        Ok(rustler::types::atom::ok())
     })
 }
 
@@ -116,7 +125,14 @@ fn query_reply_error(
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     handle_reply(query_resource, opts, |query| {
-        query.reply_err(payload.as_slice()).wait()
+        let reply_builder = query.reply_err(payload.as_slice());
+
+        reply_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+        Ok(rustler::types::atom::ok())
     })
 }
 
@@ -127,7 +143,14 @@ fn query_reply_delete(
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     handle_reply(query_resource, opts, |query| {
-        query.reply_del(key_expr).wait()
+        let reply_builder = query.reply_del(key_expr);
+
+        reply_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+        Ok(rustler::types::atom::ok())
     })
 }
 
@@ -137,7 +160,7 @@ fn handle_reply<F>(
     reply_fn: F,
 ) -> rustler::NifResult<rustler::Atom>
 where
-    F: FnOnce(&zenoh::query::Query) -> Result<(), zenoh::Error>,
+    F: FnOnce(&zenoh::query::Query) -> rustler::NifResult<rustler::Atom>,
 {
     let query_resource = &query_resource;
     let mut option_query = query_resource.lock().unwrap();
@@ -148,7 +171,7 @@ where
         ))
     })?;
 
-    reply_fn(query).map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    reply_fn(query)?;
 
     if let Some(opt_value) = crate::helper::keyword::get_value(opts, crate::atoms::is_final())? {
         // NOTE: Dropping the query automatically sends a ResponseFinal.

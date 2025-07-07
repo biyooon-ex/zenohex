@@ -21,7 +21,27 @@ defmodule Zenohex.Query do
         }
 
   @type reply_opts :: [
-          final?: boolean()
+          final?: boolean(),
+          attachment: binary() | nil,
+          congestion_control: Zenohex.Session.congestion_control(),
+          encoding: String.t(),
+          express: boolean(),
+          priority: Zenohex.Session.priority(),
+          timestamp: String.t() | nil
+        ]
+
+  @type reply_error_opts :: [
+          final?: boolean(),
+          encoding: String.t()
+        ]
+
+  @type reply_delete_opts :: [
+          final?: boolean(),
+          attachment: binary() | nil,
+          congestion_control: Zenohex.Session.congestion_control(),
+          express: boolean(),
+          priority: Zenohex.Session.priority(),
+          timestamp: String.t() | nil
         ]
 
   defstruct [
@@ -78,7 +98,7 @@ defmodule Zenohex.Query do
 
       iex> Zenohex.Query.reply_error(query.zenoh_query, "unsupported query")
   """
-  @spec reply_error(zenoh_query(), binary(), reply_opts()) ::
+  @spec reply_error(zenoh_query(), binary(), reply_error_opts()) ::
           :ok | {:error, reason :: term()}
   defdelegate reply_error(zenoh_query, payload, opts \\ [final?: true]),
     to: Zenohex.Nif,
@@ -95,7 +115,7 @@ defmodule Zenohex.Query do
 
       iex> Zenohex.Query.reply_delete(query.zenoh_query, "key/expr")
   """
-  @spec reply_delete(zenoh_query(), String.t(), reply_opts()) ::
+  @spec reply_delete(zenoh_query(), String.t(), reply_delete_opts()) ::
           :ok | {:error, reason :: term()}
   defdelegate reply_delete(zenoh_query, key_expr, opts \\ [final?: true]),
     to: Zenohex.Nif,
