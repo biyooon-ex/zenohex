@@ -11,12 +11,12 @@ defmodule Zenohex.Query do
   @type zenoh_query :: reference()
 
   @type t :: %__MODULE__{
-          selector: String.t(),
+          attachment: binary() | nil,
+          encoding: String.t() | nil,
           key_expr: String.t(),
           parameters: String.t(),
           payload: binary() | nil,
-          encoding: String.t() | nil,
-          attachment: binary() | nil,
+          selector: String.t(),
           zenoh_query: zenoh_query()
         }
 
@@ -24,7 +24,15 @@ defmodule Zenohex.Query do
           final?: boolean()
         ]
 
-  defstruct [:selector, :key_expr, :parameters, :payload, :encoding, :attachment, :zenoh_query]
+  defstruct [
+    :attachment,
+    :encoding,
+    :key_expr,
+    :parameters,
+    :payload,
+    :selector,
+    :zenoh_query
+  ]
 
   defmodule ReplyError do
     @zenoh_default_encoding "zenoh/bytes"

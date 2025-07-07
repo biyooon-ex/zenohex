@@ -26,48 +26,48 @@ impl QueryResource {
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Query"]
 pub struct ZenohexQuery<'a> {
-    selector: String,
+    attachment: Option<rustler::Binary<'a>>,
+    encoding: Option<String>,
     key_expr: String,
     parameters: String,
     payload: Option<rustler::Binary<'a>>,
-    encoding: Option<String>,
-    attachment: Option<rustler::Binary<'a>>,
+    selector: String,
     zenoh_query: rustler::ResourceArc<QueryResource>,
 }
 
 impl<'a> ZenohexQuery<'a> {
     pub fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
-        let payload_binary = query.payload().map(|payload| {
-            let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+        let attachment = query.attachment().map(|attachment| {
+            let mut owned_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
 
-            payload_binary
-                .as_mut_slice()
-                .write_all(&payload.to_bytes())
-                .unwrap();
-
-            payload_binary.release(env)
-        });
-
-        let attachment_binary = query.attachment().map(|attachment| {
-            let mut attachment_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
-
-            attachment_binary
+            owned_binary
                 .as_mut_slice()
                 .write_all(&attachment.to_bytes())
                 .unwrap();
 
-            attachment_binary.release(env)
+            owned_binary.release(env)
         });
 
         let encoding: Option<String> = query.encoding().map(|encoding| encoding.to_string());
 
+        let payload = query.payload().map(|payload| {
+            let mut owned_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+
+            owned_binary
+                .as_mut_slice()
+                .write_all(&payload.to_bytes())
+                .unwrap();
+
+            owned_binary.release(env)
+        });
+
         ZenohexQuery {
-            selector: query.selector().to_string(),
+            attachment,
+            encoding,
             key_expr: query.key_expr().to_string(),
             parameters: query.parameters().to_string(),
-            payload: payload_binary,
-            encoding,
-            attachment: attachment_binary,
+            payload,
+            selector: query.selector().to_string(),
             zenoh_query: rustler::ResourceArc::new(QueryResource::new(query.clone())),
         }
     }
