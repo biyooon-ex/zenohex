@@ -28,9 +28,9 @@ defmodule ZenohexTest do
       :ok = Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 
       assert_receive %Zenohex.Sample{
+        encoding: "zenoh/bytes",
         key_expr: "key/expr",
-        payload: "Hello Zenoh Dragon",
-        encoding: "zenoh/bytes"
+        payload: "Hello Zenoh Dragon"
       }
     end
 
@@ -46,11 +46,11 @@ defmodule ZenohexTest do
         ])
 
       assert_receive %Zenohex.Query{
+        attachment: <<0>>,
+        encoding: nil,
         key_expr: "key/expr/**",
         parameters: "",
         payload: nil,
-        encoding: nil,
-        attachment: <<0>>,
         zenoh_query: zenoh_query
       }
 
@@ -88,10 +88,10 @@ defmodule ZenohexTest do
       task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
 
       assert_receive %Zenohex.Query{
+        encoding: nil,
         key_expr: "key/expr/**",
         parameters: "",
         payload: nil,
-        encoding: nil,
         zenoh_query: zenoh_query
       }
 
