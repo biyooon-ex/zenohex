@@ -1,5 +1,5 @@
 #[derive(rustler::NifUnitEnum)]
-enum CongestionControl {
+pub enum CongestionControl {
     Drop,
     Block,
 }
@@ -13,8 +13,17 @@ impl From<CongestionControl> for zenoh::qos::CongestionControl {
     }
 }
 
+impl From<zenoh::qos::CongestionControl> for CongestionControl {
+    fn from(value: zenoh::qos::CongestionControl) -> Self {
+        match value {
+            zenoh::qos::CongestionControl::Drop => CongestionControl::Drop,
+            zenoh::qos::CongestionControl::Block => CongestionControl::Block,
+        }
+    }
+}
+
 #[derive(rustler::NifUnitEnum)]
-enum Priority {
+pub enum Priority {
     RealTime,
     InteractiveHigh,
     InteractiveLow,
@@ -34,6 +43,20 @@ impl From<Priority> for zenoh::qos::Priority {
             Priority::Data => zenoh::qos::Priority::Data,
             Priority::DataLow => zenoh::qos::Priority::DataLow,
             Priority::Background => zenoh::qos::Priority::Background,
+        }
+    }
+}
+
+impl From<zenoh::qos::Priority> for Priority {
+    fn from(value: zenoh::qos::Priority) -> Self {
+        match value {
+            zenoh::qos::Priority::RealTime => Priority::RealTime,
+            zenoh::qos::Priority::InteractiveHigh => Priority::InteractiveHigh,
+            zenoh::qos::Priority::InteractiveLow => Priority::InteractiveLow,
+            zenoh::qos::Priority::DataHigh => Priority::DataHigh,
+            zenoh::qos::Priority::Data => Priority::Data,
+            zenoh::qos::Priority::DataLow => Priority::DataLow,
+            zenoh::qos::Priority::Background => Priority::Background,
         }
     }
 }
