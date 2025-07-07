@@ -120,6 +120,17 @@ fn query_reply_error(
     })
 }
 
+#[rustler::nif]
+fn query_reply_delete(
+    query_resource: rustler::ResourceArc<QueryResource>,
+    key_expr: &str,
+    opts: rustler::Term,
+) -> rustler::NifResult<rustler::Atom> {
+    handle_reply(query_resource, opts, |query| {
+        query.reply_del(key_expr).wait()
+    })
+}
+
 fn handle_reply<F>(
     query_resource: rustler::ResourceArc<QueryResource>,
     opts: rustler::Term,

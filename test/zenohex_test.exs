@@ -56,7 +56,7 @@ defmodule ZenohexTest do
 
       :ok = Zenohex.Query.reply(zenoh_query, "key/expr/1", <<1>>, final?: false)
       :ok = Zenohex.Query.reply(zenoh_query, "key/expr/2", <<2>>, final?: false)
-      :ok = Zenohex.Query.reply(zenoh_query, "key/expr/3", <<3>>, final?: true)
+      :ok = Zenohex.Query.reply_delete(zenoh_query, "key/expr/3", final?: true)
 
       assert {:ok, replies} = Task.await(task)
 
@@ -73,7 +73,8 @@ defmodule ZenohexTest do
                  },
                  %Zenohex.Sample{
                    key_expr: "key/expr/3",
-                   payload: <<3>>
+                   kind: :delete,
+                   payload: ""
                  }
                ])
     end

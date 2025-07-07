@@ -88,6 +88,10 @@ defmodule Zenohex.Nif do
           :ok | {:error, reason :: term()}
   def query_reply_error(_zenoh_query, _payload, _opts), do: err()
 
+  @spec query_reply_delete(zenoh_query(), String.t(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
+
   # Config
 
   def config_default(), do: err()

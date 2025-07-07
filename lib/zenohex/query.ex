@@ -83,4 +83,21 @@ defmodule Zenohex.Query do
   defdelegate reply_error(zenoh_query, payload, opts \\ [final?: true]),
     to: Zenohex.Nif,
     as: :query_reply_error
+
+  @doc """
+  Sends an delete reply to the given Zenoh query.
+
+  ## Options
+
+    - `:final?` : Whether this is the final reply. Defaults to `true`.
+
+  ## Examples
+
+      iex> Zenohex.Query.reply_delete(query.zenoh_query, "key/expr")
+  """
+  @spec reply_delete(zenoh_query(), String.t(), reply_opts()) ::
+          :ok | {:error, reason :: term()}
+  defdelegate reply_delete(zenoh_query, key_expr, opts \\ [final?: true]),
+    to: Zenohex.Nif,
+    as: :query_reply_delete
 end
