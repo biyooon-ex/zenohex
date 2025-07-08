@@ -1,4 +1,6 @@
 defmodule Zenohex.Config do
+  @type t :: String.t()
+
   @moduledoc """
   Utility functions for working with Zenoh session configurations.
 
@@ -18,11 +20,11 @@ defmodule Zenohex.Config do
       iex> config = Zenohex.Config.default()
       iex> config |> :json.decode() |> :json.format() |> IO.puts()
   """
-  @spec default() :: binary()
+  @spec default() :: t()
   defdelegate default(), to: Zenohex.Nif, as: :config_default
 
   @doc false
-  @spec from_json5(binary()) :: {:ok, binary()} | {:error, term()}
+  @spec from_json5(t()) :: {:ok, t()} | {:error, term()}
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
   @doc """
@@ -42,7 +44,7 @@ defmodule Zenohex.Config do
       iex> config = Zenohex.Config.default()
       iex> Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
   """
-  @spec update_in(binary(), [term(), ...], (term() -> term())) :: binary()
+  @spec update_in(t(), [term(), ...], (term() -> term())) :: t()
   def update_in(config, keys, fun) when is_list(keys) and is_function(fun) do
     # NOTE: Use :json.format/1 instead of :json.encode/1 to confirm easily
     config

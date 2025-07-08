@@ -95,6 +95,11 @@ defmodule Zenohex.Nif do
           :ok | {:error, reason :: term()}
   def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
 
+  # Scouting
+  def scouting_scout(_what, _json5_binary, _timeout), do: err()
+  def scouting_declare_scout(_what, _json5_binary, _pid), do: err()
+  def scouting_stop_scout(_scout), do: err()
+
   # Config
 
   def config_default(), do: err()
