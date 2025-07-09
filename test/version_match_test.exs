@@ -46,7 +46,7 @@ defmodule Zenohex.VersionMatchTest do
   end
 
   describe "Elixir/Rust" do
-    test "version match" do
+    test "package version match" do
       version_on_mix_exs =
         Mix.Project.config()
         |> Keyword.fetch!(:version)
