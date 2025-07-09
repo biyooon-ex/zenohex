@@ -403,3 +403,16 @@ impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderDe
         })
     }
 }
+
+impl Builder
+    for zenoh::liveliness::LivelinessSubscriberBuilder<'_, '_, zenoh::handlers::DefaultHandler>
+{
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (_k, _v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            Ok(builder)
+        })
+    }
+}

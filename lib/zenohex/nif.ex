@@ -95,6 +95,24 @@ defmodule Zenohex.Nif do
           :ok | {:error, reason :: term()}
   def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
 
+  # Liveliness
+  @spec liveliness_get(id(), String.t(), non_neg_integer()) ::
+          {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
+          | {:error, :timeout}
+          | {:error, term()}
+  def liveliness_get(_session_id, _key_expr, _timeout), do: err()
+
+  @spec liveliness_declare_subscriber(id(), String.t(), pid(), keyword()) ::
+          {:ok, subscriber_id :: id()}
+  def liveliness_declare_subscriber(_session_id, _key_expr, _pid, _opts \\ []), do: err()
+
+  @spec liveliness_declare_token(id(), String.t()) ::
+          {:ok, liveliness_token :: reference()} | {:error, term()}
+  def liveliness_declare_token(_session_id, _key_expr), do: err()
+
+  @spec liveliness_token_undeclare(liveliness_token :: reference()) :: :ok | {:error, term()}
+  def liveliness_token_undeclare(_token_id), do: err()
+
   # Scouting
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
   def scouting_declare_scout(_what, _json5_binary, _pid), do: err()

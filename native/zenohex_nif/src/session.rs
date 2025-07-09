@@ -32,7 +32,7 @@ pub struct Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    fn insert_entity(
+    pub fn insert_entity(
         &mut self,
         entity_global_id: zenoh::session::EntityGlobalId,
         entity: Entity<'a>,
@@ -167,7 +167,7 @@ pub struct EntityGlobalIdResource(zenoh::session::EntityGlobalId);
 impl rustler::Resource for EntityGlobalIdResource {}
 
 impl EntityGlobalIdResource {
-    fn new(entity_global_id: zenoh::session::EntityGlobalId) -> EntityGlobalIdResource {
+    pub fn new(entity_global_id: zenoh::session::EntityGlobalId) -> EntityGlobalIdResource {
         EntityGlobalIdResource(entity_global_id)
     }
 }

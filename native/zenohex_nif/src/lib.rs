@@ -13,6 +13,7 @@ macro_rules! zenoh_error {
 mod builder;
 mod config;
 mod helper;
+mod liveliness;
 mod publisher;
 mod query;
 mod queryable;
