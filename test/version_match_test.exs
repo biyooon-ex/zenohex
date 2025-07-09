@@ -63,5 +63,20 @@ defmodule Zenohex.VersionMatchTest do
       assert version_on_mix_exs == version_on_cargo_toml
       assert version_on_mix_exs == version_on_cargo_lock
     end
+
+    test "rust version match" do
+      ["uses", "dtolnay/rust-toolchain", rust_version_on_yaml] =
+        File.read!(".github/workflows/nif_precompile.yml")
+        |> String.split("\n")
+        |> Enum.filter(fn line -> String.contains?(line, "dtolnay/rust-toolchain@") end)
+        |> List.first()
+        |> String.split([":", "@"])
+        |> Enum.map(&String.trim/1)
+
+      rust_version_on_toml =
+        Toml.decode_file!("native/zenohex_nif/rust-toolchain.toml")["toolchain"]["channel"]
+
+      assert rust_version_on_yaml == rust_version_on_toml
+    end
   end
 end

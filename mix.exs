@@ -57,6 +57,7 @@ defmodule Zenohex.MixProject do
         "native/zenohex_nif/.cargo",
         "native/zenohex_nif/src",
         "native/zenohex_nif/Cargo*",
+        "native/zenohex_nif/rust-toolchain.toml",
         "LICENSE",
         "README.md",
         "checksum-*.exs",
