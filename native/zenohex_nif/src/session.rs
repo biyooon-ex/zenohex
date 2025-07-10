@@ -62,7 +62,7 @@ impl<'a> Session<'a> {
     }
 }
 
-impl<'a> Deref for Session<'a> {
+impl Deref for Session<'_> {
     type Target = zenoh::Session;
 
     fn deref(&self) -> &Self::Target {
