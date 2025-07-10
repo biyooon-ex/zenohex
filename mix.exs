@@ -72,7 +72,12 @@ defmodule Zenohex.MixProject do
   defp docs() do
     [
       extras: ["README.md", "LICENSE"],
-      main: "readme"
+      main: "readme",
+      groups_for_modules: [
+        Example: [
+          Zenohex.Example.Plugins.StorageBackendFs
+        ]
+      ]
     ]
   end
 
