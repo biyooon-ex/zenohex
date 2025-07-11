@@ -163,6 +163,38 @@ impl Drop for SessionIdResource {
 
 pub struct EntityGlobalIdResource(zenoh::session::EntityGlobalId);
 
+#[derive(rustler::NifStruct)]
+#[module = "Zenohex.Session.Info"]
+pub struct ZenohexSessionInfo {
+    zid: String,
+    routers_zid: Vec<String>,
+    peers_zid: Vec<String>,
+}
+
+impl From<zenoh::session::SessionInfo> for ZenohexSessionInfo {
+    fn from(value: zenoh::session::SessionInfo) -> Self {
+        let zid = value.zid().wait().to_string();
+        let routers_zid = value
+            .routers_zid()
+            .wait()
+            .fold(Vec::new(), |mut vec, router_zid| {
+                vec.push(router_zid.to_string());
+                vec
+            });
+
+        let peers_zid = value.peers_zid().wait().fold(Vec::new(), |mut vec, zid| {
+            vec.push(zid.to_string());
+            vec
+        });
+
+        ZenohexSessionInfo {
+            zid,
+            routers_zid,
+            peers_zid,
+        }
+    }
+}
+
 #[rustler::resource_impl]
 impl rustler::Resource for EntityGlobalIdResource {}
 
@@ -333,6 +365,18 @@ fn session_new_timestamp(
     let timestamp = session_locked.new_timestamp().to_string_rfc3339_lossy();
 
     Ok((rustler::types::atom::ok(), timestamp))
+}
+
+#[rustler::nif]
+fn session_info(
+    session_id_resource: rustler::ResourceArc<SessionIdResource>,
+) -> rustler::NifResult<(rustler::Atom, ZenohexSessionInfo)> {
+    let session_id = &session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_locked = session.read().unwrap();
+    let zenohex_session_info = session_locked.info().into();
+
+    Ok((rustler::types::atom::ok(), zenohex_session_info))
 }
 
 #[rustler::nif]

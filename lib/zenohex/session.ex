@@ -20,6 +20,7 @@ defmodule Zenohex.Session do
   """
 
   @type id :: reference()
+  @type zid :: String.t()
 
   @type congestion_control :: :drop | :block
 
@@ -71,6 +72,20 @@ defmodule Zenohex.Session do
   @type queryable_opts :: [
           complete: boolean()
         ]
+
+  defmodule Info do
+    @type t :: %__MODULE__{
+            zid: Zenohex.Session.zid(),
+            routers_zid: [Zenohex.Session.zid()] | [],
+            peers_zid: [Zenohex.Session.zid()] | []
+          }
+
+    defstruct [
+      :zid,
+      :routers_zid,
+      :peers_zid
+    ]
+  end
 
   @doc """
   Opens a session using Zenoh default config.
@@ -199,6 +214,10 @@ defmodule Zenohex.Session do
   defdelegate new_timestamp(session_id),
     to: Zenohex.Nif,
     as: :session_new_timestamp
+
+  defdelegate info(session_id),
+    to: Zenohex.Nif,
+    as: :session_info
 
   @doc """
   Declares a publisher associated with the given session and `key_expr`.
