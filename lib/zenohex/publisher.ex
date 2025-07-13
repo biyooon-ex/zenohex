@@ -19,6 +19,9 @@ defmodule Zenohex.Publisher do
   @spec put(id(), binary()) :: :ok | {:error, reason :: term()}
   defdelegate put(id, payload), to: Zenohex.Nif, as: :publisher_put
 
+  @spec delete(id()) :: :ok | {:error, reason :: term()}
+  defdelegate delete(id), to: Zenohex.Nif, as: :publisher_delete
+
   @doc """
   Undeclares the publisher identified by the given ID.
 

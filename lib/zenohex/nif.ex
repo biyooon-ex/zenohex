@@ -74,6 +74,9 @@ defmodule Zenohex.Nif do
   @spec publisher_put(id(), binary()) :: :ok | {:error, reason :: term()}
   def publisher_put(_publisher_id, _payload), do: err()
 
+  @spec publisher_delete(id()) :: :ok | {:error, reason :: term()}
+  def publisher_delete(_publisher_id), do: err()
+
   # Subscriber
 
   @spec subscriber_undeclare(id()) :: :ok | {:error, reason :: term()}

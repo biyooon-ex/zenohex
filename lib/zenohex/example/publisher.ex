@@ -11,6 +11,14 @@ defmodule Zenohex.Example.Publisher do
     GenServer.call(name, {:put, payload})
   end
 
+  def delete() do
+    delete(__MODULE__)
+  end
+
+  def delete(name) do
+    GenServer.call(name, :delete)
+  end
+
   def start_link(args) do
     name = Keyword.get(args, :name, __MODULE__)
     GenServer.start_link(__MODULE__, args, name: name)
@@ -34,6 +42,12 @@ defmodule Zenohex.Example.Publisher do
   def handle_call({:put, payload}, _from, state) do
     %{publisher_id: publisher_id} = state
     reply = Zenohex.Publisher.put(publisher_id, payload)
+    {:reply, reply, state}
+  end
+
+  def handle_call(:delete, _from, state) do
+    %{publisher_id: publisher_id} = state
+    reply = Zenohex.Publisher.delete(publisher_id)
     {:reply, reply, state}
   end
 end
