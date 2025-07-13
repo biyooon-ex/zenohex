@@ -174,6 +174,7 @@ pub struct ZenohexSessionInfo {
 impl From<zenoh::session::SessionInfo> for ZenohexSessionInfo {
     fn from(value: zenoh::session::SessionInfo) -> Self {
         let zid = value.zid().wait().to_string();
+
         let routers_zid = value
             .routers_zid()
             .wait()
@@ -377,6 +378,23 @@ fn session_info(
     let zenohex_session_info = session_locked.info().into();
 
     Ok((rustler::types::atom::ok(), zenohex_session_info))
+}
+
+#[rustler::nif]
+fn session_declare_keyexpr(
+    session_id_resource: rustler::ResourceArc<SessionIdResource>,
+    key_expr: &str,
+) -> rustler::NifResult<(rustler::Atom, String)> {
+    let session_id = &session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_locked = session.read().unwrap();
+
+    let key_expr = session_locked
+        .declare_keyexpr(key_expr)
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    Ok((rustler::types::atom::ok(), key_expr.to_string()))
 }
 
 #[rustler::nif]

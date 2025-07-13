@@ -54,6 +54,10 @@ defmodule Zenohex.Nif do
   @spec session_info(id()) :: {:ok, Zenohex.Session.Info.t()}
   def session_info(_session_id), do: err()
 
+  @spec session_declare_keyexpr(id(), String.t()) ::
+          {:ok, String.t()} | {:error, reason :: term()}
+  def session_declare_keyexpr(_session_id, _key_expr), do: err()
+
   @spec session_declare_publisher(id(), String.t(), keyword()) ::
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
