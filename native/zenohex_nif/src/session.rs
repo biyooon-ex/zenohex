@@ -156,7 +156,7 @@ impl Drop for SessionIdResource {
                 };
                 log::debug!("{}", message)
             }
-            Err(_error) => log::debug!(target: module_path!(), "session already removed."),
+            Err(_error) => log::debug!("session already removed."),
         };
     }
 }
