@@ -130,7 +130,7 @@ defmodule Zenohex.Nif do
   def liveliness_declare_token(_session_id, _key_expr), do: err()
 
   @spec liveliness_token_undeclare(liveliness_token :: reference()) :: :ok | {:error, term()}
-  def liveliness_token_undeclare(_token_id), do: err()
+  def liveliness_token_undeclare(_token), do: err()
 
   # Scouting
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
