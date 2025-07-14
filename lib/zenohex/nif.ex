@@ -114,6 +114,18 @@ defmodule Zenohex.Nif do
   # @spec keyexpr_undeclare(id(), key_expr :: reference()) :: :ok | {:error, term()}
   # def keyexpr_undeclare(_session_id, _key_expr), do: err()
 
+  @spec keyexpr_autocanonize(String.t()) :: String.t()
+  def keyexpr_autocanonize(_key_expr), do: err()
+
+  @spec keyexpr_valid?(String.t()) :: boolean()
+  def keyexpr_valid?(_key_expr), do: err()
+
+  @spec keyexpr_intersects?(String.t(), String.t()) :: boolean()
+  def keyexpr_intersects?(_key_expr1, _keyexpr2), do: err()
+
+  @spec keyexpr_includes?(String.t(), String.t()) :: boolean()
+  def keyexpr_includes?(_key_expr1, _keyexpr2), do: err()
+
   # Liveliness
   @spec liveliness_get(id(), String.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
