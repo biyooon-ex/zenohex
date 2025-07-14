@@ -54,9 +54,11 @@ defmodule Zenohex.Nif do
   @spec session_info(id()) :: {:ok, Zenohex.Session.Info.t()}
   def session_info(_session_id), do: err()
 
-  @spec session_declare_keyexpr(id(), String.t()) ::
-          {:ok, String.t()} | {:error, reason :: term()}
-  def session_declare_keyexpr(_session_id, _key_expr), do: err()
+  # NOTE: Not supported in Zenohex.
+  #       Use publisher instead, which is sufficient for all use cases.
+  # @spec session_declare_keyexpr(id(), String.t()) ::
+  #         {:ok, reference()} | {:error, reason :: term()}
+  # def session_declare_keyexpr(_session_id, _key_expr), do: err()
 
   @spec session_declare_publisher(id(), String.t(), keyword()) ::
           {:ok, publisher_id :: id()} | {:error, reason :: term()}
@@ -104,6 +106,13 @@ defmodule Zenohex.Nif do
   @spec query_reply_delete(zenoh_query(), String.t(), keyword()) ::
           :ok | {:error, reason :: term()}
   def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
+
+  # KeyExpr
+
+  # NOTE: Not supported in Zenohex.
+  #       Use publisher instead, which is sufficient for all use cases.
+  # @spec keyexpr_undeclare(id(), key_expr :: reference()) :: :ok | {:error, term()}
+  # def keyexpr_undeclare(_session_id, _key_expr), do: err()
 
   # Liveliness
   @spec liveliness_get(id(), String.t(), non_neg_integer()) ::

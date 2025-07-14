@@ -219,10 +219,6 @@ defmodule Zenohex.Session do
     to: Zenohex.Nif,
     as: :session_info
 
-  defdelegate declare_keyexpr(session_id, key_expr),
-    to: Zenohex.Nif,
-    as: :session_declare_keyexpr
-
   @doc """
   Declares a publisher associated with the given session and `key_expr`.
 
