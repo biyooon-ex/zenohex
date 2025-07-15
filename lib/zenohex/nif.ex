@@ -1,8 +1,11 @@
 defmodule Zenohex.Nif do
   @moduledoc false
 
-  @type id :: reference()
-  @type zenoh_query :: reference()
+  @type session_id :: reference()
+  @type entity_id :: reference()
+  @type query :: reference()
+  @type scout :: reference()
+  @type liveliness_token :: reference()
   @type nif_logger_level :: :debug | :info | :warning | :error
 
   mix_config = Mix.Project.config()
@@ -31,81 +34,82 @@ defmodule Zenohex.Nif do
 
   # Session
 
-  @spec session_open(binary()) :: {:ok, id()} | {:error, reason :: term()}
+  @spec session_open(binary()) :: {:ok, session_id()} | {:error, term()}
   def session_open(_json5_binary), do: err()
 
-  @spec session_close(id()) :: :ok | {:error, reason :: term()}
+  @spec session_close(session_id()) :: :ok | {:error, term()}
   def session_close(_session_id), do: err()
 
-  @spec session_put(id(), String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
+  @spec session_put(session_id(), String.t(), binary(), keyword()) ::
+          :ok | {:error, term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
-  @spec session_delete(id(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
+  @spec session_delete(session_id(), String.t(), keyword()) :: :ok | {:error, term()}
   def session_delete(_session_id, _key_expr, _opts), do: err()
 
-  @spec session_get(id(), String.t(), non_neg_integer(), keyword()) ::
+  @spec session_get(session_id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
   def session_get(_session_id, _selector, _timeout, _opts), do: err()
 
-  @spec session_new_timestamp(id()) :: {:ok, String.t()} | {:error, term()}
+  @spec session_new_timestamp(session_id()) :: {:ok, String.t()} | {:error, term()}
   def session_new_timestamp(_session_id), do: err()
 
-  @spec session_info(id()) :: {:ok, Zenohex.Session.Info.t()}
+  @spec session_info(session_id()) :: {:ok, Zenohex.Session.Info.t()}
   def session_info(_session_id), do: err()
 
   # NOTE: Not supported in Zenohex.
   #       Use publisher instead, which is sufficient for all use cases.
   # @spec session_declare_keyexpr(id(), String.t()) ::
-  #         {:ok, reference()} | {:error, reason :: term()}
+  #         {:ok, reference()} | {:error, term()}
   # def session_declare_keyexpr(_session_id, _key_expr), do: err()
 
-  @spec session_declare_publisher(id(), String.t(), keyword()) ::
-          {:ok, publisher_id :: id()} | {:error, reason :: term()}
+  @spec session_declare_publisher(session_id(), String.t(), keyword()) ::
+          {:ok, entity_id()} | {:error, term()}
   def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
 
-  @spec session_declare_subscriber(id(), String.t(), pid(), keyword()) ::
-          {:ok, subscriber_id :: id()}
+  @spec session_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
+          {:ok, entity_id()}
   def session_declare_subscriber(_session_id, _key_expr, _pid, _opts), do: err()
 
-  @spec session_declare_queryable(id(), String.t(), pid(), keyword()) ::
-          {:ok, queryable_id :: id()}
+  @spec session_declare_queryable(session_id(), String.t(), pid(), keyword()) ::
+          {:ok, entity_id()}
   def session_declare_queryable(_session_id, _key_expr, _pid, _opts), do: err()
 
   # Publisher
 
-  @spec publisher_undeclare(id()) :: :ok | {:error, reason :: term()}
+  @spec publisher_undeclare(entity_id()) :: :ok | {:error, term()}
   def publisher_undeclare(_publisher_id), do: err()
 
-  @spec publisher_put(id(), binary()) :: :ok | {:error, reason :: term()}
+  @spec publisher_put(entity_id(), binary()) :: :ok | {:error, term()}
   def publisher_put(_publisher_id, _payload), do: err()
 
-  @spec publisher_delete(id()) :: :ok | {:error, reason :: term()}
+  @spec publisher_delete(entity_id()) :: :ok | {:error, term()}
   def publisher_delete(_publisher_id), do: err()
 
   # Subscriber
 
-  @spec subscriber_undeclare(id()) :: :ok | {:error, reason :: term()}
+  @spec subscriber_undeclare(entity_id()) :: :ok | {:error, term()}
   def subscriber_undeclare(_subscriber_id), do: err()
 
   # Queryable
 
-  @spec queryable_undeclare(id()) :: :ok | {:error, reason :: term()}
+  @spec queryable_undeclare(entity_id()) :: :ok | {:error, term()}
   def queryable_undeclare(_queryable_id), do: err()
 
   # Query
 
-  @spec query_reply(zenoh_query(), String.t(), binary(), keyword()) ::
-          :ok | {:error, reason :: term()}
+  @spec query_reply(query(), String.t(), binary(), keyword()) ::
+          :ok | {:error, term()}
   def query_reply(_zenoh_query, _key_expr, _payload, _opts), do: err()
 
-  @spec query_reply_error(zenoh_query(), binary(), keyword()) ::
-          :ok | {:error, reason :: term()}
+  @spec query_reply_error(query(), binary(), keyword()) ::
+          :ok | {:error, term()}
   def query_reply_error(_zenoh_query, _payload, _opts), do: err()
 
-  @spec query_reply_delete(zenoh_query(), String.t(), keyword()) ::
-          :ok | {:error, reason :: term()}
+  @spec query_reply_delete(query(), String.t(), keyword()) ::
+          :ok | {:error, term()}
   def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
 
   # KeyExpr
@@ -128,32 +132,44 @@ defmodule Zenohex.Nif do
   def keyexpr_includes?(_key_expr1, _keyexpr2), do: err()
 
   # Liveliness
-  @spec liveliness_get(id(), String.t(), non_neg_integer()) ::
+
+  @spec liveliness_get(session_id(), String.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
   def liveliness_get(_session_id, _key_expr, _timeout), do: err()
 
-  @spec liveliness_declare_subscriber(id(), String.t(), pid(), keyword()) ::
-          {:ok, subscriber_id :: id()}
+  @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
+          {:ok, subscriber_id :: entity_id()}
   def liveliness_declare_subscriber(_session_id, _key_expr, _pid, _opts \\ []), do: err()
 
-  @spec liveliness_declare_token(id(), String.t()) ::
-          {:ok, liveliness_token :: reference()} | {:error, term()}
+  @spec liveliness_declare_token(session_id(), String.t()) ::
+          {:ok, liveliness_token()} | {:error, term()}
   def liveliness_declare_token(_session_id, _key_expr), do: err()
 
-  @spec liveliness_token_undeclare(liveliness_token :: reference()) :: :ok | {:error, term()}
+  @spec liveliness_token_undeclare(liveliness_token()) :: :ok | {:error, term()}
   def liveliness_token_undeclare(_token), do: err()
 
   # Scouting
+
+  @spec scouting_scout(:peer | :router, String.t(), non_neg_integer()) ::
+          {:ok, [Zenohex.Hello.t()]} | {:error, :timeout} | {:error, term()}
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
+
+  @spec scouting_declare_scout(:peer | :router, String.t(), pid()) ::
+          {:ok, scout()} | {:error, term()}
   def scouting_declare_scout(_what, _json5_binary, _pid), do: err()
+
+  @spec scouting_stop_scout(scout()) :: :ok | {:error, term()}
   def scouting_stop_scout(_scout), do: err()
 
   # Config
 
+  @spec config_default() :: String.t()
   def config_default(), do: err()
-  def config_from_json5(_binary), do: err()
+
+  @spec config_from_json5(String.t()) :: {:ok, String.t()} | {:error, term()}
+  def config_from_json5(_json5), do: err()
 
   # Logger
 
@@ -184,5 +200,6 @@ defmodule Zenohex.Nif do
 
   # Helper
 
+  @spec keyword_get_value(keyword(), atom()) :: term()
   def keyword_get_value(_keyword, _key), do: err()
 end
