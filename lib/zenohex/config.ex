@@ -45,12 +45,12 @@ defmodule Zenohex.Config do
       iex> Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
   """
   @spec update_in(t(), [term(), ...], (term() -> term())) :: t()
-  def update_in(config, keys, fun) when is_list(keys) and is_function(fun) do
-    # NOTE: Use :json.format/1 instead of :json.encode/1 to confirm easily
+  def update_in(config, keys, fun)
+      when is_binary(config) and is_list(keys) and is_function(fun) do
     config
     |> :json.decode()
     |> Kernel.update_in(keys, fun)
-    |> :json.format()
+    |> :json.encode()
     |> IO.iodata_to_binary()
   end
 end
