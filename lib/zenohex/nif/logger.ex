@@ -18,7 +18,7 @@ defmodule Zenohex.Nif.Logger do
   @type level :: :error | :warning | :info | :debug
 
   @doc false
-  defdelegate init(pid), to: Zenohex.Nif, as: :nif_logger_init
+  defdelegate init(pid, level \\ :debug), to: Zenohex.Nif, as: :nif_logger_init
 
   @doc """
   Enables the native logger.

@@ -3,6 +3,7 @@ defmodule Zenohex.Nif do
 
   @type id :: reference()
   @type zenoh_query :: reference()
+  @type nif_logger_level :: :debug | :info | :warning | :error
 
   mix_config = Mix.Project.config()
   version = mix_config[:version]
@@ -156,13 +157,30 @@ defmodule Zenohex.Nif do
 
   # Logger
 
-  def nif_logger_init(_pid), do: err()
+  @spec nif_logger_init(pid(), nif_logger_level()) :: :ok
+  def nif_logger_init(_pid, _level), do: err()
+
+  @spec nif_logger_enable() :: :ok
   def nif_logger_enable(), do: err()
+
+  @spec nif_logger_disable() :: :ok
   def nif_logger_disable(), do: err()
+
+  @spec nif_logger_get_target() :: String.t()
   def nif_logger_get_target(), do: err()
+
+  @spec nif_logger_set_target(String.t()) :: :ok
   def nif_logger_set_target(_target), do: err()
+
+  @spec nif_logger_get_level() :: {:ok, nif_logger_level()}
   def nif_logger_get_level(), do: err()
+
+  @spec nif_logger_set_level(nif_logger_level()) :: :ok
   def nif_logger_set_level(_level), do: err()
+
+  # This function is for testing purposes only.
+  @spec nif_logger_log(nif_logger_level(), String.t()) :: :ok
+  def nif_logger_log(_level, _message), do: err()
 
   # Helper
 
