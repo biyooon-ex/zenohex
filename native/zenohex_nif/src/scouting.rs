@@ -128,6 +128,6 @@ fn scouting_stop_scout(
             scout.stop();
             Ok(rustler::types::atom::ok())
         }
-        None => Err(rustler::Error::Term(Box::new("scout already stopped."))),
+        None => Err(rustler::Error::Term(Box::new("already stopped"))),
     }
 }

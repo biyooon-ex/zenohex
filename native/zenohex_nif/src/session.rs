@@ -149,14 +149,14 @@ impl Drop for SessionIdResource {
             Ok(session) => {
                 let session_locked = session.write().unwrap();
                 let message = if session_locked.is_closed() {
-                    "session already closed."
+                    "session already closed"
                 } else {
                     session_locked.close().wait().unwrap();
-                    "session closed by drop."
+                    "session closed by drop"
                 };
                 log::debug!("{}", message)
             }
-            Err(_error) => log::debug!("session already removed."),
+            Err(_error) => log::debug!("session already removed"),
         };
     }
 }
@@ -222,8 +222,8 @@ impl Drop for EntityGlobalIdResource {
             let mut session_locked = session.write().unwrap();
             let result = session_locked.remove_entity(entity_global_id);
             let message = match result {
-                Ok(_) => "entity removed by drop.",
-                Err(_) => "entity already removed.",
+                Ok(_) => "entity removed by drop",
+                Err(_) => "entity already removed",
             };
             log::debug!("{}", message);
         }
