@@ -7,6 +7,8 @@ defmodule Zenohex.SubscriberTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
+    on_exit(fn -> Zenohex.Session.close(session_id) end)
+
     {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
 
     %{
@@ -17,7 +19,8 @@ defmodule Zenohex.SubscriberTest do
 
   test "undeclare/1", context do
     assert :ok = Zenohex.Subscriber.undeclare(context.subscriber_id)
-    # confirm already undeclare
+
+    # confirm already undeclared
     assert {:error, _} = Zenohex.Subscriber.undeclare(context.subscriber_id)
   end
 end
