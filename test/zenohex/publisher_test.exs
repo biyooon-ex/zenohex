@@ -7,6 +7,8 @@ defmodule Zenohex.PublisherTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
+    on_exit(fn -> Zenohex.Session.close(session_id) end)
+
     {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
 
     %{
@@ -24,6 +26,7 @@ defmodule Zenohex.PublisherTest do
 
   test "undeclare/1", context do
     assert :ok = Zenohex.Publisher.undeclare(context.publisher_id)
+
     # confirm already undeclare
     assert {:error, _} = Zenohex.Publisher.undeclare(context.publisher_id)
   end
