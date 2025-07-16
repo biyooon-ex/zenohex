@@ -82,11 +82,11 @@ defmodule Zenohex.Nif do
   @spec publisher_undeclare(entity_id()) :: :ok | {:error, term()}
   def publisher_undeclare(_publisher_id), do: err()
 
-  @spec publisher_put(entity_id(), binary()) :: :ok | {:error, term()}
-  def publisher_put(_publisher_id, _payload), do: err()
+  @spec publisher_put(entity_id(), binary(), keyword()) :: :ok | {:error, term()}
+  def publisher_put(_publisher_id, _payload, _opts), do: err()
 
-  @spec publisher_delete(entity_id()) :: :ok | {:error, term()}
-  def publisher_delete(_publisher_id), do: err()
+  @spec publisher_delete(entity_id(), keyword()) :: :ok | {:error, term()}
+  def publisher_delete(_publisher_id, _opts), do: err()
 
   # Subscriber
 

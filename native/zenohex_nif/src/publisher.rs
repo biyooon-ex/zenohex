@@ -1,9 +1,12 @@
 use zenoh::Wait;
 
+use crate::builder::Builder;
+
 #[rustler::nif]
 fn publisher_put(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     payload: rustler::Binary,
+    opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &entity_global_id_resource.zid();
     let entity_global_id = &entity_global_id_resource;
@@ -17,6 +20,7 @@ fn publisher_put(
         crate::session::Entity::Publisher(publisher, _) => {
             publisher
                 .put(payload.as_slice())
+                .apply_opts(opts)?
                 .wait()
                 .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
@@ -29,6 +33,7 @@ fn publisher_put(
 #[rustler::nif]
 fn publisher_delete(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
+    opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &entity_global_id_resource.zid();
     let entity_global_id = &entity_global_id_resource;
@@ -42,6 +47,7 @@ fn publisher_delete(
         crate::session::Entity::Publisher(publisher, _) => {
             publisher
                 .delete()
+                .apply_opts(opts)?
                 .wait()
                 .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
