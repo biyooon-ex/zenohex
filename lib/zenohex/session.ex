@@ -46,7 +46,8 @@ defmodule Zenohex.Session do
           attachment: binary() | nil,
           congestion_control: congestion_control(),
           express: boolean(),
-          priority: priority()
+          priority: priority(),
+          timestamp: String.t()
         ]
 
   @type get_opts :: [
