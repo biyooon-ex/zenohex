@@ -92,7 +92,7 @@ defmodule Zenohex do
       iex> {:ok, hellos} = Zenohex.scout(:peer, config, 1000)
 
   """
-  @spec scout(:peer | :router, Zenohex.Config.t(), non_neg_integer()) ::
-          {:ok, [Zenohex.Hello.t()]} | {:error, :timeout} | {:error, term()}
-  defdelegate scout(what, config, timeout), to: Zenohex.Nif, as: :scouting_scout
+  @spec scout(Zenohex.Scouting.what(), Zenohex.Config.t(), non_neg_integer()) ::
+          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, term()}
+  defdelegate scout(what, config, timeout), to: Zenohex.Scouting, as: :scout
 end

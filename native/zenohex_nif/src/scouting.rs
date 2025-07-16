@@ -6,14 +6,14 @@ use std::time::Instant;
 use zenoh::Wait;
 
 #[derive(rustler::NifStruct)]
-#[module = "Zenohex.Hello"]
-pub struct ZenohexHello {
+#[module = "Zenohex.Scouting.Hello"]
+pub struct Hello {
     locators: Vec<String>,
     whatami: crate::config::WhatAmI,
     zid: String,
 }
 
-impl ZenohexHello {
+impl Hello {
     pub fn from(hello: &zenoh::scouting::Hello) -> Self {
         let locators = hello.locators().iter().fold(
             Vec::<String>::new(),
@@ -23,7 +23,7 @@ impl ZenohexHello {
             },
         );
 
-        ZenohexHello {
+        Hello {
             locators,
             whatami: hello.whatami().into(),
             zid: hello.zid().to_string(),
@@ -44,6 +44,16 @@ impl Deref for ScoutResource {
     }
 }
 
+impl Drop for ScoutResource {
+    fn drop(&mut self) {
+        let mut scout_option = self.write().unwrap();
+        match scout_option.take() {
+            Some(scout) => scout.stop(),
+            None => log::debug!("scout already stopped"),
+        }
+    }
+}
+
 impl ScoutResource {
     fn new(scout: zenoh::scouting::Scout<()>) -> ScoutResource {
         ScoutResource(RwLock::new(Some(scout)))
@@ -55,7 +65,7 @@ fn scouting_scout(
     what: crate::config::WhatAmI,
     json5_binary: &str,
     timeout: u64,
-) -> rustler::NifResult<(rustler::Atom, Vec<crate::scouting::ZenohexHello>)> {
+) -> rustler::NifResult<(rustler::Atom, Vec<crate::scouting::Hello>)> {
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
@@ -78,7 +88,7 @@ fn scouting_scout(
             return Err(rustler::Error::Term(Box::new("timeout")));
         };
 
-        hellos.push(crate::scouting::ZenohexHello::from(&hello));
+        hellos.push(crate::scouting::Hello::from(&hello));
 
         if scout.is_empty() {
             break;
@@ -106,7 +116,7 @@ fn scouting_declare_scout(
             //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
             std::thread::spawn(move || {
                 let _ = rustler::OwnedEnv::new()
-                    .run(|env: rustler::Env| env.send(&pid, ZenohexHello::from(&hello)));
+                    .run(|env: rustler::Env| env.send(&pid, Hello::from(&hello)));
             });
         })
         .wait()

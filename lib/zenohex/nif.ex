@@ -153,7 +153,7 @@ defmodule Zenohex.Nif do
   # Scouting
 
   @spec scouting_scout(:peer | :router, String.t(), non_neg_integer()) ::
-          {:ok, [Zenohex.Hello.t()]} | {:error, :timeout} | {:error, term()}
+          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, term()}
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
 
   @spec scouting_declare_scout(:peer | :router, String.t(), pid()) ::

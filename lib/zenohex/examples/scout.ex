@@ -19,7 +19,7 @@ defmodule Zenohex.Examples.Scout do
     config = Keyword.get(args, :config) || Zenohex.Config.default()
     callback = Keyword.get(args, :callback, &Logger.debug("#{inspect(&1)}"))
 
-    {:ok, scout} = Zenohex.Nif.scouting_declare_scout(what, config, self())
+    {:ok, scout} = Zenohex.Scouting.declare_scout(what, config, self())
 
     {:ok,
      %{
@@ -28,7 +28,7 @@ defmodule Zenohex.Examples.Scout do
      }}
   end
 
-  def handle_info(%Zenohex.Hello{} = hello, state) do
+  def handle_info(%Zenohex.Scouting.Hello{} = hello, state) do
     %{callback: callback} = state
 
     callback.(hello)
@@ -39,6 +39,6 @@ defmodule Zenohex.Examples.Scout do
   def handle_call(:stop, {pid, _ref} = _from, state) do
     %{scout: scout} = state
 
-    {:stop, "stop called by #{inspect(pid)}", Zenohex.Nif.scouting_stop_scout(scout), state}
+    {:stop, "stop called by #{inspect(pid)}", Zenohex.Scouting.stop_scout(scout), state}
   end
 end
