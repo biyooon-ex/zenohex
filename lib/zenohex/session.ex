@@ -19,8 +19,26 @@ defmodule Zenohex.Session do
   This module serves as the main entry point for using Zenoh in Elixir.
   """
 
+  @typedoc """
+  An identifier for a session.
+  """
   @type id :: reference()
+
+  @typedoc """
+  The global unique id of a Zenoh session.
+
+  see. https://docs.rs/zenoh/latest/zenoh/session/struct.ZenohId.html
+  """
   @type zid :: String.t()
+
+  @typedoc """
+  A Timestamp is formatted to a String as such: "<ntp64_time>/<hlc_id_hexadecimal>"
+
+  `2025-07-16T01:34:56.871273403Z/208a2ec783ec4527a39cc1d5559c70e9`
+
+  see. https://docs.rs/zenoh/latest/zenoh/time/struct.Timestamp.html
+  """
+  @type zenoh_timestamp_string :: String.t()
 
   @type congestion_control :: :drop | :block
 
@@ -39,7 +57,7 @@ defmodule Zenohex.Session do
           encoding: String.t(),
           express: boolean(),
           priority: priority(),
-          timestamp: String.t()
+          timestamp: zenoh_timestamp_string()
         ]
 
   @type delete_opts :: [
@@ -47,7 +65,7 @@ defmodule Zenohex.Session do
           congestion_control: congestion_control(),
           express: boolean(),
           priority: priority(),
-          timestamp: String.t()
+          timestamp: zenoh_timestamp_string()
         ]
 
   @type get_opts :: [
@@ -211,11 +229,24 @@ defmodule Zenohex.Session do
       iex> [timestamp, zenoh_id_string] = String.split(zenoh_timestamp, "/")
       iex> {:ok, %DateTime{}, 0} = DateTime.from_iso8601(timestamp)
   """
-  @spec new_timestamp(session_id :: id()) :: {:ok, String.t()} | {:error, term()}
+  @spec new_timestamp(session_id :: id()) :: {:ok, zenoh_timestamp_string()} | {:error, term()}
   defdelegate new_timestamp(session_id),
     to: Zenohex.Nif,
     as: :session_new_timestamp
 
+  @doc """
+  Get information about the zenoh Session.
+
+  ## Parameters
+
+  - `session_id` : The session identifier returned by `open/0` or `open/1`.
+
+  ## Examples
+
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> {:ok, %Zenohex.Session.Info{}} = Zenohex.Session.info(session_id)
+  """
+  @spec info(session_id :: id()) :: {:ok, Zenohex.Session.Info.t()} | {:error, term()}
   defdelegate info(session_id),
     to: Zenohex.Nif,
     as: :session_info
