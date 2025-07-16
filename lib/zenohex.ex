@@ -1,6 +1,9 @@
 defmodule Zenohex do
   @moduledoc """
-  Documentation #{__MODULE__}
+  Zenohex is a thin Elixir wrapper around Zenoh, implemented using Rustler.
+
+  - Zenoh: https://github.com/eclipse-zenoh/zenoh
+  - Rustler: https://github.com/rusterlium/rustler
   """
 
   @doc """
@@ -14,7 +17,6 @@ defmodule Zenohex do
   - `payload` : The binary payload to publish.
   - `opts` : Additional options. See `Zenohex.Session.put/4` for details.
   """
-
   @spec put(String.t(), binary(), keyword()) :: :ok | {:error, reason :: term()}
   def put(key_expr, payload, opts \\ []) do
     {:ok, session_id} = Zenohex.Session.open()
