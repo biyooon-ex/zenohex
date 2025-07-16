@@ -1,4 +1,4 @@
-defmodule Zenohex.Example.Plugins.StorageBackendFs do
+defmodule Zenohex.Examples.Plugins.StorageBackendFs do
   @moduledoc """
   Example usage of the [zenoh-plugin-storage-manager](https://zenoh.io/docs/manual/plugin-storage-manager/).
 
@@ -12,7 +12,7 @@ defmodule Zenohex.Example.Plugins.StorageBackendFs do
 
   ## Example
 
-      iex> Zenohex.Example.Plugins.StorageBackendFs.start_link []
+      iex> Zenohex.Examples.Plugins.StorageBackendFs.start_link []
       {:ok, #PID<...>}
       iex> Zenohex.put("demo/example/file_a", "data_a")
       :ok

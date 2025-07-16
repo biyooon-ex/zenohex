@@ -1,4 +1,4 @@
-defmodule Zenohex.Example.PublisherTest do
+defmodule Zenohex.Examples.SubscriberTest do
   use ExUnit.Case
 
   setup do
@@ -10,12 +10,12 @@ defmodule Zenohex.Example.PublisherTest do
     %{session_id: session_id}
   end
 
-  test "put correctly", context do
+  test "invoke callback correctly", context do
     me = self()
 
     {:ok, _pid} =
       start_supervised(
-        {Zenohex.Example.Subscriber,
+        {Zenohex.Examples.Subscriber,
          [
            session_id: context.session_id,
            key_expr: "key/expr",
@@ -24,18 +24,10 @@ defmodule Zenohex.Example.PublisherTest do
         restart: :temporary
       )
 
-    {:ok, _pid} =
-      start_supervised(
-        {Zenohex.Example.Publisher,
-         [
-           session_id: context.session_id,
-           key_expr: "key/expr"
-         ]},
-        restart: :temporary
-      )
+    :ok = Zenohex.put("key/expr", "payload")
+    :ok = Zenohex.delete("key/expr")
 
-    :ok = Zenohex.Example.Publisher.put("payload")
-
-    assert_receive %Zenohex.Sample{}
+    assert_receive %Zenohex.Sample{kind: :put}
+    assert_receive %Zenohex.Sample{kind: :delete}
   end
 end

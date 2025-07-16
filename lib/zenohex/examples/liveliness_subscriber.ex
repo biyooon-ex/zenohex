@@ -1,4 +1,4 @@
-defmodule Zenohex.Example.Queryable do
+defmodule Zenohex.Examples.LivelinessSubscriber do
   @moduledoc false
 
   use GenServer
@@ -16,27 +16,23 @@ defmodule Zenohex.Example.Queryable do
         Zenohex.Session.open() |> then(fn {:ok, session_id} -> session_id end)
 
     key_expr = Keyword.get(args, :key_expr, "key/expr")
-
     callback = Keyword.get(args, :callback, &Logger.debug("#{inspect(&1)}"))
 
-    callback_payload = Keyword.get(args, :callback_payload, &inspect(&1))
-
-    {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, key_expr, self())
+    {:ok, liveliness_subscriber_id} =
+      Zenohex.Nif.liveliness_declare_subscriber(session_id, key_expr, self())
 
     {:ok,
      %{
-       queryable_id: queryable_id,
+       liveliness_subscriber_id: liveliness_subscriber_id,
        key_expr: key_expr,
-       callback: callback,
-       callback_payload: callback_payload
+       callback: callback
      }}
   end
 
-  def handle_info(%Zenohex.Query{zenoh_query: zenoh_query} = query, state) do
-    %{key_expr: key_expr, callback: callback, callback_payload: callback_payload} = state
+  def handle_info(%Zenohex.Sample{} = sample, state) do
+    %{callback: callback} = state
 
-    callback.(query)
-    :ok = Zenohex.Query.reply(zenoh_query, key_expr, callback_payload.(query))
+    callback.(sample)
 
     {:noreply, state}
   end

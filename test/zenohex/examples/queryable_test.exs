@@ -1,4 +1,4 @@
-defmodule Zenohex.Example.QueryableTest do
+defmodule Zenohex.Examples.QueryableTest do
   use ExUnit.Case
 
   setup do
@@ -15,7 +15,7 @@ defmodule Zenohex.Example.QueryableTest do
 
     {:ok, _pid} =
       start_supervised(
-        {Zenohex.Example.Queryable,
+        {Zenohex.Examples.Queryable,
          [
            session_id: context.session_id,
            key_expr: "key/expr",

@@ -1,4 +1,4 @@
-defmodule Zenohex.Example.Scout do
+defmodule Zenohex.Examples.Scout do
   @moduledoc false
 
   use GenServer
