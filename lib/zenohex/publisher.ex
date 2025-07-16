@@ -20,21 +20,19 @@ defmodule Zenohex.Publisher do
         ]
 
   @doc """
-  Sends a binary payload using the specified publisher.
-
-  The `id` must be a valid publisher reference obtained from
-  `Zenohex.Session.declare_publisher/3`.
+  Sends a `kind: :put` sample with binary payload using the specified publisher.
   """
   @spec put(id(), binary(), put_opts()) :: :ok | {:error, reason :: term()}
   defdelegate put(id, payload, opts \\ []), to: Zenohex.Nif, as: :publisher_put
 
+  @doc """
+  Sends a `kind: :delete` sample using the specified publisher.
+  """
   @spec delete(id(), delete_opts()) :: :ok | {:error, reason :: term()}
   defdelegate delete(id, opts \\ []), to: Zenohex.Nif, as: :publisher_delete
 
   @doc """
   Undeclares the publisher identified by the given ID.
-
-  This releases associated resources.
   """
   @spec undeclare(id()) :: :ok | {:error, reason :: term()}
   defdelegate undeclare(id), to: Zenohex.Nif, as: :publisher_undeclare
