@@ -1,6 +1,8 @@
 defmodule Zenohex.Hello do
   @moduledoc """
-  A zenoh Hello message.
+  A struct that corresponds one-to-one to `zenoh::scouting::Hello`.
+
+  see. https://docs.rs/zenoh/latest/zenoh/scouting/struct.Hello.html
 
   ## Examples
 

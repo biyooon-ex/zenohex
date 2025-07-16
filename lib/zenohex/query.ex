@@ -55,6 +55,12 @@ defmodule Zenohex.Query do
   ]
 
   defmodule ReplyError do
+    @moduledoc """
+    A struct that corresponds one-to-one to `zenoh::query::ReplyError`.
+
+    see. https://docs.rs/zenoh/latest/zenoh/query/struct.ReplyError.html
+    """
+
     @zenoh_default_encoding "zenoh/bytes"
 
     @type t :: %__MODULE__{

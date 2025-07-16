@@ -93,6 +93,12 @@ defmodule Zenohex.Session do
         ]
 
   defmodule Info do
+    @moduledoc """
+    A struct that corresponds one-to-one to `zenoh::session::SessionInfo`.
+
+    see. https://docs.rs/zenoh/latest/zenoh/session/struct.SessionInfo.html
+    """
+
     @type t :: %__MODULE__{
             zid: Zenohex.Session.zid(),
             routers_zid: [Zenohex.Session.zid()] | [],

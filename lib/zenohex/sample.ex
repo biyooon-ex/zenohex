@@ -1,4 +1,10 @@
 defmodule Zenohex.Sample do
+  @moduledoc """
+  A struct that corresponds one-to-one to `zenoh::sample::Sample`.
+
+  see. https://docs.rs/zenoh/latest/zenoh/sample/struct.Sample.html
+  """
+
   @zenoh_default_encoding "zenoh/bytes"
 
   @type t :: %__MODULE__{
