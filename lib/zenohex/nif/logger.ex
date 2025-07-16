@@ -13,6 +13,22 @@ defmodule Zenohex.Nif.Logger do
 
   This module is intended for debugging and development use only,
   and should typically not be used in production environments.
+
+  ## Examples
+
+      iex> :ok = Zenohex.Nif.Logger.enable()
+      iex> :ok = Zenohex.Nif.Logger.set_level(:info)
+      iex> :ok = Zenohex.Nif.Logger.set_target("zenoh")
+      iex> {:ok, session_id} = Zenohex.Session.open()
+
+      11:12:16.162 [info] [zenoh::net::runtime] Using ZID: 600e0683e440f79e2e06053232748346
+
+      11:12:16.166 [info] [zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/[fe80::dead:beef:cafe:1234]:45215
+
+      11:12:16.166 [info] [zenoh::net::runtime::orchestrator] Zenoh can be reached at: tcp/10.0.123.45:45215
+
+      11:12:16.166 [info] [zenoh::net::runtime::orchestrator] zenohd listening scout messages on 224.0.0.224:7446
+      {:ok, #Reference<0.3207146932.3642621953.187320>}
   """
 
   @type level :: :error | :warning | :info | :debug
