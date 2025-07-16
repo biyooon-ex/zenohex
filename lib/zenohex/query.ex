@@ -27,7 +27,7 @@ defmodule Zenohex.Query do
           encoding: String.t(),
           express: boolean(),
           priority: Zenohex.Session.priority(),
-          timestamp: String.t() | nil
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         ]
 
   @type reply_error_opts :: [
@@ -41,7 +41,7 @@ defmodule Zenohex.Query do
           congestion_control: Zenohex.Session.congestion_control(),
           express: boolean(),
           priority: Zenohex.Session.priority(),
-          timestamp: String.t() | nil
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         ]
 
   defstruct [

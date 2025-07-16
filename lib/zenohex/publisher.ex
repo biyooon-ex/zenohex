@@ -12,11 +12,11 @@ defmodule Zenohex.Publisher do
   @type put_opts :: [
           attachment: binary() | nil,
           encoding: String.t(),
-          timestamp: String.t()
+          timestamp: Zenohex.Session.zenoh_timestamp_string()
         ]
   @type delete_opts :: [
           attachment: binary() | nil,
-          timestamp: String.t()
+          timestamp: Zenohex.Session.zenoh_timestamp_string()
         ]
 
   @doc """

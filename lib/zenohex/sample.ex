@@ -10,7 +10,7 @@ defmodule Zenohex.Sample do
           kind: :put | :delete,
           payload: binary(),
           priority: Zenohex.Session.priority(),
-          timestamp: String.t() | nil
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         }
   defstruct attachment: nil,
             congestion_control: :block,
