@@ -40,7 +40,7 @@ defmodule ZenohexTest do
     end
 
     test "get/reply without ReplyError", %{session_id: session_id} do
-      {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+      {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
       task =
         Task.async(Zenohex.Session, :get, [
@@ -82,6 +82,11 @@ defmodule ZenohexTest do
                    payload: ""
                  }
                ])
+
+      # WHY: Explicitly undeclare `queryable_id`.
+      #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
+      #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
+      :ok = Zenohex.Queryable.undeclare(queryable_id)
     end
 
     # WHY:  :skip, because this test is flaky.
@@ -89,7 +94,7 @@ defmodule ZenohexTest do
     # TODO: Investigate and report an issue to Zenoh.
     @tag :skip
     test "get/reply with ReplyError", %{session_id: session_id} do
-      {:ok, _queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+      {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
       task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
 
@@ -123,6 +128,11 @@ defmodule ZenohexTest do
                    payload: <<3>>
                  }
                ])
+
+      # WHY: Explicitly undeclare `queryable_id`.
+      #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
+      #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
+      :ok = Zenohex.Queryable.undeclare(queryable_id)
     end
   end
 
@@ -142,8 +152,8 @@ defmodule ZenohexTest do
     end
 
     test "pub/sub with zenohd", %{session_id: session_id} do
+      {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
       {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
-      {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
 
       :ok = Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 
@@ -152,6 +162,11 @@ defmodule ZenohexTest do
         payload: "Hello Zenoh Dragon",
         encoding: "zenoh/bytes"
       }
+
+      # WHY: Explicitly undeclare `subscriber_id`.
+      #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
+      #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
+      :ok = Zenohex.Subscriber.undeclare(subscriber_id)
     end
   end
 end
