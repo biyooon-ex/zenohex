@@ -2,8 +2,15 @@ defmodule Zenohex do
   @moduledoc """
   Zenohex is a thin Elixir wrapper around Zenoh, implemented using Rustler.
 
-  - Zenoh: https://github.com/eclipse-zenoh/zenoh
+  - Zenoh:
+    - https://zenoh.io/
+    - https://github.com/eclipse-zenoh/zenoh
   - Rustler: https://github.com/rusterlium/rustler
+
+  To learn how to use this library,
+  check the example implementations in the following directory:
+
+  - #{Zenohex.MixProject.project()[:source_url]}/tree/main/lib/zenohex/examples
   """
 
   @doc """
