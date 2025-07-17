@@ -35,6 +35,7 @@ jobs:
       run: |
         # Get the project version from mix.exs
         echo "PROJECT_VERSION=$(sed -n 's/^  @version "\(.*\)"/\1/p' mix.exs | head -n1)" >> $GITHUB_ENV
+
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@1.85.0
       with:
