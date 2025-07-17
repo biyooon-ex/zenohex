@@ -34,6 +34,7 @@ mod atoms {
         is_final = "final?",
         payload,
         priority,
+        query_timeout,
         target,
         timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",

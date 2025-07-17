@@ -76,7 +76,8 @@ defmodule Zenohex.Session do
           express: boolean(),
           payload: binary() | nil,
           priority: priority(),
-          target: :best_matching | :all | :all_complete
+          target: :best_matching | :all | :all_complete,
+          query_timeout: non_neg_integer()
         ]
 
   @type publisher_opts :: [

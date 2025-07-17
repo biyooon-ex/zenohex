@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 #[derive(rustler::NifUnitEnum)]
 pub enum CongestionControl {
     Drop,
@@ -312,6 +314,10 @@ impl Builder for zenoh::session::SessionGetBuilder<'_, '_, zenoh::handlers::Defa
                 k if k == crate::atoms::target() => {
                     let target = v.decode::<QueryTarget>()?;
                     Ok(builder.target(target.into()))
+                }
+                k if k == crate::atoms::query_timeout() => {
+                    let query_timeout = v.decode::<u64>()?;
+                    Ok(builder.timeout(Duration::from_millis(query_timeout)))
                 }
                 _ => Ok(builder),
             }
