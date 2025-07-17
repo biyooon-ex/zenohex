@@ -13,17 +13,27 @@ struct LivelinessTokenResource(Mutex<Option<zenoh::liveliness::LivelinessToken>>
 #[rustler::resource_impl]
 impl rustler::Resource for LivelinessTokenResource {}
 
-impl LivelinessTokenResource {
-    fn new(liveliness_token: zenoh::liveliness::LivelinessToken) -> LivelinessTokenResource {
-        LivelinessTokenResource(Mutex::new(Some(liveliness_token)))
-    }
-}
-
 impl Deref for LivelinessTokenResource {
     type Target = Mutex<Option<zenoh::liveliness::LivelinessToken>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Drop for LivelinessTokenResource {
+    fn drop(&mut self) {
+        let mut token_option = self.lock().unwrap();
+        match token_option.take() {
+            Some(token) => token.undeclare().wait().unwrap(),
+            None => log::debug!("liveliness token already undeclared"),
+        }
+    }
+}
+
+impl LivelinessTokenResource {
+    fn new(liveliness_token: zenoh::liveliness::LivelinessToken) -> LivelinessTokenResource {
+        LivelinessTokenResource(Mutex::new(Some(liveliness_token)))
     }
 }
 
