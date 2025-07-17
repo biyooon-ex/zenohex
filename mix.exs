@@ -98,7 +98,11 @@ defmodule Zenohex.MixProject do
 
   defp test_coverage() do
     [
-      ignore_modules: [Zenohex.Nif],
+      ignore_modules: [
+        Zenohex.Nif,
+        ~r/Zenohex.Nif.Logger.*/,
+        Zenohex.Examples.Plugins.StorageBackendFs
+      ],
       # WHY: see https://github.com/biyooon-ex/zenohex/issues/77
       summary: [threshold: 80]
     ]
