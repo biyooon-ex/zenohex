@@ -7,27 +7,29 @@ defmodule Zenohex.Examples.SubscriberTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    %{session_id: session_id}
+    %{
+      me: self(),
+      session_id: session_id,
+      key_expr: "key/expr"
+    }
   end
 
   test "invoke callback correctly", context do
-    me = self()
-
     {:ok, _pid} =
-      start_supervised(
-        {Zenohex.Examples.Subscriber,
-         [
-           session_id: context.session_id,
-           key_expr: "key/expr",
-           callback: fn sample -> send(me, sample) end
-         ]},
-        restart: :temporary
+      Zenohex.Examples.Subscriber.start_link(
+        session_id: context.session_id,
+        key_expr: context.key_expr,
+        callback: fn sample -> send(context.me, sample) end
       )
 
-    :ok = Zenohex.put("key/expr", "payload")
-    :ok = Zenohex.delete("key/expr")
+    :ok = Zenohex.put(context.key_expr, "payload")
 
-    assert_receive %Zenohex.Sample{kind: :put}
+    assert_receive %Zenohex.Sample{kind: :put, payload: "payload"}
+
+    :ok = Zenohex.delete(context.key_expr)
+
     assert_receive %Zenohex.Sample{kind: :delete}
+
+    assert :ok = Zenohex.Examples.Subscriber.stop()
   end
 end
