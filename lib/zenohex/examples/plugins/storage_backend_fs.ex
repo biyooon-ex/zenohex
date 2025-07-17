@@ -2,13 +2,23 @@ defmodule Zenohex.Examples.Plugins.StorageBackendFs do
   @moduledoc """
   Example usage of the [zenoh-plugin-storage-manager](https://zenoh.io/docs/manual/plugin-storage-manager/).
 
-  This example uses [zenoh-backend-filesystem](https://github.com/eclipse-zenoh/zenoh-backend-filesystem) as the backend.
+  This example uses [zenoh-backend-filesystem](https://github.com/eclipse-zenoh/zenoh-backend-filesystem)
+  as the backend.
 
   The plugin configuration file is located at `test/support/fixtures/STORAGE_BACKEND_FS_CONFIG.json5`.
   Please refer to `STORAGE_BACKEND_FS_CONFIG.json5` for the configuration details.
 
-  If the plugin fails to load, make sure that `libzenoh_backend_fs.so` and `libzenoh_plugin_storage_manager.so` exist under the
-  `search_dirs` specified in the configuration. If they exist, verify that their versions are compatible with the `zenoh` version used by `zenohex`.
+  If the plugin fails to load, make sure that the followings exist
+
+    * `libzenoh_backend_fs.so`
+    * `libzenoh_plugin_storage_manager.so`
+
+  under the `search_dirs` specified in the configuration.
+  If they exist, verify that their versions are compatible with the `zenoh` version used by `zenohex`.
+
+  For the actual implementation, please refer to the following,
+
+  - #{Zenohex.MixProject.project()[:source_url]}/tree/main/#{Path.relative_to_cwd(__ENV__.file)}
 
   ## Example
 
@@ -25,6 +35,10 @@ defmodule Zenohex.Examples.Plugins.StorageBackendFs do
 
   use GenServer
 
+  @doc """
+  Starts #{__MODULE__}.
+  """
+  @spec start_link([]) :: GenServer.on_start()
   def start_link(args) do
     name = Keyword.get(args, :name, __MODULE__)
     GenServer.start_link(__MODULE__, args, name: name)
