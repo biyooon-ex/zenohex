@@ -73,9 +73,24 @@ defmodule Zenohex.MixProject do
     [
       extras: ["README.md", "LICENSE"],
       main: "readme",
+      nest_modules_by_prefix: [
+        Zenohex.Examples,
+        Examples.Publisher,
+        Examples.Subscriber,
+        Examples.Queryable,
+        Examples.LivelinessSubscriber,
+        Examples.Scout,
+        Zenohex.Examples.Plugins,
+        Plugins.StorageBackendFs
+      ],
       groups_for_modules: [
-        Example: [
-          Zenohex.Example.Plugins.StorageBackendFs
+        Examples: [
+          Zenohex.Examples.Publisher,
+          Zenohex.Examples.Subscriber,
+          Zenohex.Examples.Queryable,
+          Zenohex.Examples.LivelinessSubscriber,
+          Zenohex.Examples.Scout,
+          Zenohex.Examples.Plugins.StorageBackendFs
         ]
       ]
     ]
