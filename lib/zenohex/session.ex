@@ -266,7 +266,7 @@ defmodule Zenohex.Session do
     - `key_expr`: Key expression to publish under.
     - `opts`: Options for configuring the publisher.
   """
-  @spec declare_publisher(session_id :: id(), String.t(), keyword()) ::
+  @spec declare_publisher(session_id :: id(), String.t(), publisher_opts()) ::
           {:ok, publisher_id :: Zenohex.Publisher.id()} | {:error, reason :: term()}
   defdelegate declare_publisher(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
