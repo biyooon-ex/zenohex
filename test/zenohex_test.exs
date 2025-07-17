@@ -22,8 +22,8 @@ defmodule ZenohexTest do
     end
 
     test "pub/sub", %{session_id: session_id} do
+      {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
       {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
-      {:ok, _subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
 
       :ok = Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 
@@ -32,6 +32,11 @@ defmodule ZenohexTest do
         key_expr: "key/expr",
         payload: "Hello Zenoh Dragon"
       }
+
+      # WHY: Explicitly undeclare `subscriber_id`.
+      #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
+      #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
+      :ok = Zenohex.Subscriber.undeclare(subscriber_id)
     end
 
     test "get/reply without ReplyError", %{session_id: session_id} do

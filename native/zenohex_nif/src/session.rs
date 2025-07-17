@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -24,6 +25,16 @@ pub enum Entity<'a> {
         zenoh::query::Queryable<()>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
+}
+
+impl fmt::Display for Entity<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Entity::Publisher(_, _) => write!(f, "Publisher"),
+            Entity::Subscriber(_, _) => write!(f, "Subscriber"),
+            Entity::Queryable(_, _) => write!(f, "Queryable"),
+        }
+    }
 }
 
 pub struct Session<'a> {
@@ -129,6 +140,7 @@ pub static SESSION_MAP: LazyLock<SessionMap> = LazyLock::new(SessionMap::new);
 //      If we use the session for resource, we got the following error.
 //      the trait std::panic::RefUnwindSafe is not implemented for
 //      std::cell::UnsafeCell<std::collections::HashSet<zenoh_protocol::core::ZenohIdProto>>
+
 pub struct SessionIdResource(zenoh::session::ZenohId);
 
 #[rustler::resource_impl]
@@ -222,8 +234,8 @@ impl Drop for EntityGlobalIdResource {
             let mut session_locked = session.write().unwrap();
             let result = session_locked.remove_entity(entity_global_id);
             let message = match result {
-                Ok(_) => "entity removed by drop",
-                Err(_) => "entity already removed",
+                Ok(entity) => format!("entity {:#} removed by drop", entity),
+                Err(_) => "entity already removed".to_string(),
             };
             log::debug!("{}", message);
         }
