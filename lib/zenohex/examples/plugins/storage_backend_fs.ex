@@ -10,8 +10,8 @@ defmodule Zenohex.Examples.Plugins.StorageBackendFs do
 
   If the plugin fails to load, make sure that the followings exist
 
-    * `libzenoh_backend_fs.so`
-    * `libzenoh_plugin_storage_manager.so`
+    - `libzenoh_backend_fs.so`
+    - `libzenoh_plugin_storage_manager.so`
 
   under the `search_dirs` specified in the configuration.
   If they exist, verify that their versions are compatible with the `zenoh` version used by `zenohex`.

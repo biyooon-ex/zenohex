@@ -13,7 +13,7 @@ defmodule Zenohex.Liveliness do
 
   ## Parameters
 
-    * `key_expr` - The key expression matching liveliness tokens to query
+    - `key_expr` - The key expression matching liveliness tokens to query
 
   ## Examples
 
@@ -31,9 +31,9 @@ defmodule Zenohex.Liveliness do
 
   ## Parameters
 
-    * `session_id` — The session to declare on
-    * `key_expr` — Key expression to associate with
-    * `pid` - Process to receive liveliness updates (defaults to `self()`)
+    - `session_id` — The session to declare on
+    - `key_expr` — Key expression to associate with
+    - `pid` - Process to receive liveliness updates (defaults to `self()`)
 
   ## Examples
 
@@ -51,7 +51,7 @@ defmodule Zenohex.Liveliness do
 
   ## Parameters
 
-    * `subscriber_id` — The ID of the subscriber to undeclare
+    - `subscriber_id` — The ID of the subscriber to undeclare
 
   ## Examples
 
@@ -68,8 +68,8 @@ defmodule Zenohex.Liveliness do
 
   ## Parameters
 
-    * `session_id` — The session to declare on
-    * `key_expr` — Key expression to associate with
+    - `session_id` — The session to declare on
+    - `key_expr` — Key expression to associate with
 
   ## Examples
 

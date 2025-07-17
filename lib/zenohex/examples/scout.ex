@@ -23,10 +23,10 @@ defmodule Zenohex.Examples.Scout do
 
   ## Parameters
 
-  * `args` – a keyword list that can include the following keys:
-    * `:what` – the target to scout (e.g., `:peer` or `:router`)
-    * `:config` – the configuration used for scouting
-    * `:callback` – a function to be called when a hello message is received
+  - `args` – a keyword list that can include the following keys:
+    - `:what` – the target to scout (e.g., `:peer` or `:router`)
+    - `:config` – the configuration used for scouting
+    - `:callback` – a function to be called when a hello message is received
   """
   @spec start_link([
           {:what, Zenohex.Scouting.what()}

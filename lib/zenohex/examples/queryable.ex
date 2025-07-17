@@ -23,11 +23,11 @@ defmodule Zenohex.Examples.Queryable do
 
   ## Parameters
 
-    * `args` – a keyword list that can include the following keys:
-      * `:session_id` – the ID of the session
-      * `:key_expr` – the key expression to subscribe to
-      * `:callback` – the function to call when a query is received
-        * To reply to the query, use a callback that calls `Zenohex.Query.reply/3`.
+    - `args` – a keyword list that can include the following keys:
+      - `:session_id` – the ID of the session
+      - `:key_expr` – the key expression to subscribe to
+      - `:callback` – the function to call when a query is received
+        - To reply to the query, use a callback that calls `Zenohex.Query.reply/3`.
   """
   @spec start_link([
           {:session_id, Zenohex.Session.id()}

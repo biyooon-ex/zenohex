@@ -37,9 +37,9 @@ defmodule Zenohex.Examples.Publisher do
 
   ## Parameters
 
-    * `args` – a keyword list that can include the following keys:
-      * `:session_id` – the ID of the session
-      * `:key_expr` – the key expression to subscribe to
+    - `args` – a keyword list that can include the following keys:
+      - `:session_id` – the ID of the session
+      - `:key_expr` – the key expression to subscribe to
   """
   @spec start_link([
           {:session_id, Zenohex.Session.id()}

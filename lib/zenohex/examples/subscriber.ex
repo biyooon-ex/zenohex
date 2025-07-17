@@ -23,10 +23,10 @@ defmodule Zenohex.Examples.Subscriber do
 
   ## Parameters
 
-    * `args` – a keyword list that can include the following keys:
-      * `:session_id` – the ID of the session
-      * `:key_expr` – the key expression to subscribe to
-      * `:callback` – the function to call when a sample is received
+    - `args` – a keyword list that can include the following keys:
+      - `:session_id` – the ID of the session
+      - `:key_expr` – the key expression to subscribe to
+      - `:callback` – the function to call when a sample is received
   """
   @spec start_link([
           {:session_id, Zenohex.Session.id()}
