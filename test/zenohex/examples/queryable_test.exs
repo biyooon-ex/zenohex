@@ -7,25 +7,23 @@ defmodule Zenohex.Examples.QueryableTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    %{session_id: session_id}
+    %{
+      me: self(),
+      session_id: session_id,
+      key_expr: "key/expr"
+    }
   end
 
-  test "reply correctly", context do
-    me = self()
-
+  test "example works correctly", context do
     {:ok, _pid} =
-      start_supervised(
-        {Zenohex.Examples.Queryable,
-         [
-           session_id: context.session_id,
-           key_expr: "key/expr",
-           callback: fn query -> send(me, query) end
-         ]},
-        restart: :temporary
+      Zenohex.Examples.Queryable.start_link(
+        session_id: context.session_id,
+        key_expr: context.key_expr,
+        callback: &Zenohex.Query.reply(&1.zenoh_query, context.key_expr, "reply")
       )
 
-    {:ok, [%Zenohex.Sample{}]} = Zenohex.get("key/expr/**", 100)
+    {:ok, [%Zenohex.Sample{payload: "reply"}]} = Zenohex.get(context.key_expr, 100)
 
-    assert_receive %Zenohex.Query{}
+    assert :ok = Zenohex.Examples.Queryable.stop()
   end
 end
