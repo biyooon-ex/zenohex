@@ -131,6 +131,12 @@ defmodule Zenohex.Session do
 
   - `json5_binary` : A JSON5 string representing the Zenoh configuration.
 
+  > ### Important {: .info}
+  >
+  > The returned `session_id` must be held for as long as the session is in use.
+  > If it is not held and gets garbage-collected by the BEAM,
+  > the underlying session in Rust will be automatically dropped and closed.
+
   ## Examples
 
       iex> {:ok, session_id} =
@@ -266,6 +272,12 @@ defmodule Zenohex.Session do
     - `session_id`: Identifier of the session returned by `open/0` or `open/1`.
     - `key_expr`: Key expression to publish under.
     - `opts`: Options for configuring the publisher.
+
+  > ### Important {: .info}
+  >
+  > The returned `publisher_id` must be held for as long as the publisher is in use.
+  > If it is not held and gets garbage-collected by the BEAM,
+  > the underlying publisher in Rust will be automatically dropped.
   """
   @spec declare_publisher(session_id :: id(), String.t(), publisher_opts()) ::
           {:ok, publisher_id :: Zenohex.Publisher.id()} | {:error, reason :: term()}
@@ -283,6 +295,12 @@ defmodule Zenohex.Session do
     - `pid`: Process to receive subscription messages. Defaults to the calling process.
       - Messages are delivered as `Zenohex.Sample`.
     - `opts`: Options for configuring the subscriber.
+
+  > ### Important {: .info}
+  >
+  > The returned `subscriber_id` must be held for as long as the subscriber is in use.
+  > If it is not held and gets garbage-collected by the BEAM,
+  > the underlying subscriber in Rust will be automatically dropped.
   """
   @spec declare_subscriber(session_id :: id(), String.t(), pid(), subscriber_opts()) ::
           {:ok, subscriber_id :: Zenohex.Subscriber.id()}
@@ -300,6 +318,12 @@ defmodule Zenohex.Session do
     - `pid`: Process to receive query messages. Defaults to the calling process.
        - Messages are delivered as `Zenohex.Query`
     - `opts`: Options for configuring the queryable.
+
+  > ### Important {: .info}
+  >
+  > The returned `queryable_id` must be held for as long as the queryable is in use.
+  > If it is not held and gets garbage-collected by the BEAM,
+  > the underlying queryable in Rust will be automatically dropped.
   """
   @spec declare_queryable(session_id :: id(), String.t(), pid(), queryable_opts()) ::
           {:ok, queryable_id :: Zenohex.Queryable.id()}
