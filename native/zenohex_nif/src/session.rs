@@ -173,8 +173,6 @@ impl Drop for SessionIdResource {
     }
 }
 
-pub struct EntityGlobalIdResource(zenoh::session::EntityGlobalId);
-
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Session.Info"]
 pub struct ZenohexSessionInfo {
@@ -207,6 +205,8 @@ impl From<zenoh::session::SessionInfo> for ZenohexSessionInfo {
         }
     }
 }
+
+pub struct EntityGlobalIdResource(zenoh::session::EntityGlobalId);
 
 #[rustler::resource_impl]
 impl rustler::Resource for EntityGlobalIdResource {}
