@@ -129,7 +129,7 @@ defmodule Zenohex.Session do
 
   ## Parameters
 
-  - `json5_binary` (`String.t`): A JSON5 string representing the Zenoh configuration.
+  - `json5_binary` : A JSON5 string representing the Zenoh configuration.
 
   ## Examples
 
