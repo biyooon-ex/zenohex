@@ -162,24 +162,29 @@ fn handle_reply<F>(
 where
     F: FnOnce(&zenoh::query::Query) -> rustler::NifResult<rustler::Atom>,
 {
-    let query_resource = &query_resource;
     let mut option_query = query_resource.lock().unwrap();
 
-    let query = option_query.as_ref().ok_or_else(|| {
-        rustler::Error::Term(Box::new(
-            "QueryResource has already been dropped, which means ResponseFinal has already been sent.",
-        ))
-    })?;
+    let is_final = match crate::helper::keyword::get_value(opts, crate::atoms::is_final())? {
+        Some(val) => val.decode::<bool>()?,
+        None => true,
+    };
 
-    reply_fn(query)?;
+    let error_term = rustler::Error::Term(Box::new(
+        "QueryResource has already been dropped, which means ResponseFinal has already been sent.",
+    ));
 
-    if let Some(opt_value) = crate::helper::keyword::get_value(opts, crate::atoms::is_final())? {
-        // NOTE: Dropping the query automatically sends a ResponseFinal.
-        //       Therefore, we must drop the query explicitly at the end of the reply.
-        let is_final: bool = opt_value.decode()?;
-        if is_final {
-            option_query.take();
-        }
+    // NOTE: Dropping the query automatically sends a ResponseFinal.
+    //       Therefore, we must drop the query explicitly at the end of the reply.
+    if is_final {
+        match option_query.take() {
+            Some(query) => reply_fn(&query)?,
+            None => return Err(error_term),
+        };
+    } else {
+        match option_query.as_ref() {
+            Some(query) => reply_fn(query)?,
+            None => return Err(error_term),
+        };
     }
 
     Ok(rustler::types::atom::ok())
