@@ -91,7 +91,7 @@ defmodule ZenohexTest do
 
     # WHY:  :skip, because this test is flaky.
     #       Sometimes `get` receives only a ReplyError.
-    # TODO: Investigate and report an issue to Zenoh.
+    # FIXME: After receiving the issue reply, https://github.com/eclipse-zenoh/zenoh/issues/2048
     @tag :skip
     test "get/reply with ReplyError", %{session_id: session_id} do
       {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())

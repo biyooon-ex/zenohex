@@ -18,7 +18,7 @@ defmodule Zenohex.Nif do
     crate: "zenohex_nif",
     # NOTE: Uncomment during zenohhex_nif development.
     #       Setting `mode: :debug` makes `cargo build` skip the `--release` flag.
-    #       TODO: Comment out before release.
+    #       FIXME: Comment out before release.
     mode: :debug,
     # NOTE: FROM HERE RustlerPrecompiled opts
     version: version,
