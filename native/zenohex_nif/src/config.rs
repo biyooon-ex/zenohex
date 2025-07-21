@@ -37,8 +37,8 @@ impl Deref for Locator {
     }
 }
 
-impl From<&zenoh::config::Locator> for Locator {
-    fn from(value: &zenoh::config::Locator) -> Self {
+impl From<zenoh::config::Locator> for Locator {
+    fn from(value: zenoh::config::Locator) -> Self {
         Locator(String::from(value.as_str()))
     }
 }

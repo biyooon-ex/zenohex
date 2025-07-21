@@ -14,11 +14,11 @@ pub struct ZenohexScoutingHello {
 }
 
 impl ZenohexScoutingHello {
-    pub fn from(hello: &zenoh::scouting::Hello) -> Self {
+    pub fn from(hello: zenoh::scouting::Hello) -> Self {
         let locators = hello.locators().iter().fold(
             Vec::<String>::new(),
             |mut locators: Vec<String>, locator: &zenoh::config::Locator| {
-                locators.push(crate::config::Locator::from(locator).to_string());
+                locators.push(crate::config::Locator::from(locator.clone()).to_string());
                 locators
             },
         );
@@ -88,7 +88,7 @@ fn scouting_scout(
             return Err(rustler::Error::Term(Box::new("timeout")));
         };
 
-        hellos.push(crate::scouting::ZenohexScoutingHello::from(&hello));
+        hellos.push(crate::scouting::ZenohexScoutingHello::from(hello));
 
         if scout.is_empty() {
             break;
@@ -116,7 +116,7 @@ fn scouting_declare_scout(
             //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
             std::thread::spawn(move || {
                 let _ = rustler::OwnedEnv::new()
-                    .run(|env: rustler::Env| env.send(&pid, ZenohexScoutingHello::from(&hello)));
+                    .run(|env: rustler::Env| env.send(&pid, ZenohexScoutingHello::from(hello)));
             });
         })
         .wait()

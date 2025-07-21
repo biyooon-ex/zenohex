@@ -30,7 +30,7 @@ pub struct ZenohexSample<'a> {
 }
 
 impl<'a> ZenohexSample<'a> {
-    pub fn from(env: rustler::Env<'a>, sample: &zenoh::sample::Sample) -> Self {
+    pub fn from(env: rustler::Env<'a>, sample: zenoh::sample::Sample) -> Self {
         let attachment = sample.attachment().map(|attachment| {
             let mut owned_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
 

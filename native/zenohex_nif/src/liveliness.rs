@@ -73,9 +73,9 @@ fn liveliness_get<'a>(
         };
 
         let term = match reply.result() {
-            Ok(sample) => crate::sample::ZenohexSample::from(env, sample).encode(env),
+            Ok(sample) => crate::sample::ZenohexSample::from(env, sample.clone()).encode(env),
             Err(reply_error) => {
-                crate::query::ZenohexQueryReplyError::from(env, reply_error).encode(env)
+                crate::query::ZenohexQueryReplyError::from(env, reply_error.clone()).encode(env)
             }
         };
 
@@ -116,7 +116,7 @@ fn liveliness_declare_subscriber(
             //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
             std::thread::spawn(move || {
                 let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::sample::ZenohexSample::from(env, &sample))
+                    env.send(&pid, crate::sample::ZenohexSample::from(env, sample))
                 });
             });
         })

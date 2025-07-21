@@ -38,7 +38,7 @@ pub struct ZenohexQuery<'a> {
 }
 
 impl<'a> ZenohexQuery<'a> {
-    pub fn from(env: rustler::Env<'a>, query: &zenoh::query::Query) -> Self {
+    pub fn from(env: rustler::Env<'a>, query: zenoh::query::Query) -> Self {
         let attachment = query.attachment().map(|attachment| {
             let mut owned_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
 
@@ -70,7 +70,7 @@ impl<'a> ZenohexQuery<'a> {
             parameters: query.parameters().to_string(),
             payload,
             selector: query.selector().to_string(),
-            zenoh_query: rustler::ResourceArc::new(QueryResource::new(query.clone())),
+            zenoh_query: rustler::ResourceArc::new(QueryResource::new(query)),
         }
     }
 }
@@ -83,7 +83,7 @@ pub struct ZenohexQueryReplyError<'a> {
 }
 
 impl<'a> ZenohexQueryReplyError<'a> {
-    pub fn from(env: rustler::Env<'a>, reply_error: &zenoh::query::ReplyError) -> Self {
+    pub fn from(env: rustler::Env<'a>, reply_error: zenoh::query::ReplyError) -> Self {
         let payload = reply_error.payload();
         let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
 
