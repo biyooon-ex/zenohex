@@ -43,6 +43,7 @@ fn liveliness_get<'a>(
     session_id_resource: rustler::ResourceArc<crate::session::SessionIdResource>,
     key_expr: &str,
     timeout: u64,
+    opts: rustler::Term,
 ) -> rustler::NifResult<(rustler::Atom, Vec<rustler::Term<'a>>)> {
     let session_id = &session_id_resource;
     let session =
@@ -52,6 +53,7 @@ fn liveliness_get<'a>(
     let liveliness_get_builder = session_locked.liveliness().get(key_expr);
 
     let channel_handler = liveliness_get_builder
+        .apply_opts(opts)?
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 

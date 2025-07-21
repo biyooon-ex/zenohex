@@ -8,6 +8,10 @@ defmodule Zenohex.Liveliness do
 
   @type token :: reference()
 
+  @type get_opts :: [
+          query_timeout: non_neg_integer()
+        ]
+
   @doc """
   Query liveliness tokens with matching key expressions.
 
@@ -20,11 +24,11 @@ defmodule Zenohex.Liveliness do
       iex> Zenohex.Liveliness.get(session_id, "key/expr", 100)
       {:ok, [%Zenohex.Sample{}]}
   """
-  @spec get(Zenohex.Session.id(), String.t(), non_neg_integer()) ::
+  @spec get(Zenohex.Session.id(), String.t(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
-  defdelegate get(session_id, key_expr, timeout), to: Zenohex.Nif, as: :liveliness_get
+  defdelegate get(session_id, key_expr, timeout, opts \\ []), to: Zenohex.Nif, as: :liveliness_get
 
   @doc """
   Create a Subscriber for liveliness changes matching the given key expression.

@@ -133,11 +133,11 @@ defmodule Zenohex.Nif do
 
   # Liveliness
 
-  @spec liveliness_get(session_id(), String.t(), non_neg_integer()) ::
+  @spec liveliness_get(session_id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
           | {:error, term()}
-  def liveliness_get(_session_id, _key_expr, _timeout), do: err()
+  def liveliness_get(_session_id, _key_expr, _timeout, _opts \\ []), do: err()
 
   @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
           {:ok, subscriber_id :: entity_id()}

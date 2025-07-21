@@ -486,6 +486,23 @@ impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderDe
     }
 }
 
+impl Builder for zenoh::liveliness::LivelinessGetBuilder<'_, '_, zenoh::handlers::DefaultHandler> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::query_timeout() => {
+                    let query_timeout = v.decode::<u64>()?;
+                    Ok(builder.timeout(Duration::from_millis(query_timeout)))
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
 impl Builder
     for zenoh::liveliness::LivelinessSubscriberBuilder<'_, '_, zenoh::handlers::DefaultHandler>
 {
