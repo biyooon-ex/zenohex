@@ -84,7 +84,10 @@ defmodule ZenohexTestModeCommon do
 
       # WHY:  :skip, because this test is flaky.
       #       Sometimes `get` receives only a ReplyError.
-      # FIXME: After receiving the issue reply, https://github.com/eclipse-zenoh/zenoh/issues/2048
+      # FIXME: This test is flaky, so it is currently skipped.
+      #        We have already reported the possibly related behavior in the following issue.
+      #        https://github.com/eclipse-zenoh/zenoh/issues/2048
+      #        Once we receive a reply, revisit this.
       @tag :skip
       test "get/reply with ReplyError", %{session_id: session_id} do
         {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
