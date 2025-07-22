@@ -32,7 +32,7 @@ defmodule Zenohex.Session do
   @type zid :: String.t()
 
   @typedoc """
-  A Timestamp is formatted to a String as such: "<ntp64_time>/<hlc_id_hexadecimal>"
+  A Timestamp is formatted to a String as such: "<RFC3339> /<hlc_id_hexadecimal>"
 
   `2025-07-16T01:34:56.871273403Z/208a2ec783ec4527a39cc1d5559c70e9`
 
