@@ -1,4 +1,4 @@
-defmodule Zenohex.Keyexpr do
+defmodule Zenohex.KeyExpr do
   @moduledoc """
   Provides utility functions for working with Zenoh key expressions (keyexpr).
 
