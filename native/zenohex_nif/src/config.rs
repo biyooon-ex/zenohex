@@ -1,56 +1,57 @@
-use rustler::ErlOption;
+use std::ops::Deref;
 
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Config"]
-pub(crate) struct ExConfig {
-    connect: ExConfigConnect,
-    scouting: ExConfigScouting,
+#[derive(rustler::NifUnitEnum)]
+pub enum WhatAmI {
+    Router,
+    Peer,
+    Client,
 }
 
-impl From<ExConfig> for zenoh::prelude::config::Config {
-    fn from(value: ExConfig) -> Self {
-        let mut config = zenoh::prelude::config::peer();
-        config.connect = value.connect.into();
-        config.scouting = value.scouting.into();
-        config
+impl From<zenoh::config::WhatAmI> for WhatAmI {
+    fn from(value: zenoh::config::WhatAmI) -> Self {
+        match value {
+            zenoh::config::WhatAmI::Router => WhatAmI::Router,
+            zenoh::config::WhatAmI::Peer => WhatAmI::Peer,
+            zenoh::config::WhatAmI::Client => WhatAmI::Client,
+        }
     }
 }
 
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Config.Connect"]
-pub(crate) struct ExConfigConnect {
-    endpoints: Vec<String>,
-}
-
-impl From<ExConfigConnect> for zenoh::prelude::config::ConnectConfig {
-    fn from(value: ExConfigConnect) -> Self {
-        let endpoints = value
-            .endpoints
-            .iter()
-            .map(|endpoint| {
-                zenoh::prelude::config::EndPoint::try_from(endpoint.clone())
-                    .unwrap_or_else(|error| panic!("{}", error.to_string()))
-            })
-            .collect();
-        let mut config = zenoh::prelude::config::ConnectConfig::default();
-        let _ = config.set_endpoints(endpoints);
-        config
+impl From<WhatAmI> for zenoh::config::WhatAmI {
+    fn from(value: WhatAmI) -> Self {
+        match value {
+            WhatAmI::Router => zenoh::config::WhatAmI::Router,
+            WhatAmI::Peer => zenoh::config::WhatAmI::Peer,
+            WhatAmI::Client => zenoh::config::WhatAmI::Client,
+        }
     }
 }
 
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Config.Scouting"]
-pub(crate) struct ExConfigScouting {
-    delay: ErlOption<u64>,
+pub struct Locator(String);
+
+impl Deref for Locator {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-impl From<ExConfigScouting> for zenoh::prelude::config::ScoutingConf {
-    fn from(value: ExConfigScouting) -> Self {
-        let mut config = zenoh::prelude::config::ScoutingConf::default();
-        let _ = match Option::<u64>::from(value.delay) {
-            Some(delay) => config.set_delay(Some(delay)),
-            None => config.set_delay(None),
-        };
-        config
+impl From<zenoh::config::Locator> for Locator {
+    fn from(value: zenoh::config::Locator) -> Self {
+        Locator(String::from(value.as_str()))
     }
+}
+
+#[rustler::nif]
+fn config_default() -> String {
+    zenoh::Config::default().to_string()
+}
+
+#[rustler::nif]
+fn config_from_json5(json5_binary: &str) -> rustler::NifResult<(rustler::Atom, String)> {
+    let config = zenoh::Config::from_json5(json5_binary)
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    Ok((rustler::types::atom::ok(), config.to_string()))
 }

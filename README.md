@@ -28,16 +28,16 @@ This allows the creation and communication of a large number of fault-tolerant n
 
 ## Usage
 
-**Currently, Zenohex uses version 0.11.0 of Zenoh.**
+**Currently, Zenohex uses version 1.4.0 of Zenoh.**
 
 We recommend you use the same version to communicate with other Zenoh clients or routers since version compatibility is somewhat important for Zenoh.
 Please also check the description on [Releases](https://github.com/biyooon-ex/zenohex/releases) about the corresponding Zenoh version.
 
 FYI, the development team currently uses the following versions.
 
-- Elixir 1.17.3-otp-27
-- Erlang/OTP 27.1.2
-- Rust 1.82.0
+- Elixir 1.18.4-otp-27
+- Erlang/OTP 27.3.4.2
+- Rust 1.85.0
 
 ### Installation
 
@@ -77,32 +77,33 @@ $ iex -S mix
 ```
 
 ```elixir
-iex()> {:ok, session} = Zenohex.open()
+iex()> {:ok, session_id} = Zenohex.Session.open()
 {:ok, #Reference<>}
-iex()> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "demo/example/test")
+iex()> {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "demo/example/test")
 {:ok, #Reference<>}
-iex()> {:ok, subscriber} = Zenohex.Session.declare_subscriber(session, "demo/**")
+iex()> {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "demo/**")
 {:ok, #Reference<>}
-iex()> Zenohex.Publisher.put(publisher, "Hello Zenoh Dragon")
+iex()> Zenohex.Publisher.put(publisher_id, "Hello Zenoh Dragon")
 :ok
-iex()> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
-{:ok,
- %Zenohex.Sample{
-   key_expr: "demo/example/test",
-   value: "Hello Zenoh Dragon",
-   kind: :put,
-   reference: #Reference<>
- }}
-iex()> Zenohex.Subscriber.recv_timeout(subscriber, 1000)
-{:error, :timeout}
+iex()> flush()
+%Zenohex.Sample{
+  attachment: nil,
+  congestion_control: :drop,
+  encoding: "zenoh/bytes",
+  express: false,
+  key_expr: "demo/example/test",
+  kind: :put,
+  payload: "Hello Zenoh Dragon",
+  priority: :data,
+  timestamp: nil
+}
+:ok
 ```
 
 ### Practical examples
 
 We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples).
-Since they consist of `Supervisor` and `GenServer`, we think they are useful as examples of more Elixir-like applications.
-
-Please read the [lib/zenohex/examples/README.md](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples/README.md) to use them as your implementation's reference.
+Since they consist of `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
 ## For developers
 
@@ -134,36 +135,6 @@ When you want to build NIF module locally into your project, install Rustler by 
     ]
   end
 ```
-
-### Enhance mix test
-
-This subsection describes some Tips for `mix test`.
-
-The default `mix test` rebuilds the NIF module, so you can reduce the test time by doing the following in advance.
-
-```sh
-export API_OPEN_SESSION_DELAY=0 && mix compile --force
-```
-
-You can also reduce the test time by adjusting `SCOUTING_DELAY` as the follow.
-
-```sh
-SCOUTING_DELAY=30 mix test
-```
-
-This parameter is used to set the upper time limit for searching (scouting) for a communication peer node.
-The default value (when undefined) is 200 ms.
-IOW, if the test fails because the communication partner is not found within the set time, this value should be increased.
-
-Finally, the default `mix test` only checks the communication of Zenoh nodes within the same session.
-If you wish to run communication tests between different sessions, please run the following.
-
-```sh
-USE_DIFFERENT_SESSION="1" mix test
-```
-
-FYI, CI does this in `test-with-another-session`.
-This test may fail on GHA depending on whether the scouting is successful or not.
 
 ### Versions of dependencies
 

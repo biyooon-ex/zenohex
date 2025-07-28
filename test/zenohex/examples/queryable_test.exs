@@ -1,24 +1,29 @@
 defmodule Zenohex.Examples.QueryableTest do
   use ExUnit.Case
 
-  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
-
-  alias Zenohex.Examples.Queryable
-
   setup do
-    {:ok, session} = Zenohex.open()
-    key_expr = "key/expression/**"
-    me = self()
-    callback = fn query -> send(me, query) end
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
 
-    start_supervised!({Queryable, %{session: session, key_expr: key_expr, callback: callback}})
-
-    %{session: maybe_different_session(session)}
+    %{
+      me: self(),
+      session_id: session_id,
+      key_expr: "key/expr"
+    }
   end
 
-  test "start_link/1", %{session: session} do
-    Zenohex.Session.get_timeout(session, "key/expression/**", 1000)
+  test "example works correctly", context do
+    {:ok, _pid} =
+      Zenohex.Examples.Queryable.start_link(
+        session_id: context.session_id,
+        key_expr: context.key_expr,
+        callback: &Zenohex.Query.reply(&1.zenoh_query, context.key_expr, "reply")
+      )
 
-    assert_receive(%Zenohex.Query{})
+    {:ok, [%Zenohex.Sample{payload: "reply"}]} = Zenohex.get(context.key_expr, 100)
+
+    assert :ok = Zenohex.Examples.Queryable.stop()
   end
 end

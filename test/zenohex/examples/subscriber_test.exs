@@ -1,24 +1,35 @@
 defmodule Zenohex.Examples.SubscriberTest do
   use ExUnit.Case
 
-  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
-
-  alias Zenohex.Examples.Subscriber
-
   setup do
-    {:ok, session} = Zenohex.open()
-    key_expr = "key/expression/**"
-    me = self()
-    callback = fn sample -> send(me, sample) end
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
 
-    start_supervised!({Subscriber, %{session: session, key_expr: key_expr, callback: callback}})
-
-    %{session: maybe_different_session(session)}
+    %{
+      me: self(),
+      session_id: session_id,
+      key_expr: "key/expr"
+    }
   end
 
-  test "start_link/1", %{session: session} do
-    Zenohex.Session.put(session, "key/expression/put", "put")
+  test "invoke callback correctly", context do
+    {:ok, _pid} =
+      Zenohex.Examples.Subscriber.start_link(
+        session_id: context.session_id,
+        key_expr: context.key_expr,
+        callback: fn sample -> send(context.me, sample) end
+      )
 
-    assert_receive(%Zenohex.Sample{key_expr: "key/expression/put", value: "put"})
+    :ok = Zenohex.put(context.key_expr, "payload")
+
+    assert_receive %Zenohex.Sample{kind: :put, payload: "payload"}
+
+    :ok = Zenohex.delete(context.key_expr)
+
+    assert_receive %Zenohex.Sample{kind: :delete}
+
+    assert :ok = Zenohex.Examples.Subscriber.stop()
   end
 end

@@ -1,53 +1,129 @@
 defmodule Zenohex.Query do
   @moduledoc """
-  Documentation for `#{__MODULE__}`.
+  Represents an incoming Zenoh query and provides functions for replying to it.
 
-  Structs received by a `Zenohex.Queryable.recv_timeout/1`.
+  This module defines the structure used when receiving a query via a queryable,
+  as well as functions for sending successful replies or error replies back to the sender.
+
+  Queries are received as `%Zenohex.Query{}` structs in the process registered as a queryable.
   """
 
-  alias Zenohex.Nif
-  alias Zenohex.Sample
+  @type zenoh_query :: reference()
 
   @type t :: %__MODULE__{
+          attachment: binary() | nil,
+          encoding: String.t() | nil,
           key_expr: String.t(),
           parameters: String.t(),
-          value: binary() | integer() | float() | :undefined,
-          reference: reference()
+          payload: binary() | nil,
+          selector: String.t(),
+          zenoh_query: zenoh_query()
         }
-  defstruct [:key_expr, :parameters, :value, :reference]
 
-  defmodule Options do
+  @type reply_opts :: [
+          final?: boolean(),
+          attachment: binary() | nil,
+          congestion_control: Zenohex.Session.congestion_control(),
+          encoding: String.t(),
+          express: boolean(),
+          priority: Zenohex.Session.priority(),
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
+        ]
+
+  @type reply_error_opts :: [
+          final?: boolean(),
+          encoding: String.t()
+        ]
+
+  @type reply_delete_opts :: [
+          final?: boolean(),
+          attachment: binary() | nil,
+          congestion_control: Zenohex.Session.congestion_control(),
+          express: boolean(),
+          priority: Zenohex.Session.priority(),
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
+        ]
+
+  defstruct [
+    :attachment,
+    :encoding,
+    :key_expr,
+    :parameters,
+    :payload,
+    :selector,
+    :zenoh_query
+  ]
+
+  defmodule ReplyError do
     @moduledoc """
-    Documentation for `#{__MODULE__}`.
+    A struct that corresponds one-to-one to `zenoh::query::ReplyError`.
 
-    Used by `Zenohex.Session.get_timeout/4` and `Zenohex.Session.get_reply_receiver/3`.
+    see. https://docs.rs/zenoh/latest/zenoh/query/struct.ReplyError.html
     """
 
-    @type t :: %__MODULE__{target: target(), consolidation: consolidation()}
-    @type target :: :best_matching | :all | :all_complete
-    @type consolidation :: :auto | :none | :monotonic | :latest
-    defstruct target: :best_matching, consolidation: :auto
+    @zenoh_default_encoding "zenoh/bytes"
+
+    @type t :: %__MODULE__{
+            payload: binary(),
+            encoding: String.t()
+          }
+    defstruct payload: "payload", encoding: @zenoh_default_encoding
   end
 
-  @doc ~S"""
-  Sends a reply to this Query. User can call `reply/2` multiple times to send multiple samples.
+  @doc """
+  Sends a reply to the given Zenoh query.
 
-  > ### Warning {: .warning}
-  > Do not forget to call `finish_reply/1` to finish the reply.
+  This function is used inside a queryable process to respond to a query.
+  The `key_expr` is the key the data is associated with, and the `payload`
+  is the binary data to return.
+
+  ## Options
+
+    - `:final?` : Whether this is the final reply. Defaults to `true`.
+
+  ## Examples
+
+      iex> Zenohex.Query.reply(query.zenoh_query, "key/expr", "payload")
   """
-  @spec reply(t(), Sample.t()) :: :ok | {:error, reason :: any()}
-  def reply(query, sample) when is_struct(query, __MODULE__) and is_struct(sample, Sample) do
-    Nif.query_reply(query, sample)
-  end
+  @spec reply(zenoh_query(), String.t(), binary(), reply_opts()) ::
+          :ok | {:error, reason :: term()}
+  defdelegate reply(zenoh_query, key_expr, payload, opts \\ [final?: true]),
+    to: Zenohex.Nif,
+    as: :query_reply
 
-  @doc ~S"""
-  Finish reply.
+  @doc """
+  Sends an error reply to the given Zenoh query.
 
-  > ### Warning {: .warning}
-  > `finish_reply/1` must be called after `reply/2`.
+  This can be used to signal failure or unsupported requests from within a queryable.
+
+  ## Options
+
+    - `:final?` : Whether this is the final reply. Defaults to `true`.
+
+  ## Examples
+
+      iex> Zenohex.Query.reply_error(query.zenoh_query, "unsupported query")
   """
-  @spec finish_reply(t()) :: :ok | {:error, reason :: any()}
-  def finish_reply(query) when is_struct(query, __MODULE__) do
-    Nif.query_finish_reply(query)
-  end
+  @spec reply_error(zenoh_query(), binary(), reply_error_opts()) ::
+          :ok | {:error, reason :: term()}
+  defdelegate reply_error(zenoh_query, payload, opts \\ [final?: true]),
+    to: Zenohex.Nif,
+    as: :query_reply_error
+
+  @doc """
+  Sends an delete reply to the given Zenoh query.
+
+  ## Options
+
+    - `:final?` : Whether this is the final reply. Defaults to `true`.
+
+  ## Examples
+
+      iex> Zenohex.Query.reply_delete(query.zenoh_query, "key/expr")
+  """
+  @spec reply_delete(zenoh_query(), String.t(), reply_delete_opts()) ::
+          :ok | {:error, reason :: term()}
+  defdelegate reply_delete(zenoh_query, key_expr, opts \\ [final?: true]),
+    to: Zenohex.Nif,
+    as: :query_reply_delete
 end

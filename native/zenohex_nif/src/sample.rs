@@ -1,66 +1,73 @@
-use rustler::{Binary, Env, ErlOption, ResourceArc, Term};
-
-use crate::SampleRef;
-
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Sample"]
-pub(crate) struct ExSample<'a> {
-    pub(crate) key_expr: String,
-    pub(crate) value: Term<'a>,
-    pub(crate) kind: ExSampleKind,
-    pub(crate) reference: ErlOption<ResourceArc<SampleRef>>,
-}
-
-impl ExSample<'_> {
-    pub(crate) fn from(env: Env, sample: zenoh::sample::Sample) -> ExSample {
-        ExSample {
-            key_expr: sample.key_expr.to_string(),
-            value: crate::value::ExValue::from(env, &sample.value),
-            kind: sample.kind.into(),
-            reference: ErlOption::some(ResourceArc::new(SampleRef(sample))),
-        }
-    }
-}
-
-impl From<ExSample<'_>> for zenoh::sample::Sample {
-    fn from(sample: ExSample) -> Self {
-        let key_expr = unsafe { zenoh::key_expr::KeyExpr::from_string_unchecked(sample.key_expr) };
-        let value = match sample.value.get_type() {
-            rustler::TermType::Atom => unimplemented!(),
-            rustler::TermType::Binary => {
-                let binary = sample.value.decode::<Binary>().unwrap();
-                zenoh::value::Value::from(binary.as_slice())
-            }
-            rustler::TermType::Fun => unimplemented!(),
-            rustler::TermType::List => unimplemented!(),
-            rustler::TermType::Map => unimplemented!(),
-            rustler::TermType::Integer => {
-                zenoh::value::Value::from(sample.value.decode::<i64>().unwrap())
-            }
-            rustler::TermType::Float => {
-                zenoh::value::Value::from(sample.value.decode::<f64>().unwrap())
-            }
-            rustler::TermType::Pid => unimplemented!(),
-            rustler::TermType::Port => unimplemented!(),
-            rustler::TermType::Ref => unimplemented!(),
-            rustler::TermType::Tuple => unimplemented!(),
-            rustler::TermType::Unknown => unimplemented!(),
-        };
-        zenoh::sample::Sample::new(key_expr, value)
-    }
-}
+use std::io::Write;
 
 #[derive(rustler::NifUnitEnum)]
-pub(crate) enum ExSampleKind {
+enum SampleKind {
     Put,
     Delete,
 }
 
-impl From<zenoh::prelude::SampleKind> for ExSampleKind {
-    fn from(kind: zenoh::prelude::SampleKind) -> Self {
-        match kind {
-            zenoh::prelude::SampleKind::Put => ExSampleKind::Put,
-            zenoh::prelude::SampleKind::Delete => ExSampleKind::Delete,
+impl From<zenoh::sample::SampleKind> for SampleKind {
+    fn from(value: zenoh::sample::SampleKind) -> Self {
+        match value {
+            zenoh::sample::SampleKind::Put => SampleKind::Put,
+            zenoh::sample::SampleKind::Delete => SampleKind::Delete,
+        }
+    }
+}
+
+#[derive(rustler::NifStruct)]
+#[module = "Zenohex.Sample"]
+pub struct ZenohexSample<'a> {
+    attachment: Option<rustler::Binary<'a>>,
+    congestion_control: crate::builder::CongestionControl,
+    encoding: String,
+    express: bool,
+    key_expr: String,
+    kind: SampleKind,
+    payload: rustler::Binary<'a>,
+    priority: crate::builder::Priority,
+    timestamp: Option<String>,
+}
+
+impl<'a> ZenohexSample<'a> {
+    pub fn from(env: rustler::Env<'a>, sample: zenoh::sample::Sample) -> Self {
+        let attachment = sample.attachment().map(|attachment| {
+            let mut owned_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
+
+            owned_binary
+                .as_mut_slice()
+                .write_all(&attachment.to_bytes())
+                .unwrap();
+
+            owned_binary.release(env)
+        });
+
+        let payload = {
+            let payload = sample.payload();
+            let mut owned_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+
+            owned_binary
+                .as_mut_slice()
+                .write_all(&payload.to_bytes())
+                .unwrap();
+
+            owned_binary.release(env)
+        };
+
+        let timestamp = sample
+            .timestamp()
+            .map(|timestamp| timestamp.to_string_rfc3339_lossy());
+
+        ZenohexSample {
+            attachment,
+            congestion_control: sample.congestion_control().into(),
+            encoding: sample.encoding().to_string(),
+            express: sample.express(),
+            key_expr: sample.key_expr().to_string(),
+            kind: sample.kind().into(),
+            payload,
+            priority: sample.priority().into(),
+            timestamp,
         }
     }
 }

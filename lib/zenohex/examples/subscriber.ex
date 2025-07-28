@@ -1,32 +1,87 @@
 defmodule Zenohex.Examples.Subscriber do
-  @moduledoc false
+  @moduledoc """
+  Example `GenServer` implementation of `Subscriber`
+  using `Zenohex.Session.declare_subscriber/4`.
 
-  use Supervisor
+  This example demonstrates how to receive samples.
+
+  For the actual implementation, please refer to the following,
+
+  - #{Zenohex.MixProject.project()[:source_url]}/tree/main/#{Path.relative_to_cwd(__ENV__.file)}
+
+  ## Examples
+
+      iex> Zenohex.Examples.Queryable.start_link([])
+  """
+
+  use GenServer
 
   require Logger
 
-  alias Zenohex.Examples.Subscriber
+  @doc """
+  Starts #{__MODULE__}.
 
-  @doc "Start Subscriber."
-  def start_link(args \\ %{}) when is_map(args) do
-    session = Map.get(args, :session) || Zenohex.open!()
-    key_expr = Map.get(args, :key_expr, "zenohex/examples/**")
-    callback = Map.get(args, :callback, &Logger.debug(inspect(&1)))
+  ## Parameters
 
-    Supervisor.start_link(__MODULE__, %{session: session, key_expr: key_expr, callback: callback},
-      name: __MODULE__
-    )
+    - `args` – a keyword list that can include the following keys:
+      - `:session_id` – the ID of the session
+      - `:key_expr` – the key expression to subscribe to
+      - `:callback` – the function to call when a sample is received
+  """
+  @spec start_link([
+          {:session_id, Zenohex.Session.id()}
+          | {:key_expr, String.t()}
+          | {:callback, (Zenohex.Sample.t() -> term())}
+        ]) :: GenServer.on_start()
+  def start_link(args) do
+    name = Keyword.get(args, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, args, name: name)
+  end
+
+  @doc """
+  Stops #{__MODULE__}
+  """
+  @spec stop(module()) :: :ok
+  def stop(name \\ __MODULE__) do
+    GenServer.call(name, :stop)
   end
 
   @doc false
-  def init(args) when is_map(args) do
-    children = [
-      {Subscriber.Impl, args}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
-  end
+  def child_spec(init_arg), do: super(init_arg)
 
   @doc false
-  def child_spec(args), do: super(args)
+  def init(args) do
+    session_id =
+      Keyword.get_lazy(args, :session_id, fn ->
+        {:ok, session_id} = Zenohex.Session.open()
+        session_id
+      end)
+
+    key_expr = Keyword.get(args, :key_expr, "key/expr")
+    callback = Keyword.get(args, :callback, &Logger.debug("#{inspect(&1)}"))
+
+    {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, key_expr, self())
+
+    {:ok,
+     %{
+       subscriber_id: subscriber_id,
+       key_expr: key_expr,
+       callback: callback
+     }}
+  end
+
+  # NOTE: To handle `kind: :put` and `kind: :delete` differently,
+  #       just split `handle_info/2` into multiple clauses with pattern matching.
+  def handle_info(%Zenohex.Sample{} = sample, state) do
+    state.callback.(sample)
+
+    {:noreply, state}
+  end
+
+  def handle_call(:stop, _from, state) do
+    reply = Zenohex.Subscriber.undeclare(state.subscriber_id)
+    reason = :normal
+
+    {:stop, reason, reply, state}
+  end
 end

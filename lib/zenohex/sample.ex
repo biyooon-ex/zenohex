@@ -1,19 +1,30 @@
 defmodule Zenohex.Sample do
   @moduledoc """
-  Documentation for `#{__MODULE__}`.
+  A struct that corresponds one-to-one to `zenoh::sample::Sample`.
 
-  Structs received by
-
-    * `Zenohex.Session.get_timeout/3` and `Zenohex.Session.get_reply_timeout/1`
-    * `Zenohex.Subscriber.recv_timeout/1`
-    * `Zenohex.PullSubscriber.recv_timeout/1`
+  see. https://docs.rs/zenoh/latest/zenoh/sample/struct.Sample.html
   """
 
+  @zenoh_default_encoding "zenoh/bytes"
+
   @type t :: %__MODULE__{
+          attachment: binary() | nil,
+          congestion_control: Zenohex.Session.congestion_control(),
+          encoding: String.t(),
+          express: boolean(),
           key_expr: String.t(),
-          value: binary() | integer() | float(),
           kind: :put | :delete,
-          reference: reference() | :undefined
+          payload: binary(),
+          priority: Zenohex.Session.priority(),
+          timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         }
-  defstruct key_expr: "", value: "", kind: :put, reference: :undefined
+  defstruct attachment: nil,
+            congestion_control: :block,
+            encoding: @zenoh_default_encoding,
+            express: false,
+            key_expr: "key/expr",
+            kind: :put,
+            payload: "payload",
+            priority: :data,
+            timestamp: nil
 end

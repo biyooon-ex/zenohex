@@ -1,96 +1,39 @@
 defmodule Zenohex.Publisher do
   @moduledoc """
-  Documentation for `#{__MODULE__}`.
+  Interface for publishing data via native Zenoh publishers.
+
+  This module provides functions to send data using a previously declared
+  publisher and to undeclare it when no longer needed.
+
+  Publisher IDs are obtained from `Zenohex.Session.declare_publisher/3`.
   """
 
-  alias Zenohex.Nif
+  @type id :: reference()
+  @type put_opts :: [
+          attachment: binary() | nil,
+          encoding: String.t(),
+          timestamp: Zenohex.Session.zenoh_timestamp_string()
+        ]
+  @type delete_opts :: [
+          attachment: binary() | nil,
+          timestamp: Zenohex.Session.zenoh_timestamp_string()
+        ]
 
-  @type t :: reference()
-
-  defmodule Options do
-    @moduledoc """
-    Documentation for `#{__MODULE__}`.
-
-    Used by `Zenohex.Session.declare_publisher/3`.
-    """
-
-    @type t :: %__MODULE__{congestion_control: congestion_control(), priority: priority()}
-    @type congestion_control :: :drop | :block
-    @type priority ::
-            :real_time
-            | :interactive_high
-            | :interactive_low
-            | :data_high
-            | :data
-            | :data_low
-            | :background
-
-    defstruct congestion_control: :drop, priority: :data
-  end
-
-  @doc ~S"""
-  Put data.
-
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
-      iex> :ok = Zenohex.Publisher.put(publisher, "value")
-      iex> :ok = Zenohex.Publisher.put(publisher, 0)
-      iex> :ok = Zenohex.Publisher.put(publisher, 0.0)
+  @doc """
+  Sends a `kind: :put` sample with binary payload using the specified publisher.
   """
-  @spec put(t(), binary() | integer() | float()) :: :ok | {:error, reason :: any()}
-  def put(publisher, value) when is_binary(value) do
-    Nif.publisher_put_binary(publisher, value)
-  end
+  @spec put(id(), binary(), put_opts()) :: :ok | {:error, reason :: term()}
+  defdelegate put(id, payload, opts \\ []), to: Zenohex.Nif, as: :publisher_put
 
-  def put(publisher, value) when is_integer(value) do
-    Nif.publisher_put_integer(publisher, value)
-  end
-
-  def put(publisher, value) when is_float(value) do
-    Nif.publisher_put_float(publisher, value)
-  end
-
-  @doc ~S"""
-  Delete data.
-
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
-      iex> :ok = Zenohex.Publisher.delete(publisher)
+  @doc """
+  Sends a `kind: :delete` sample using the specified publisher.
   """
-  @spec delete(t()) :: :ok | {:error, reason :: any()}
-  def delete(publisher) do
-    Nif.publisher_delete(publisher)
-  end
+  @spec delete(id(), delete_opts()) :: :ok | {:error, reason :: term()}
+  defdelegate delete(id, opts \\ []), to: Zenohex.Nif, as: :publisher_delete
 
-  @doc ~S"""
-  Change the congestion_control to apply when routing the data.
-
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
-      iex> Zenohex.Publisher.congestion_control(publisher, :drop)
+  @doc """
+  Undeclares the publisher identified by the given ID.
   """
-  @spec congestion_control(t(), Options.congestion_control()) :: t()
-  def congestion_control(publisher, congestion_control) do
-    Nif.publisher_congestion_control(publisher, congestion_control)
-  end
-
-  @doc ~S"""
-  Change the priority of the written data.
-
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> {:ok, publisher} = Zenohex.Session.declare_publisher(session, "key/expression")
-      iex> Zenohex.Publisher.priority(publisher, :real_time)
-  """
-  @spec priority(t(), Options.priority()) :: t()
-  def priority(publisher, priority) do
-    Nif.publisher_priority(publisher, priority)
-  end
+  @spec undeclare(id()) :: :ok | {:error, reason :: term()}
+  defdelegate undeclare(id), to: Zenohex.Nif, as: :publisher_undeclare
 end

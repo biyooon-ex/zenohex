@@ -1,32 +1,88 @@
 defmodule Zenohex.Examples.Queryable do
-  @moduledoc false
+  @moduledoc """
+  Example `GenServer` implementation of `Queryable`
+  using `Zenohex.Session.declare_queryable/4`.
 
-  use Supervisor
+  This example demonstrates how to receive queries.
+
+  For the actual implementation, please refer to the following,
+
+  - #{Zenohex.MixProject.project()[:source_url]}/tree/main/#{Path.relative_to_cwd(__ENV__.file)}
+
+  ## Examples
+
+      iex> Zenohex.Examples.Queryable.start_link([])
+  """
+
+  use GenServer
 
   require Logger
 
-  alias Zenohex.Examples.Queryable
+  @doc """
+  Starts #{__MODULE__}.
 
-  @doc "Start Queryable."
-  def start_link(args \\ %{}) when is_map(args) do
-    session = Map.get(args, :session) || Zenohex.open!()
-    key_expr = Map.get(args, :key_expr, "zenohex/examples/**")
-    callback = Map.get(args, :callback, &Logger.debug(inspect(&1)))
+  ## Parameters
 
-    Supervisor.start_link(__MODULE__, %{session: session, key_expr: key_expr, callback: callback},
-      name: __MODULE__
-    )
+    - `args` – a keyword list that can include the following keys:
+      - `:session_id` – the ID of the session
+      - `:key_expr` – the key expression to subscribe to
+      - `:callback` – the function to call when a query is received
+        - To reply to the query, use a callback that calls `Zenohex.Query.reply/3`.
+  """
+  @spec start_link([
+          {:session_id, Zenohex.Session.id()}
+          | {:key_expr, String.t()}
+          | {:callback, (Zenohex.Query.t() -> term())}
+        ]) :: GenServer.on_start()
+  def start_link(args) do
+    name = Keyword.get(args, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, args, name: name)
+  end
+
+  @doc """
+  Stops #{__MODULE__}
+  """
+  @spec stop(module()) :: :ok
+  def stop(name \\ __MODULE__) do
+    GenServer.call(name, :stop)
   end
 
   @doc false
-  def init(args) when is_map(args) do
-    children = [
-      {Queryable.Impl, args}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
-  end
+  def child_spec(init_arg), do: super(init_arg)
 
   @doc false
-  def child_spec(args), do: super(args)
+  def init(args) do
+    session_id =
+      Keyword.get_lazy(args, :session_id, fn ->
+        {:ok, session_id} = Zenohex.Session.open()
+        session_id
+      end)
+
+    key_expr = Keyword.get(args, :key_expr, "key/expr")
+
+    callback = Keyword.get(args, :callback, &Logger.debug("#{inspect(&1)}"))
+
+    {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, key_expr, self())
+
+    {:ok,
+     %{
+       queryable_id: queryable_id,
+       key_expr: key_expr,
+       callback: callback
+     }}
+  end
+
+  def handle_info(%Zenohex.Query{} = query, state) do
+    # NOTE: To reply to the query, use a callback that calls `Zenohex.Query.reply/3`.
+    state.callback.(query)
+
+    {:noreply, state}
+  end
+
+  def handle_call(:stop, _from, state) do
+    reply = Zenohex.Queryable.undeclare(state.queryable_id)
+    reason = :normal
+
+    {:stop, reason, reply, state}
+  end
 end

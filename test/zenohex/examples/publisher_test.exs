@@ -1,72 +1,45 @@
 defmodule Zenohex.Examples.PublisherTest do
   use ExUnit.Case
 
-  import Zenohex.Test.Utils, only: [maybe_different_session: 1]
-
-  alias Zenohex.Examples.Publisher
-  alias Zenohex.Examples.Subscriber
-
   setup do
-    {:ok, session} = Zenohex.open()
-    key_expr = "key/expression/pub"
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
 
-    start_supervised!({Publisher, %{session: session, key_expr: key_expr}})
+    on_exit(fn -> Zenohex.Session.close(session_id) end)
 
-    %{session: maybe_different_session(session)}
+    key_expr = "key/expr"
+
+    %{me: self(), session_id: session_id, key_expr: key_expr}
   end
 
-  describe "put/1" do
-    test "with subscriber", %{session: session} do
-      me = self()
-
-      start_supervised!(
-        {Subscriber,
-         %{
-           session: session,
-           key_expr: "key/expression/**",
-           callback: fn sample -> send(me, sample) end
-         }}
+  test "example works correctly", context do
+    {:ok, _pid} =
+      start_supervised(
+        {Zenohex.Examples.Subscriber,
+         [
+           session_id: context.session_id,
+           key_expr: context.key_expr,
+           callback: fn sample -> send(context.me, sample) end
+         ]},
+        restart: :temporary
       )
 
-      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
-      Process.sleep(1)
+    assert {:ok, _pid} =
+             Zenohex.Examples.Publisher.start_link(
+               session_id: context.session_id,
+               key_expr: context.key_expr
+             )
 
-      for i <- 0..100 do
-        assert Publisher.put(i) == :ok
-        assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :put, value: ^i}
-      end
-    end
-  end
+    assert :ok = Zenohex.Examples.Publisher.put("payload")
 
-  describe "delete/0" do
-    test "with subscriber", %{session: session} do
-      me = self()
+    assert_receive %Zenohex.Sample{kind: :put, payload: "payload"}
 
-      start_supervised!(
-        {Subscriber,
-         %{
-           session: session,
-           key_expr: "key/expression/**",
-           callback: fn sample -> send(me, sample) end
-         }}
-      )
+    assert :ok = Zenohex.Examples.Publisher.delete()
 
-      # This sleep is used to delegate asynchronous processing to Zenoh beyond the NIF.
-      Process.sleep(1)
+    assert_receive %Zenohex.Sample{kind: :delete}
 
-      assert Publisher.delete() == :ok
-
-      assert_receive %Zenohex.Sample{key_expr: "key/expression/pub", kind: :delete}
-    end
-  end
-
-  test "congestion_control/1" do
-    assert Publisher.congestion_control(:block) == :ok
-    assert Publisher.put("put") == :ok
-  end
-
-  test "priority/1" do
-    assert Publisher.priority(:real_time) == :ok
-    assert Publisher.put("put") == :ok
+    assert :ok = Zenohex.Examples.Publisher.stop()
   end
 end

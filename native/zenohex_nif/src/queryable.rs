@@ -1,27 +1,26 @@
-use std::time::Duration;
+use zenoh::Wait;
 
-use flume::{Receiver, RecvTimeoutError};
-use rustler::{Encoder, Env, ResourceArc, Term};
-use zenoh::queryable::{Query, Queryable};
+#[rustler::nif]
+fn queryable_undeclare(
+    entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
+) -> rustler::NifResult<rustler::Atom> {
+    let session_id = &entity_global_id_resource.zid();
+    let entity_global_id = &entity_global_id_resource;
 
-use crate::{atoms, QueryableRef};
+    let session =
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+    let mut session_locked = session.write().unwrap();
+    let entity = session_locked.remove_entity(entity_global_id)?;
 
-#[rustler::nif(schedule = "DirtyIo")]
-fn queryable_recv_timeout(
-    env: Env,
-    resource: ResourceArc<QueryableRef>,
-    timeout_us: u64,
-) -> Result<Term, Term> {
-    let queryable: &Queryable<'_, Receiver<Query>> = &resource.0;
-    match queryable.recv_timeout(Duration::from_micros(timeout_us)) {
-        Ok(query) => Ok(crate::query::ExQuery::from(env, query).encode(env)),
-        Err(RecvTimeoutError::Timeout) => Err(atoms::timeout().encode(env)),
-        Err(RecvTimeoutError::Disconnected) => Err(atoms::disconnected().encode(env)),
+    match entity {
+        crate::session::Entity::Queryable(queryable, _) => {
+            queryable
+                .undeclare()
+                .wait()
+                .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+            Ok(rustler::types::atom::ok())
+        }
+        _ => unreachable!("unexpected entity"),
     }
-}
-
-#[derive(rustler::NifStruct)]
-#[module = "Zenohex.Queryable.Options"]
-pub(crate) struct ExQueryableOptions {
-    pub(crate) complete: bool,
 }

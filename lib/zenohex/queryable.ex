@@ -1,42 +1,20 @@
 defmodule Zenohex.Queryable do
   @moduledoc """
-  Documentation for `#{__MODULE__}`.
+  Interface for managing queryable entities in the Zenoh native layer.
+
+  This module provides functions to undeclare a queryable,
+  which stops handling incoming queries and releases associated resources.
+
+  Queryables are declared via `Zenohex.Session.declare_queryable/4`.
   """
 
-  alias Zenohex.Nif
-  alias Zenohex.Query
-
-  @type t :: reference()
-
-  defmodule Options do
-    @moduledoc """
-    Documentation for `#{__MODULE__}`.
-
-    Used by `Zenohex.Session.declare_queryable/3`.
-    """
-
-    @type t :: %__MODULE__{complete: complete()}
-    @type complete :: boolean()
-    defstruct complete: false
-  end
+  @type id :: reference()
 
   @doc """
-  Receive query.
-  Normally users don't need to change the default timeout_us.
+  Undeclares the queryable identified by the given ID.
 
-  ## Examples
-
-      iex> {:ok, session} = Zenohex.open()
-      iex> {:ok, queryable} = Zenohex.Session.declare_queryable(session, "key/expression")
-      iex> Zenohex.Queryable.recv_timeout(queryable)
-      {:error, :timeout}
+  Stops handling incoming queries and releases associated resources.
   """
-  @spec recv_timeout(t(), pos_integer()) ::
-          {:ok, Query.t()}
-          | {:error, :timeout}
-          | {:error, reason :: any()}
-  def recv_timeout(queryable, timeout_us \\ 1000)
-      when is_reference(queryable) and is_integer(timeout_us) and timeout_us > 0 do
-    Nif.queryable_recv_timeout(queryable, timeout_us)
-  end
+  @spec undeclare(id()) :: :ok | {:error, reason :: term()}
+  defdelegate undeclare(id), to: Zenohex.Nif, as: :queryable_undeclare
 end

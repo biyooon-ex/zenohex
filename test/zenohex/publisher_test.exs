@@ -1,4 +1,40 @@
 defmodule Zenohex.PublisherTest do
   use ExUnit.Case
-  doctest Zenohex.Publisher
+
+  setup do
+    {:ok, session_id} =
+      Zenohex.Config.default()
+      |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
+      |> Zenohex.Session.open()
+
+    on_exit(fn -> Zenohex.Session.close(session_id) end)
+
+    {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
+
+    %{
+      session_id: session_id,
+      publisher_id: publisher_id
+    }
+  end
+
+  test "put/2", context do
+    assert :ok = Zenohex.Publisher.put(context.publisher_id, "payload")
+
+    :ok = Zenohex.Session.close(context.session_id)
+    assert {:error, _reason} = Zenohex.Publisher.put(context.publisher_id, "payload")
+  end
+
+  test "delete/2", context do
+    assert :ok = Zenohex.Publisher.delete(context.publisher_id)
+
+    :ok = Zenohex.Session.close(context.session_id)
+    assert {:error, _reason} = Zenohex.Publisher.delete(context.publisher_id)
+  end
+
+  test "undeclare/1", context do
+    assert :ok = Zenohex.Publisher.undeclare(context.publisher_id)
+
+    # confirm already undeclare
+    assert {:error, _} = Zenohex.Publisher.undeclare(context.publisher_id)
+  end
 end

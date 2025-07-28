@@ -1,16 +1,26 @@
 defmodule Zenohex.ConfigTest do
   use ExUnit.Case
 
-  alias Zenohex.Config
-  alias Zenohex.Config.Connect
-  alias Zenohex.Config.Scouting
+  test "default/0" do
+    assert is_binary(Zenohex.Config.default())
+  end
 
-  test "Zenohex.open(config)" do
-    config = %Config{
-      connect: %Connect{endpoints: ["tcp/localhost:7447"]},
-      scouting: %Scouting{delay: 200}
-    }
+  test "from_json5/1" do
+    json5_binary = File.read!("test/support/fixtures/DEFAULT_CONFIG.json5")
 
-    assert {:ok, _session} = Zenohex.open(config)
+    assert {:ok, json_binary} = Zenohex.Config.from_json5(json5_binary)
+    assert is_binary(json_binary)
+
+    assert {:error, _reason} = Zenohex.Config.from_json5("")
+  end
+
+  test "update_in/3" do
+    config = Zenohex.Config.default()
+
+    assert config =~ "scouting\":{\"delay\":null"
+
+    config = Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
+
+    assert config =~ "scouting\":{\"delay\":100"
   end
 end

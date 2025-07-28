@@ -1,8 +1,8 @@
 name: CI
 
 env:
-  OTP_VERSION: 27.1.2
-  ELIXIR_VERSION: 1.17.3
+  OTP_VERSION: 27.3.4.2
+  ELIXIR_VERSION: 1.18.4
   MIX_ENV: test
 
 # based https://github.com/erlef/setup-beam
@@ -63,9 +63,11 @@ jobs:
       - name: format
         run: mix format --check-formatted
 
-      - name: cargo fmt
+      - name: cargo clippy cargo fmt
         working-directory: native/zenohex_nif
-        run: cargo fmt --all -- --check
+        run: |
+          cargo clippy --all-targets --all-features -- -D warnings
+          cargo fmt --all -- --check
 
       - name: credo
         run: mix credo --ignore fixme
@@ -93,7 +95,7 @@ jobs:
       - name: dialyzer
         run: mix dialyzer --format github
 
-  test-with-one-session:
+  test:
     needs: build-deps
     runs-on: ubuntu-latest
 
@@ -117,28 +119,3 @@ jobs:
 
       - name: test
         run: mix test --warnings-as-errors --cover
-
-  test-with-another-session:
-    needs: build-deps
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: erlef/setup-beam@v1
-        id: setup-beam
-        with:
-          otp-version: ${{env.OTP_VERSION}}
-          elixir-version: ${{env.ELIXIR_VERSION}}
-
-      - uses: actions/cache/restore@v4
-        id: restore-deps-cache
-        with:
-          path: |
-            deps
-            _build
-          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
-          restore-keys: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
-
-      - name: test
-        run: USE_DIFFERENT_SESSION="1" mix test --warnings-as-errors --cover
