@@ -40,7 +40,7 @@ defmodule Zenohex.Session do
   """
   @type zenoh_timestamp_string :: String.t()
 
-  @type congestion_control :: :drop | :block
+  @type congestion_control :: :drop | :block | :block_first
 
   @type priority ::
           :real_time

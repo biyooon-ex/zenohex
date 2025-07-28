@@ -15,7 +15,7 @@ fn keyexpr_valid(key_expr: &str) -> rustler::NifResult<bool> {
     match zenoh::key_expr::keyexpr::new(key_expr) {
         Ok(_) => Ok(true),
         Err(error) => {
-            log::error!("{}", error.to_string());
+            log::error!("{}", error);
             Ok(false)
         }
     }
