@@ -102,9 +102,7 @@ defmodule Zenohex.MixProject do
         Zenohex.Nif,
         ~r/Zenohex.Nif.Logger.*/,
         Zenohex.Examples.Plugins.StorageBackendFs
-      ],
-      # WHY: see https://github.com/biyooon-ex/zenohex/issues/77
-      summary: [threshold: 80]
+      ]
     ]
   end
 
