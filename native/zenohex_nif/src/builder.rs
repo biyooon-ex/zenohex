@@ -4,6 +4,7 @@ use std::time::Duration;
 pub enum CongestionControl {
     Drop,
     Block,
+    BlockFirst,
 }
 
 impl From<CongestionControl> for zenoh::qos::CongestionControl {
@@ -11,6 +12,7 @@ impl From<CongestionControl> for zenoh::qos::CongestionControl {
         match value {
             CongestionControl::Drop => zenoh::qos::CongestionControl::Drop,
             CongestionControl::Block => zenoh::qos::CongestionControl::Block,
+            CongestionControl::BlockFirst => zenoh::qos::CongestionControl::BlockFirst,
         }
     }
 }
@@ -20,6 +22,7 @@ impl From<zenoh::qos::CongestionControl> for CongestionControl {
         match value {
             zenoh::qos::CongestionControl::Drop => CongestionControl::Drop,
             zenoh::qos::CongestionControl::Block => CongestionControl::Block,
+            zenoh::qos::CongestionControl::BlockFirst => CongestionControl::BlockFirst,
         }
     }
 }
