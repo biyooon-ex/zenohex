@@ -7,6 +7,9 @@ env:
 
 # based https://github.com/erlef/setup-beam
 
+# why not use `windows-latest`?
+# see: https://github.com/biyooon-ex/zenohex/pull/116
+
 on:
   pull_request:
   push:
@@ -15,7 +18,10 @@ on:
 
 jobs:
   build-deps:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +46,10 @@ jobs:
 
   code-analysis:
     needs: build-deps
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
 
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +106,10 @@ jobs:
 
   test:
     needs: build-deps
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-2022]
 
     steps:
       - uses: actions/checkout@v4
