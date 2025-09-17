@@ -6,7 +6,6 @@ defmodule Zenohex.VersionMatchTest do
       test "#{filename} version match" do
         tool_versions_map =
           File.read!(".tool-versions")
-          |> String.replace(~r/\r\n/, "\n")
           |> String.split("\n")
           |> Enum.reduce(%{}, fn line, acc ->
             cond do
@@ -26,7 +25,6 @@ defmodule Zenohex.VersionMatchTest do
 
         ciyaml_versions_map =
           File.read!(".github/workflows/#{unquote(filename)}")
-          |> String.replace(~r/\r\n/, "\n")
           |> String.split("\n")
           |> Enum.reduce(%{}, fn line, acc ->
             cond do
@@ -71,7 +69,6 @@ defmodule Zenohex.VersionMatchTest do
     test "rust version match" do
       ["uses", "dtolnay/rust-toolchain", rust_version_on_yaml] =
         File.read!(".github/workflows/nif_precompile.yml")
-        |> String.replace(~r/\r\n/, "\n")
         |> String.split("\n")
         |> Enum.filter(fn line -> String.contains?(line, "dtolnay/rust-toolchain@") end)
         |> List.first()
