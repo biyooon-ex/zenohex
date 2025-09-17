@@ -15,7 +15,10 @@ defmodule Zenohex.ScoutingTest do
   end
 
   test "scout/3" do
-    assert {:ok, [%Zenohex.Scouting.Hello{}]} =
+    # NOTE: If there are multiple interfaces, each interface replies hello.
+    assert {:ok, hellos} =
              Zenohex.Scouting.scout(:peer, Zenohex.Config.default(), 100)
+
+    assert %Zenohex.Scouting.Hello{} = List.first(hellos)
   end
 end
