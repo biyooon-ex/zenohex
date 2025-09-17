@@ -1,0 +1,55 @@
+name: Test
+
+env:
+  OTP_VERSION: 27.3.4.2
+  ELIXIR_VERSION: 1.18.4
+  MIX_ENV: test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: mix test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-14
+          - windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+
+      - name: Cache mix deps
+        id: deps-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          restore-keys: |
+            deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+
+      - name: Install deps
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: mix do deps.get, deps.compile
+
+      - name: Compile project
+        run: mix compile --warnings-as-errors
+
+      - name: Run tests
+        run: mix test --warnings-as-errors --cover
