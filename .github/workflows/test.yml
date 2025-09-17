@@ -20,8 +20,13 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-24.04
-          - macos-15
+          - ubuntu-latest
+          - macos-latest
+          # WHY: not using `latest`
+          #      Because we got a following error,
+          #      > Error: Tried to map a target OS from env. variable 'ImageOS' (got win25), but failed.
+          #      > If you're using a self-hosted runner, you should set 'env': 'ImageOS': ...
+          #      > to one of the following: ['ubuntu22', 'ubuntu24', 'win19', 'win22', 'macos13', 'macos14', 'macos15']
           - windows-2022
 
     steps:
