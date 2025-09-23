@@ -7,7 +7,13 @@ defmodule Zenohex.QueryTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    {:ok, queryable_id} =
+      Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
+    on_exit(fn ->
+      Zenohex.Queryable.undeclare(queryable_id)
+      Zenohex.Session.close(session_id)
+    end)
 
     %{
       session_id: session_id
@@ -15,11 +21,6 @@ defmodule Zenohex.QueryTest do
   end
 
   test "reply/3", context do
-    {:ok, queryable_id} =
-      Zenohex.Session.declare_queryable(context.session_id, "key/expr", self())
-
-    on_exit(fn -> Zenohex.Queryable.undeclare(queryable_id) end)
-
     task =
       Task.async(Zenohex.Session, :get, [
         context.session_id,
@@ -36,11 +37,6 @@ defmodule Zenohex.QueryTest do
   end
 
   test "reply_error/3", context do
-    {:ok, queryable_id} =
-      Zenohex.Session.declare_queryable(context.session_id, "key/expr", self())
-
-    on_exit(fn -> Zenohex.Queryable.undeclare(queryable_id) end)
-
     task =
       Task.async(Zenohex.Session, :get, [
         context.session_id,
@@ -56,11 +52,6 @@ defmodule Zenohex.QueryTest do
   end
 
   test "reply_delete/3", context do
-    {:ok, queryable_id} =
-      Zenohex.Session.declare_queryable(context.session_id, "key/expr", self())
-
-    on_exit(fn -> Zenohex.Queryable.undeclare(queryable_id) end)
-
     task =
       Task.async(Zenohex.Session, :get, [
         context.session_id,
