@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 [dependencies]
 # features
 #   WHY we specify NIF 2.15 https://github.com/biyooon-ex/zenohex/issues/71
-rustler = { version = "=0.36.2", features = ["nif_version_2_15"] }
+rustler = { version = "=0.37.0", features = ["nif_version_2_15"] }
 
 # version
 #   When updating the Zenoh version, make sure to update the Rust version
