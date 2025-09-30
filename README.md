@@ -3,7 +3,8 @@
 [![Hex version](https://img.shields.io/hexpm/v/zenohex.svg "Hex version")](https://hex.pm/packages/zenohex)
 [![API docs](https://img.shields.io/hexpm/v/zenohex.svg?label=hexdocs "API docs")](https://hexdocs.pm/zenohex/)
 [![License](https://img.shields.io/hexpm/l/zenohex.svg)](https://github.com/zenohex/zenohex/blob/main/LICENSE)
-[![CI](https://github.com/b5g-ex/zenohex/actions/workflows/ci.yml/badge.svg)](https://github.com/b5g-ex/zenohex/actions/workflows/ci.yml)
+[![Code Analysis](https://github.com/biyooon-ex/zenohex/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/biyooon-ex/zenohex/actions/workflows/code-analysis.yml)
+[![Test](https://github.com/biyooon-ex/zenohex/actions/workflows/test.yml/badge.svg)](https://github.com/biyooon-ex/zenohex/actions/workflows/test.yml)
 
 Zenohex is Elixir API for [Zenoh](https://zenoh.io/).
 
