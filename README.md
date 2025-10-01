@@ -29,7 +29,7 @@ This allows the creation and communication of a large number of fault-tolerant n
 
 ## Usage
 
-**Currently, Zenohex uses version 1.5.0 of Zenoh.**
+**Currently, Zenohex uses version 1.5.1 of Zenoh.**
 
 We recommend you use the same version to communicate with other Zenoh clients or routers since version compatibility is somewhat important for Zenoh.
 Please also check the description on [Releases](https://github.com/biyooon-ex/zenohex/releases) about the corresponding Zenoh version.
@@ -50,7 +50,7 @@ You can install this package into your project by adding `zenohex` to your list 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.5.0"},
+      {:zenohex, "~> 0.5.1"},
       ...
     ]
   end
@@ -130,7 +130,7 @@ When you want to build NIF module locally into your project, install Rustler by 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.5.0"},
+      {:zenohex, "~> 0.5.1"},
       {:rustler, ">= 0.0.0", optional: true},
       ...
     ]
