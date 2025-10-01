@@ -28,6 +28,9 @@ zenohex-*.tar
 # Ignore compiled NIF for Rustler
 /priv/native/*zenohex_nif*
 
+# Ignore Rust related library file
+/priv/native/rustls_platform_verifier.so
+
 # Ignore local Dialyzer PLTs
 /priv/plts/*.plt
 /priv/plts/*.plt.hash
