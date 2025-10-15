@@ -79,20 +79,27 @@ fn scouting_scout(
     loop {
         // NOTE: `recv_deadline` document says following,
         //       > If the deadline has expired, this will return None.
-        let option_hello = scout
-            .recv_deadline(deadline)
-            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
-
-        let Some(hello) = option_hello else {
-            // the deadline has expired
-            return Err(rustler::Error::Term(Box::new("timeout")));
+        let hello = match scout.recv_deadline(deadline) {
+            Ok(Some(hello)) => hello,
+            Ok(None) => {
+                // If we timeout but have collected replies, return them successfully.
+                // Only error on timeout if we have no data at all.
+                if !hellos.is_empty() {
+                    break;
+                }
+                return Err(rustler::Error::Term(Box::new(crate::atoms::timeout())));
+            }
+            Err(error) => {
+                // If the channel disconnected after receiving some replies,
+                // treat it as a successful completion and return what we collected.
+                if scout.is_disconnected() && !hellos.is_empty() {
+                    break;
+                }
+                return Err(rustler::Error::Term(crate::zenoh_error!(error)));
+            }
         };
 
         hellos.push(crate::scouting::ZenohexScoutingHello::from(hello));
-
-        if scout.is_empty() {
-            break;
-        }
     }
 
     Ok((rustler::types::atom::ok(), hellos))

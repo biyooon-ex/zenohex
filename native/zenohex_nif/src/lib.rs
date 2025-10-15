@@ -36,6 +36,7 @@ mod atoms {
         priority,
         query_timeout,
         target,
+        timeout,
         timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }
