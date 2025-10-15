@@ -63,13 +63,24 @@ fn liveliness_get<'a>(
     loop {
         // NOTE: `recv_deadline` document says following,
         //       > If the deadline has expired, this will return None.
-        let option_reply = channel_handler
-            .recv_deadline(deadline)
-            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
-
-        let Some(reply) = option_reply else {
-            // the deadline has expired
-            return Err(rustler::Error::Term(Box::new("timeout")));
+        let reply = match channel_handler.recv_deadline(deadline) {
+            Ok(Some(reply)) => reply,
+            Ok(None) => {
+                // If we timeout but have collected replies, return them successfully.
+                // Only error on timeout if we have no data at all.
+                if !replies.is_empty() {
+                    break;
+                }
+                return Err(rustler::Error::Term(Box::new(crate::atoms::timeout())));
+            }
+            Err(error) => {
+                // If the channel disconnected after receiving some replies,
+                // treat it as a successful completion and return what we collected.
+                if channel_handler.is_disconnected() && !replies.is_empty() {
+                    break;
+                }
+                return Err(rustler::Error::Term(crate::zenoh_error!(error)));
+            }
         };
 
         let term = match reply.result() {
@@ -80,10 +91,6 @@ fn liveliness_get<'a>(
         };
 
         replies.push(term);
-
-        if channel_handler.is_empty() {
-            break;
-        }
     }
 
     Ok((rustler::types::atom::ok(), replies))
