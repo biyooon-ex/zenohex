@@ -21,6 +21,6 @@ rustler = { version = "=0.37.0", features = ["nif_version_2_15"] }
 # features
 #   zenoh::session::EntityGlobalId needs "unstable"
 #   "plugins" needs "unstable" and "internal"
-zenoh = { version = "=1.6.2", features = ["unstable", "internal", "plugins"] }
+zenoh = { version = "=1.7.0", features = ["unstable", "internal", "plugins"] }
 
 log = { version = "0.4", features = ["std"] }
