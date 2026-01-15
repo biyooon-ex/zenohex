@@ -24,7 +24,7 @@ defmodule Zenohex.Config do
   defdelegate default(), to: Zenohex.Nif, as: :config_default
 
   @doc false
-  @spec from_json5(t()) :: {:ok, t()} | {:error, term()}
+  @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
   @doc """

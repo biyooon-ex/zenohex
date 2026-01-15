@@ -33,82 +33,82 @@ defmodule Zenohex.Nif do
 
   # Session
 
-  @spec session_open(binary()) :: {:ok, session_id()} | {:error, term()}
+  @spec session_open(binary()) :: {:ok, session_id()} | {:error, reason :: term()}
   def session_open(_json5_binary), do: err()
 
-  @spec session_close(session_id()) :: :ok | {:error, term()}
+  @spec session_close(session_id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
 
   @spec session_put(session_id(), String.t(), binary(), keyword()) ::
-          :ok | {:error, term()}
+          :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
 
-  @spec session_delete(session_id(), String.t(), keyword()) :: :ok | {:error, term()}
+  @spec session_delete(session_id(), String.t(), keyword()) :: :ok | {:error, reason :: term()}
   def session_delete(_session_id, _key_expr, _opts), do: err()
 
   @spec session_get(session_id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
-          | {:error, term()}
+          | {:error, reason :: term()}
   def session_get(_session_id, _selector, _timeout, _opts), do: err()
 
-  @spec session_new_timestamp(session_id()) :: {:ok, String.t()} | {:error, term()}
+  @spec session_new_timestamp(session_id()) :: {:ok, String.t()} | {:error, reason :: term()}
   def session_new_timestamp(_session_id), do: err()
 
-  @spec session_info(session_id()) :: {:ok, Zenohex.Session.Info.t()}
+  @spec session_info(session_id()) :: {:ok, Zenohex.Session.Info.t()} | {:error, reason :: term()}
   def session_info(_session_id), do: err()
 
   # NOTE: Not supported in Zenohex.
   #       Use publisher instead, which is sufficient for all use cases.
   # @spec session_declare_keyexpr(id(), String.t()) ::
-  #         {:ok, reference()} | {:error, term()}
+  #         {:ok, reference()} | {:error, reason :: term()}
   # def session_declare_keyexpr(_session_id, _key_expr), do: err()
 
   @spec session_declare_publisher(session_id(), String.t(), keyword()) ::
-          {:ok, entity_id()} | {:error, term()}
+          {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
 
   @spec session_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
-          {:ok, entity_id()}
+          {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_subscriber(_session_id, _key_expr, _pid, _opts), do: err()
 
   @spec session_declare_queryable(session_id(), String.t(), pid(), keyword()) ::
-          {:ok, entity_id()}
+          {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_queryable(_session_id, _key_expr, _pid, _opts), do: err()
 
   # Publisher
 
-  @spec publisher_undeclare(entity_id()) :: :ok | {:error, term()}
+  @spec publisher_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def publisher_undeclare(_publisher_id), do: err()
 
-  @spec publisher_put(entity_id(), binary(), keyword()) :: :ok | {:error, term()}
+  @spec publisher_put(entity_id(), binary(), keyword()) :: :ok | {:error, reason :: term()}
   def publisher_put(_publisher_id, _payload, _opts), do: err()
 
-  @spec publisher_delete(entity_id(), keyword()) :: :ok | {:error, term()}
+  @spec publisher_delete(entity_id(), keyword()) :: :ok | {:error, reason :: term()}
   def publisher_delete(_publisher_id, _opts), do: err()
 
   # Subscriber
 
-  @spec subscriber_undeclare(entity_id()) :: :ok | {:error, term()}
+  @spec subscriber_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def subscriber_undeclare(_subscriber_id), do: err()
 
   # Queryable
 
-  @spec queryable_undeclare(entity_id()) :: :ok | {:error, term()}
+  @spec queryable_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def queryable_undeclare(_queryable_id), do: err()
 
   # Query
 
   @spec query_reply(query(), String.t(), binary(), keyword()) ::
-          :ok | {:error, term()}
+          :ok | {:error, reason :: term()}
   def query_reply(_zenoh_query, _key_expr, _payload, _opts), do: err()
 
   @spec query_reply_error(query(), binary(), keyword()) ::
-          :ok | {:error, term()}
+          :ok | {:error, reason :: term()}
   def query_reply_error(_zenoh_query, _payload, _opts), do: err()
 
   @spec query_reply_delete(query(), String.t(), keyword()) ::
-          :ok | {:error, term()}
+          :ok | {:error, reason :: term()}
   def query_reply_delete(_zenoh_query, _key_expr, _opts), do: err()
 
   # KeyExpr
@@ -135,31 +135,31 @@ defmodule Zenohex.Nif do
   @spec liveliness_get(session_id(), String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
-          | {:error, term()}
+          | {:error, reason :: term()}
   def liveliness_get(_session_id, _key_expr, _timeout, _opts \\ []), do: err()
 
   @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
-          {:ok, subscriber_id :: entity_id()}
+          {:ok, subscriber_id :: entity_id()} | {:error, reason :: term()}
   def liveliness_declare_subscriber(_session_id, _key_expr, _pid, _opts \\ []), do: err()
 
   @spec liveliness_declare_token(session_id(), String.t()) ::
-          {:ok, liveliness_token()} | {:error, term()}
+          {:ok, liveliness_token()} | {:error, reason :: term()}
   def liveliness_declare_token(_session_id, _key_expr), do: err()
 
-  @spec liveliness_token_undeclare(liveliness_token()) :: :ok | {:error, term()}
+  @spec liveliness_token_undeclare(liveliness_token()) :: :ok | {:error, reason :: term()}
   def liveliness_token_undeclare(_token), do: err()
 
   # Scouting
 
   @spec scouting_scout(:peer | :router, String.t(), non_neg_integer()) ::
-          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, term()}
+          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
 
   @spec scouting_declare_scout(:peer | :router, String.t(), pid()) ::
-          {:ok, scout()} | {:error, term()}
+          {:ok, scout()} | {:error, reason :: term()}
   def scouting_declare_scout(_what, _json5_binary, _pid), do: err()
 
-  @spec scouting_stop_scout(scout()) :: :ok | {:error, term()}
+  @spec scouting_stop_scout(scout()) :: :ok | {:error, reason :: term()}
   def scouting_stop_scout(_scout), do: err()
 
   # Config
@@ -167,7 +167,7 @@ defmodule Zenohex.Nif do
   @spec config_default() :: String.t()
   def config_default(), do: err()
 
-  @spec config_from_json5(String.t()) :: {:ok, String.t()} | {:error, term()}
+  @spec config_from_json5(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
   def config_from_json5(_json5), do: err()
 
   # Logger

@@ -70,7 +70,7 @@ defmodule Zenohex do
   @spec get(String.t(), non_neg_integer(), keyword()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
-          | {:error, term()}
+          | {:error, reason :: term()}
   def get(selector, timeout, opts \\ []) do
     {:ok, session_id} = Zenohex.Session.open()
 
@@ -100,6 +100,6 @@ defmodule Zenohex do
 
   """
   @spec scout(Zenohex.Scouting.what(), Zenohex.Config.t(), non_neg_integer()) ::
-          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, term()}
+          {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   defdelegate scout(what, config, timeout), to: Zenohex.Scouting, as: :scout
 end

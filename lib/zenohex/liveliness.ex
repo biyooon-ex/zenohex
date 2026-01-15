@@ -27,7 +27,7 @@ defmodule Zenohex.Liveliness do
   @spec get(Zenohex.Session.id(), String.t(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
-          | {:error, term()}
+          | {:error, reason :: term()}
   defdelegate get(session_id, key_expr, timeout, opts \\ []), to: Zenohex.Nif, as: :liveliness_get
 
   @doc """
@@ -45,7 +45,7 @@ defmodule Zenohex.Liveliness do
       {:ok, #Reference<...>}
   """
   @spec declare_subscriber(Zenohex.Session.id(), String.t(), pid()) ::
-          {:ok, subscriber_id :: Zenohex.Subscriber.id()}
+          {:ok, subscriber_id :: Zenohex.Subscriber.id()} | {:error, reason :: term()}
   defdelegate declare_subscriber(session_id, key_expr, pid \\ self()),
     to: Zenohex.Nif,
     as: :liveliness_declare_subscriber
@@ -62,7 +62,7 @@ defmodule Zenohex.Liveliness do
       iex> Zenohex.Liveliness.undeclare_subscriber(subscriber_id)
       :ok
   """
-  @spec undeclare_subscriber(Zenohex.Subscriber.id()) :: :ok | {:error, term()}
+  @spec undeclare_subscriber(Zenohex.Subscriber.id()) :: :ok | {:error, reason :: term()}
   defdelegate undeclare_subscriber(subscriber_id),
     to: Zenohex.Nif,
     as: :subscriber_undeclare
@@ -81,7 +81,7 @@ defmodule Zenohex.Liveliness do
       {:ok, #Reference<...>}
   """
   @spec declare_token(Zenohex.Session.id(), String.t()) ::
-          {:ok, token()} | {:error, term()}
+          {:ok, token()} | {:error, reason :: term()}
   defdelegate declare_token(session_id, key_expr),
     to: Zenohex.Nif,
     as: :liveliness_declare_token
@@ -94,7 +94,7 @@ defmodule Zenohex.Liveliness do
       iex> Zenohex.Liveliness.undeclare_token(token)
       :ok
   """
-  @spec undeclare_token(token()) :: :ok | {:error, term()}
+  @spec undeclare_token(token()) :: :ok | {:error, reason :: term()}
   defdelegate undeclare_token(token),
     to: Zenohex.Nif,
     as: :liveliness_token_undeclare
