@@ -19,7 +19,7 @@ defmodule Zenohex.Examples.Publisher do
   @doc """
   Sends a `Zenohex.Sample` with `kind: :put` and the given payload.
   """
-  @spec put(module(), binary()) :: :ok | {:error, term()}
+  @spec put(module(), binary()) :: :ok | {:error, reason :: term()}
   def put(name \\ __MODULE__, payload) do
     GenServer.call(name, {:put, payload})
   end
@@ -27,7 +27,7 @@ defmodule Zenohex.Examples.Publisher do
   @doc """
   Sends a `Zenohex.Sample` with `kind: :delete`.
   """
-  @spec delete(module()) :: :ok | {:error, term()}
+  @spec delete(module()) :: :ok | {:error, reason :: term()}
   def delete(name \\ __MODULE__) do
     GenServer.call(name, :delete)
   end

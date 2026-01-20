@@ -54,7 +54,7 @@ defmodule Zenohex.Scouting do
     - `timeout`: Timeout in milliseconds to wait for Hello replies.
   """
   @spec scout(what(), Zenohex.Config.t(), non_neg_integer()) ::
-          {:ok, [Hello.t()]} | {:error, :timeout} | {:error, term()}
+          {:ok, [Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   defdelegate scout(what, config, timeout),
     to: Zenohex.Nif,
     as: :scouting_scout
@@ -70,7 +70,7 @@ defmodule Zenohex.Scouting do
       - Messages are delivered as `Zenohex.Scouting.Hello`.
   """
   @spec declare_scout(what(), Zenohex.Config.t(), pid()) ::
-          {:ok, scout()} | {:error, term()}
+          {:ok, scout()} | {:error, reason :: term()}
   defdelegate declare_scout(what, config, pid \\ self()),
     to: Zenohex.Nif,
     as: :scouting_declare_scout
@@ -78,7 +78,7 @@ defmodule Zenohex.Scouting do
   @doc """
   Stop scouting.
   """
-  @spec stop_scout(scout()) :: :ok | {:error, term()}
+  @spec stop_scout(scout()) :: :ok | {:error, reason :: term()}
   defdelegate stop_scout(scout),
     to: Zenohex.Nif,
     as: :scouting_stop_scout

@@ -223,7 +223,7 @@ defmodule Zenohex.Session do
   @spec get(session_id :: id(), String.t(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
           | {:error, :timeout}
-          | {:error, term()}
+          | {:error, reason :: term()}
   defdelegate get(session_id, selector, timeout, opts \\ []),
     to: Zenohex.Nif,
     as: :session_get
@@ -242,7 +242,8 @@ defmodule Zenohex.Session do
       iex> [timestamp, zenoh_id_string] = String.split(zenoh_timestamp, "/")
       iex> {:ok, %DateTime{}, 0} = DateTime.from_iso8601(timestamp)
   """
-  @spec new_timestamp(session_id :: id()) :: {:ok, zenoh_timestamp_string()} | {:error, term()}
+  @spec new_timestamp(session_id :: id()) ::
+          {:ok, zenoh_timestamp_string()} | {:error, reason :: term()}
   defdelegate new_timestamp(session_id),
     to: Zenohex.Nif,
     as: :session_new_timestamp
@@ -259,7 +260,7 @@ defmodule Zenohex.Session do
       iex> {:ok, session_id} = Zenohex.Session.open()
       iex> {:ok, %Zenohex.Session.Info{}} = Zenohex.Session.info(session_id)
   """
-  @spec info(session_id :: id()) :: {:ok, Zenohex.Session.Info.t()} | {:error, term()}
+  @spec info(session_id :: id()) :: {:ok, Zenohex.Session.Info.t()} | {:error, reason :: term()}
   defdelegate info(session_id),
     to: Zenohex.Nif,
     as: :session_info
@@ -303,7 +304,7 @@ defmodule Zenohex.Session do
   > the underlying subscriber in Rust will be automatically dropped.
   """
   @spec declare_subscriber(session_id :: id(), String.t(), pid(), subscriber_opts()) ::
-          {:ok, subscriber_id :: Zenohex.Subscriber.id()}
+          {:ok, subscriber_id :: Zenohex.Subscriber.id()} | {:error, reason :: term()}
   defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_subscriber
@@ -326,7 +327,7 @@ defmodule Zenohex.Session do
   > the underlying queryable in Rust will be automatically dropped.
   """
   @spec declare_queryable(session_id :: id(), String.t(), pid(), queryable_opts()) ::
-          {:ok, queryable_id :: Zenohex.Queryable.id()}
+          {:ok, queryable_id :: Zenohex.Queryable.id()} | {:error, reason :: term()}
   defdelegate declare_queryable(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_queryable
