@@ -23,10 +23,8 @@ defmodule Zenohex.Query do
   @type reply_opts :: [
           final?: boolean(),
           attachment: binary() | nil,
-          congestion_control: Zenohex.Session.congestion_control(),
           encoding: String.t(),
           express: boolean(),
-          priority: Zenohex.Session.priority(),
           timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         ]
 
@@ -38,9 +36,7 @@ defmodule Zenohex.Query do
   @type reply_delete_opts :: [
           final?: boolean(),
           attachment: binary() | nil,
-          congestion_control: Zenohex.Session.congestion_control(),
           express: boolean(),
-          priority: Zenohex.Session.priority(),
           timestamp: Zenohex.Session.zenoh_timestamp_string() | nil
         ]
 
