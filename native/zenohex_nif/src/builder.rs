@@ -398,10 +398,6 @@ impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderPu
                         Ok(builder)
                     }
                 }
-                k if k == crate::atoms::congestion_control() => {
-                    let congestion_control = v.decode::<CongestionControl>()?;
-                    Ok(builder.congestion_control(congestion_control.into()))
-                }
                 k if k == crate::atoms::encoding() => {
                     let encoding = v.decode::<&str>()?;
                     Ok(builder.encoding(encoding))
@@ -409,9 +405,6 @@ impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderPu
                 k if k == crate::atoms::express() => {
                     let express = v.decode()?;
                     Ok(builder.express(express))
-                }
-                k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
                 }
                 k if k == crate::atoms::timestamp() => {
                     if let Some(timestamp) = v.decode::<Option<String>>()? {
@@ -461,16 +454,9 @@ impl Builder for zenoh::query::ReplyBuilder<'_, '_, zenoh::query::ReplyBuilderDe
                         Ok(builder)
                     }
                 }
-                k if k == crate::atoms::congestion_control() => {
-                    let congestion_control = v.decode::<CongestionControl>()?;
-                    Ok(builder.congestion_control(congestion_control.into()))
-                }
                 k if k == crate::atoms::express() => {
                     let express = v.decode()?;
                     Ok(builder.express(express))
-                }
-                k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
                 }
                 k if k == crate::atoms::timestamp() => {
                     if let Some(timestamp) = v.decode::<Option<String>>()? {
