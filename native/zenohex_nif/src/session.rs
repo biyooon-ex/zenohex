@@ -57,7 +57,7 @@ impl<'a> Session<'a> {
     pub fn get_entity(
         &self,
         entity_global_id: &zenoh::session::EntityGlobalId,
-    ) -> rustler::NifResult<&Entity> {
+    ) -> rustler::NifResult<&Entity<'a>> {
         self.entities
             .get(entity_global_id)
             .ok_or_else(|| rustler::Error::Term(Box::new("entity not found")))
@@ -66,7 +66,7 @@ impl<'a> Session<'a> {
     pub fn remove_entity(
         &mut self,
         entity_global_id: &zenoh::session::EntityGlobalId,
-    ) -> rustler::NifResult<Entity> {
+    ) -> rustler::NifResult<Entity<'a>> {
         self.entities
             .remove(entity_global_id)
             .ok_or_else(|| rustler::Error::Term(Box::new("entity not found")))
