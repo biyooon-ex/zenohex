@@ -37,7 +37,7 @@ jobs:
         echo "PROJECT_VERSION=$(sed -n 's/^  @version "\(.*\)"/\1/p' mix.exs | head -n1)" >> $GITHUB_ENV
 
     - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@1.85.0
+      uses: dtolnay/rust-toolchain@1.93.0
       with:
         target: ${{ matrix.job.target }}
 
