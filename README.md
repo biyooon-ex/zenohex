@@ -38,7 +38,7 @@ FYI, the development team currently uses the following versions.
 
 - Elixir 1.18.4-otp-27
 - Erlang/OTP 27.3.4.2
-- Rust 1.85.0
+- Rust 1.93.0
 
 ### Installation
 
@@ -50,7 +50,7 @@ You can install this package into your project by adding `zenohex` to your list 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.7.2"},
+      {:zenohex, "~> 0.8.0"},
       ...
     ]
   end
@@ -130,7 +130,7 @@ When you want to build NIF module locally into your project, install Rustler by 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.7.2"},
+      {:zenohex, "~> 0.8.0"},
       {:rustler, ">= 0.0.0", optional: true},
       ...
     ]
