@@ -51,6 +51,11 @@ defmodule Zenohex.Session do
           | :data_low
           | :background
 
+  @type query_target :: :best_matching | :all | :all_complete
+  @type query_consolidation :: :auto | :none | :monotonic | :latest
+  @type reply_key_expr :: :matching_query | :any
+  @type locality :: :session_local | :remote | :any
+
   @type put_opts :: [
           attachment: binary() | nil,
           congestion_control: congestion_control(),
@@ -71,13 +76,24 @@ defmodule Zenohex.Session do
   @type get_opts :: [
           attachment: binary() | nil,
           congestion_control: congestion_control(),
-          consolidation: :auto | :none | :monotonic | :latest,
+          consolidation: query_consolidation(),
           encoding: String.t(),
           express: boolean(),
           payload: binary() | nil,
           priority: priority(),
-          target: :best_matching | :all | :all_complete,
+          target: query_target(),
           query_timeout: non_neg_integer()
+        ]
+
+  @type querier_opts :: [
+          accept_replies: reply_key_expr(),
+          allowed_destination: locality(),
+          congestion_control: congestion_control(),
+          consolidation: query_consolidation(),
+          express: boolean(),
+          priority: priority(),
+          query_timeout: non_neg_integer(),
+          target: query_target()
         ]
 
   @type publisher_opts :: [
@@ -285,6 +301,31 @@ defmodule Zenohex.Session do
   defdelegate declare_publisher(session_id, key_expr, opts \\ []),
     to: Zenohex.Nif,
     as: :session_declare_publisher
+
+  @doc """
+  Declares a reusable querier associated with the given session and `key_expr`.
+
+  Unlike `get/4`, which performs a one-shot query, a querier keeps the
+  declaration alive and can execute multiple `Zenohex.Querier.get/3` calls
+  with different per-request options.
+
+  ## Parameters
+
+    - `session_id`: Identifier of the session returned by `open/0` or `open/1`.
+    - `key_expr`: Key expression to query under.
+    - `opts`: Options for configuring the reusable querier.
+
+  > ### Important {: .info}
+  >
+  > The returned `querier_id` must be held for as long as the querier is in use.
+  > If it is not held and gets garbage-collected by the BEAM,
+  > the underlying querier in Rust will be automatically dropped.
+  """
+  @spec declare_querier(session_id :: id(), String.t(), querier_opts()) ::
+          {:ok, querier_id :: Zenohex.Querier.id()} | {:error, reason :: term()}
+  defdelegate declare_querier(session_id, key_expr, opts \\ []),
+    to: Zenohex.Nif,
+    as: :session_declare_querier
 
   @doc """
   Declares a subscriber for the specified `key_expr`.

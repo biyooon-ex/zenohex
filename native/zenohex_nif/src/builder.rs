@@ -102,6 +102,38 @@ impl From<QueryConsolidation> for zenoh::query::ConsolidationMode {
     }
 }
 
+#[derive(rustler::NifUnitEnum)]
+enum ReplyKeyExpr {
+    Any,
+    MatchingQuery,
+}
+
+impl From<ReplyKeyExpr> for zenoh::query::ReplyKeyExpr {
+    fn from(value: ReplyKeyExpr) -> Self {
+        match value {
+            ReplyKeyExpr::Any => zenoh::query::ReplyKeyExpr::Any,
+            ReplyKeyExpr::MatchingQuery => zenoh::query::ReplyKeyExpr::MatchingQuery,
+        }
+    }
+}
+
+#[derive(rustler::NifUnitEnum)]
+enum Locality {
+    SessionLocal,
+    Remote,
+    Any,
+}
+
+impl From<Locality> for zenoh::sample::Locality {
+    fn from(value: Locality) -> Self {
+        match value {
+            Locality::SessionLocal => zenoh::sample::Locality::SessionLocal,
+            Locality::Remote => zenoh::sample::Locality::Remote,
+            Locality::Any => zenoh::sample::Locality::Any,
+        }
+    }
+}
+
 pub trait Builder: Sized {
     fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self>
     where
@@ -377,6 +409,87 @@ impl Builder for zenoh::query::QueryableBuilder<'_, '_, zenoh::handlers::Default
                 k if k == crate::atoms::complete() => {
                     let complete = v.decode()?;
                     Ok(builder.complete(complete))
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
+impl Builder for zenoh::query::QuerierBuilder<'_, '_> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::accept_replies() => {
+                    let accept_replies = v.decode::<ReplyKeyExpr>()?;
+                    Ok(builder.accept_replies(accept_replies.into()))
+                }
+                k if k == crate::atoms::allowed_destination() => {
+                    let allowed_destination = v.decode::<Locality>()?;
+                    Ok(builder.allowed_destination(allowed_destination.into()))
+                }
+                k if k == crate::atoms::congestion_control() => {
+                    let congestion_control = v.decode::<CongestionControl>()?;
+                    Ok(builder.congestion_control(congestion_control.into()))
+                }
+                k if k == crate::atoms::consolidation() => {
+                    let consolidation = v.decode::<QueryConsolidation>()?;
+                    Ok(builder
+                        .consolidation::<zenoh::query::ConsolidationMode>(consolidation.into()))
+                }
+                k if k == crate::atoms::express() => {
+                    let express = v.decode()?;
+                    Ok(builder.express(express))
+                }
+                k if k == crate::atoms::priority() => {
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
+                }
+                k if k == crate::atoms::query_timeout() => {
+                    let query_timeout = v.decode::<u64>()?;
+                    Ok(builder.timeout(Duration::from_millis(query_timeout)))
+                }
+                k if k == crate::atoms::target() => {
+                    let target = v.decode::<QueryTarget>()?;
+                    Ok(builder.target(target.into()))
+                }
+                _ => Ok(builder),
+            }
+        })
+    }
+}
+
+impl Builder for zenoh::query::QuerierGetBuilder<'_, '_, zenoh::handlers::DefaultHandler> {
+    fn apply_opts(self, opts: rustler::Term) -> rustler::NifResult<Self> {
+        let mut opts_iter: rustler::ListIterator = opts.decode()?;
+
+        opts_iter.try_fold(self, |builder, opt| {
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::attachment() => {
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.attachment(binary.as_slice().to_vec()))
+                    } else {
+                        Ok(builder)
+                    }
+                }
+                k if k == crate::atoms::encoding() => {
+                    let encoding = v.decode::<String>()?;
+                    Ok(builder.encoding(encoding))
+                }
+                k if k == crate::atoms::parameters() => {
+                    let parameters = v.decode::<String>()?;
+                    Ok(builder.parameters(parameters))
+                }
+                k if k == crate::atoms::payload() => {
+                    if let Some(binary) = v.decode::<Option<rustler::Binary>>()? {
+                        Ok(builder.payload(binary.as_slice().to_vec()))
+                    } else {
+                        Ok(builder)
+                    }
                 }
                 _ => Ok(builder),
             }

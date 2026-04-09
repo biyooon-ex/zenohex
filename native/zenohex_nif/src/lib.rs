@@ -16,6 +16,7 @@ mod helper;
 mod keyexpr;
 mod liveliness;
 mod publisher;
+mod querier;
 mod query;
 mod queryable;
 mod sample;
@@ -25,13 +26,16 @@ mod subscriber;
 
 mod atoms {
     rustler::atoms! {
+        accept_replies,
         attachment,
+        allowed_destination,
         complete,
         congestion_control,
         consolidation,
         encoding,
         express,
         is_final = "final?",
+        parameters,
         payload,
         priority,
         query_timeout,

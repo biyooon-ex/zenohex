@@ -54,4 +54,9 @@ defmodule Zenohex.SessionTest do
     assert {:ok, _publisher_id} =
              Zenohex.Session.declare_publisher(context.sessoin_id, "key/expr")
   end
+
+  test "declare_querier/2", context do
+    assert {:ok, _querier_id} =
+             Zenohex.Session.declare_querier(context.sessoin_id, "key/expr")
+  end
 end

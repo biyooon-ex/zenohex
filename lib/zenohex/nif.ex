@@ -68,6 +68,10 @@ defmodule Zenohex.Nif do
           {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_publisher(_session_id, _key_expr, _opts), do: err()
 
+  @spec session_declare_querier(session_id(), String.t(), keyword()) ::
+          {:ok, entity_id()} | {:error, reason :: term()}
+  def session_declare_querier(_session_id, _key_expr, _opts), do: err()
+
   @spec session_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
           {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_subscriber(_session_id, _key_expr, _pid, _opts), do: err()
@@ -86,6 +90,17 @@ defmodule Zenohex.Nif do
 
   @spec publisher_delete(entity_id(), keyword()) :: :ok | {:error, reason :: term()}
   def publisher_delete(_publisher_id, _opts), do: err()
+
+  # Querier
+
+  @spec querier_get(entity_id(), non_neg_integer(), keyword()) ::
+          {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
+          | {:error, :timeout}
+          | {:error, reason :: term()}
+  def querier_get(_querier_id, _timeout, _opts), do: err()
+
+  @spec querier_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
+  def querier_undeclare(_querier_id), do: err()
 
   # Subscriber
 
