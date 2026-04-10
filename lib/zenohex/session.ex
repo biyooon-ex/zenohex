@@ -74,7 +74,9 @@ defmodule Zenohex.Session do
         ]
 
   @type get_opts :: [
+          accept_replies: reply_key_expr(),
           attachment: binary() | nil,
+          allowed_destination: locality(),
           congestion_control: congestion_control(),
           consolidation: query_consolidation(),
           encoding: String.t(),
@@ -97,15 +99,19 @@ defmodule Zenohex.Session do
         ]
 
   @type publisher_opts :: [
+          allowed_destination: locality(),
           congestion_control: congestion_control(),
           encoding: String.t(),
           express: boolean(),
           priority: priority()
         ]
 
-  @type subscriber_opts :: []
+  @type subscriber_opts :: [
+          allowed_origin: locality()
+        ]
 
   @type queryable_opts :: [
+          allowed_origin: locality(),
           complete: boolean()
         ]
 
