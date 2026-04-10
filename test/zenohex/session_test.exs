@@ -23,7 +23,7 @@ defmodule Zenohex.SessionTest do
              |> Zenohex.Session.open()
   end
 
-  test "close/0", context do
+  test "close/1", context do
     assert Zenohex.Session.close(context.session_id) == :ok
     assert Zenohex.Session.close(context.session_id) == {:error, "session not found"}
   end
