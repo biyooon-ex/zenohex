@@ -123,6 +123,19 @@ defmodule ZenohexTestModeCommon do
         #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
         :ok = Zenohex.Queryable.undeclare(queryable_id)
       end
+
+      test "scout/3 convenience API", %{config: config} do
+        # NOTE: If there are multiple interfaces, each interface replies hello.
+        what =
+          case unquote(mode) do
+            "peer" -> :peer
+            "client" -> :router
+          end
+
+        assert {:ok, hellos} = Zenohex.scout(what, config, 100)
+
+        assert %Zenohex.Scouting.Hello{} = List.first(hellos)
+      end
     end
   end
 end
@@ -145,6 +158,13 @@ defmodule ZenohexTest do
   end
 
   describe "client mode with zenohd" do
+    # NOTE: These tests require `zenohd` to be running in `router` mode.
+    #       To start it:
+    #         git clone https://github.com/eclipse-zenoh/zenoh.git
+    #         cd zenoh
+    #         git checkout `the same Zenoh version used by zenohex`
+    #         # Update `DEFAULT_CONFIG.json5` to set `mode` to `router`.
+    #         cargo run -- --config DEFAULT_CONFIG.json5
     @describetag :skip
     ZenohexTestModeCommon.tests("client")
   end
