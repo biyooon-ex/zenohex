@@ -102,7 +102,7 @@ defmodule Zenohex.MixProject do
       ignore_modules: [
         Zenohex.Nif,
         ~r/Zenohex.Nif.Logger.*/,
-        Zenohex.Examples.Plugins.StorageBackendFs
+        ~r/Zenohex.Examples.*/
       ]
     ]
   end
