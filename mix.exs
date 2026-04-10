@@ -87,6 +87,7 @@ defmodule Zenohex.MixProject do
         Examples: [
           Zenohex.Examples.Publisher,
           Zenohex.Examples.Subscriber,
+          Zenohex.Examples.Querier,
           Zenohex.Examples.Queryable,
           Zenohex.Examples.LivelinessSubscriber,
           Zenohex.Examples.Scout,
