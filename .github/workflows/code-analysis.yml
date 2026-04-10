@@ -53,7 +53,7 @@ jobs:
           cargo fmt --all -- --check
 
       - name: mix credo
-        run: mix credo --ignore fixme
+        run: mix credo
 
       - name: Cache PLTs
         id: plts-cache
