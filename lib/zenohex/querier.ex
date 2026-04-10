@@ -19,9 +19,9 @@ defmodule Zenohex.Querier do
   @doc """
   Executes a query using the specified querier.
 
-  The positional `timeout` controls how long the BEAM side waits while collecting
-  replies. Declaration-time `:query_timeout` configured on the querier controls the
-  network-side Zenoh query timeout.
+  The positional `timeout` controls how long this function waits while collecting
+  replies. Declaration-time `:query_timeout` configured on the querier sets the
+  Zenoh query timeout.
   """
   @spec get(id(), non_neg_integer(), get_opts()) ::
           {:ok, [Zenohex.Sample.t() | Zenohex.Query.ReplyError.t()]}
