@@ -48,14 +48,18 @@ fn liveliness_get<'a>(
     let session_id = &session_id_resource;
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
+    // WHY: Keep the read lock only around handler creation.
+    //      If session_locked lives through the reply loop, write-lock operations such as
+    //      undeclare or session close can be blocked until timeout.
+    let channel_handler = {
+        let session_locked = session.read().unwrap();
+        let liveliness_get_builder = session_locked.liveliness().get(key_expr);
 
-    let liveliness_get_builder = session_locked.liveliness().get(key_expr);
-
-    let channel_handler = liveliness_get_builder
-        .apply_opts(opts)?
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+        liveliness_get_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?
+    };
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();

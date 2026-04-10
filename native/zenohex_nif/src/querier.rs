@@ -18,17 +18,23 @@ fn querier_get<'a>(
 
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
-    let entity = session_locked.get_entity(entity_global_id)?;
+    // WHY: Keep the read lock only around handler creation.
+    //      If session_locked lives through the reply loop, write-lock operations such as
+    //      undeclare or session close can be blocked until timeout.
+    let channel_handler =
+        {
+            let session_locked = session.read().unwrap();
+            let entity = session_locked.get_entity(entity_global_id)?;
 
-    let channel_handler = match entity {
-        crate::session::Entity::Querier(querier, _) => querier
-            .get()
-            .apply_opts(opts)?
-            .wait()
-            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
-        _ => unreachable!("unexpected entity"),
-    };
+            match entity {
+                crate::session::Entity::Querier(querier, _) => querier
+                    .get()
+                    .apply_opts(opts)?
+                    .wait()
+                    .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
+                _ => unreachable!("unexpected entity"),
+            }
+        };
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();

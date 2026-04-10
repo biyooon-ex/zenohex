@@ -333,13 +333,18 @@ fn session_get<'a>(
 ) -> rustler::NifResult<(rustler::Atom, Vec<rustler::Term<'a>>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
-    let session_get_builder = session_locked.get(selector);
+    // WHY: Keep the read lock only around handler creation.
+    //      If session_locked lives through the reply loop, write-lock operations such as
+    //      undeclare or session close can be blocked until timeout.
+    let channel_handler = {
+        let session_locked = session.read().unwrap();
+        let session_get_builder = session_locked.get(selector);
 
-    let channel_handler = session_get_builder
-        .apply_opts(opts)?
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+        session_get_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?
+    };
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();
