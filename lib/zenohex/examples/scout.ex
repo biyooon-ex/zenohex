@@ -31,6 +31,7 @@ defmodule Zenohex.Examples.Scout do
   @spec start_link([
           {:what, Zenohex.Scouting.what()}
           | {:config, Zenohex.Config.t()}
+          | {:name, GenServer.name()}
           | {:callback, (Zenohex.Scouting.Hello.t() -> term())}
         ]) :: GenServer.on_start()
   def start_link(args) do
@@ -41,6 +42,7 @@ defmodule Zenohex.Examples.Scout do
   @doc """
   Stops #{__MODULE__}
   """
+  @spec stop(GenServer.server()) :: :ok
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)
   end

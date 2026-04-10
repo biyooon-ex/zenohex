@@ -32,6 +32,7 @@ defmodule Zenohex.Examples.Queryable do
   @spec start_link([
           {:session_id, Zenohex.Session.id()}
           | {:key_expr, String.t()}
+          | {:name, GenServer.name()}
           | {:callback, (Zenohex.Query.t() -> term())}
         ]) :: GenServer.on_start()
   def start_link(args) do
@@ -42,7 +43,7 @@ defmodule Zenohex.Examples.Queryable do
   @doc """
   Stops #{__MODULE__}
   """
-  @spec stop(module()) :: :ok
+  @spec stop(GenServer.server()) :: :ok
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)
   end

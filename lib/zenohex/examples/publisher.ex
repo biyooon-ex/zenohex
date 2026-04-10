@@ -19,7 +19,7 @@ defmodule Zenohex.Examples.Publisher do
   @doc """
   Sends a `Zenohex.Sample` with `kind: :put` and the given payload.
   """
-  @spec put(module(), binary()) :: :ok | {:error, reason :: term()}
+  @spec put(GenServer.server(), binary()) :: :ok | {:error, reason :: term()}
   def put(name \\ __MODULE__, payload) do
     GenServer.call(name, {:put, payload})
   end
@@ -27,7 +27,7 @@ defmodule Zenohex.Examples.Publisher do
   @doc """
   Sends a `Zenohex.Sample` with `kind: :delete`.
   """
-  @spec delete(module()) :: :ok | {:error, reason :: term()}
+  @spec delete(GenServer.server()) :: :ok | {:error, reason :: term()}
   def delete(name \\ __MODULE__) do
     GenServer.call(name, :delete)
   end
@@ -44,6 +44,7 @@ defmodule Zenohex.Examples.Publisher do
   @spec start_link([
           {:session_id, Zenohex.Session.id()}
           | {:key_expr, String.t()}
+          | {:name, GenServer.name()}
         ]) :: GenServer.on_start()
   def start_link(args) do
     name = Keyword.get(args, :name, __MODULE__)
@@ -53,7 +54,7 @@ defmodule Zenohex.Examples.Publisher do
   @doc """
   Stops #{__MODULE__}
   """
-  @spec stop(module()) :: :ok
+  @spec stop(GenServer.server()) :: :ok
 
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)

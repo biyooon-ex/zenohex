@@ -31,6 +31,7 @@ defmodule Zenohex.Examples.LivelinessSubscriber do
   @spec start_link([
           {:session_id, Zenohex.Session.id()}
           | {:key_expr, String.t()}
+          | {:name, GenServer.name()}
           | {:callback, (Zenohex.Sample.t() -> term())}
         ]) :: GenServer.on_start()
   def start_link(args) do
@@ -41,7 +42,7 @@ defmodule Zenohex.Examples.LivelinessSubscriber do
   @doc """
   Stops #{__MODULE__}
   """
-  @spec stop(module()) :: :ok
+  @spec stop(GenServer.server()) :: :ok
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)
   end

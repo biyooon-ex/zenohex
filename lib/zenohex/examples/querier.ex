@@ -73,6 +73,7 @@ defmodule Zenohex.Examples.Querier do
   @spec start_link([
           {:session_id, Zenohex.Session.id()}
           | {:key_expr, String.t()}
+          | {:name, GenServer.name()}
           | {:querier_opts, Zenohex.Session.querier_opts()}
         ]) :: GenServer.on_start()
   def start_link(args) do
@@ -83,7 +84,7 @@ defmodule Zenohex.Examples.Querier do
   @doc """
   Stops #{__MODULE__}
   """
-  @spec stop(module()) :: :ok | {:error, reason :: term()}
+  @spec stop(GenServer.server()) :: :ok | {:error, reason :: term()}
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)
   end
