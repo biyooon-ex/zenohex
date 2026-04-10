@@ -29,6 +29,7 @@ mod atoms {
         accept_replies,
         attachment,
         allowed_destination,
+        allowed_origin,
         complete,
         congestion_control,
         consolidation,

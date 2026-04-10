@@ -172,7 +172,8 @@ impl Builder
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 k if k == crate::atoms::timestamp() => {
                     if let Some(timestamp) = v.decode::<Option<String>>()? {
@@ -219,9 +220,20 @@ impl Builder
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
-                k if k == crate::atoms::timestamp() => todo!(),
+                k if k == crate::atoms::timestamp() => {
+                    if let Some(timestamp) = v.decode::<Option<String>>()? {
+                        let timestamp =
+                            zenoh::time::Timestamp::parse_rfc3339(&timestamp).map_err(|error| {
+                                rustler::Error::Term(crate::zenoh_error!(error.cause))
+                            })?;
+                        Ok(builder.timestamp(timestamp))
+                    } else {
+                        Ok(builder)
+                    }
+                }
                 _ => Ok(builder),
             }
         })
@@ -367,6 +379,10 @@ impl Builder for zenoh::pubsub::PublisherBuilder<'_, '_> {
         opts_iter.try_fold(self, |builder, opt| {
             let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
             match k {
+                k if k == crate::atoms::allowed_destination() => {
+                    let allowed_destination = v.decode::<Locality>()?;
+                    Ok(builder.allowed_destination(allowed_destination.into()))
+                }
                 k if k == crate::atoms::congestion_control() => {
                     let congestion_control = v.decode::<CongestionControl>()?;
                     Ok(builder.congestion_control(congestion_control.into()))
@@ -380,7 +396,8 @@ impl Builder for zenoh::pubsub::PublisherBuilder<'_, '_> {
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 _ => Ok(builder),
             }
@@ -393,8 +410,14 @@ impl Builder for zenoh::pubsub::SubscriberBuilder<'_, '_, zenoh::handlers::Defau
         let mut opts_iter: rustler::ListIterator = opts.decode()?;
 
         opts_iter.try_fold(self, |builder, opt| {
-            let (_k, _v): (rustler::Atom, rustler::Term) = opt.decode()?;
-            Ok(builder)
+            let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
+            match k {
+                k if k == crate::atoms::allowed_origin() => {
+                    let allowed_origin = v.decode::<Locality>()?;
+                    Ok(builder.allowed_origin(allowed_origin.into()))
+                }
+                _ => Ok(builder),
+            }
         })
     }
 }
@@ -406,6 +429,10 @@ impl Builder for zenoh::query::QueryableBuilder<'_, '_, zenoh::handlers::Default
         opts_iter.try_fold(self, |builder, opt| {
             let (k, v): (rustler::Atom, rustler::Term) = opt.decode()?;
             match k {
+                k if k == crate::atoms::allowed_origin() => {
+                    let allowed_origin = v.decode::<Locality>()?;
+                    Ok(builder.allowed_origin(allowed_origin.into()))
+                }
                 k if k == crate::atoms::complete() => {
                     let complete = v.decode()?;
                     Ok(builder.complete(complete))
