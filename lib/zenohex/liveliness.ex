@@ -12,6 +12,10 @@ defmodule Zenohex.Liveliness do
           query_timeout: non_neg_integer()
         ]
 
+  @type declare_subscriber_opts :: [
+          history: boolean()
+        ]
+
   @doc """
   Query liveliness tokens with matching key expressions.
 
@@ -38,15 +42,16 @@ defmodule Zenohex.Liveliness do
     - `session_id` — The session to declare on
     - `key_expr` — Key expression to associate with
     - `pid` - Process to receive liveliness updates (defaults to `self()`)
+    - `opts` - Options for configuring the liveliness subscriber.
 
   ## Examples
 
       iex> Zenohex.Liveliness.declare_subscriber(session_id, "key/expr")
       {:ok, #Reference<...>}
   """
-  @spec declare_subscriber(Zenohex.Session.id(), String.t(), pid()) ::
+  @spec declare_subscriber(Zenohex.Session.id(), String.t(), pid(), declare_subscriber_opts()) ::
           {:ok, subscriber_id :: Zenohex.Subscriber.id()} | {:error, reason :: term()}
-  defdelegate declare_subscriber(session_id, key_expr, pid \\ self()),
+  defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
     to: Zenohex.Nif,
     as: :liveliness_declare_subscriber
 

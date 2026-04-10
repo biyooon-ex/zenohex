@@ -28,6 +28,7 @@ mod atoms {
     rustler::atoms! {
         accept_replies,
         attachment,
+        history,
         allowed_destination,
         allowed_origin,
         complete,
