@@ -172,7 +172,8 @@ impl Builder
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 k if k == crate::atoms::timestamp() => {
                     if let Some(timestamp) = v.decode::<Option<String>>()? {
@@ -219,7 +220,8 @@ impl Builder
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 k if k == crate::atoms::timestamp() => todo!(),
                 _ => Ok(builder),
@@ -384,7 +386,8 @@ impl Builder for zenoh::pubsub::PublisherBuilder<'_, '_> {
                     Ok(builder.express(express))
                 }
                 k if k == crate::atoms::priority() => {
-                    Ok(builder.priority(v.decode::<Priority>()?.into()))
+                    let priority = v.decode::<Priority>()?;
+                    Ok(builder.priority(priority.into()))
                 }
                 _ => Ok(builder),
             }
