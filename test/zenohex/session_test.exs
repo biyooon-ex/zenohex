@@ -36,6 +36,20 @@ defmodule Zenohex.SessionTest do
     assert Zenohex.Session.delete(context.session_id, "key/expr") == :ok
   end
 
+  test "delete/3 accepts timestamp", context do
+    {:ok, subscriber_id} =
+      Zenohex.Session.declare_subscriber(context.session_id, "key/expr", self())
+
+    on_exit(fn -> Zenohex.Subscriber.undeclare(subscriber_id) end)
+
+    {:ok, timestamp} = Zenohex.Session.new_timestamp(context.session_id)
+
+    assert :ok =
+             Zenohex.Session.delete(context.session_id, "key/expr", timestamp: timestamp)
+
+    assert_receive %Zenohex.Sample{kind: :delete, key_expr: "key/expr", timestamp: ^timestamp}
+  end
+
   test "get/3", context do
     assert {:error, _} = Zenohex.Session.get(context.session_id, "key/expr", 100)
   end

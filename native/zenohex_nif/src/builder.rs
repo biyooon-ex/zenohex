@@ -223,7 +223,17 @@ impl Builder
                     let priority = v.decode::<Priority>()?;
                     Ok(builder.priority(priority.into()))
                 }
-                k if k == crate::atoms::timestamp() => todo!(),
+                k if k == crate::atoms::timestamp() => {
+                    if let Some(timestamp) = v.decode::<Option<String>>()? {
+                        let timestamp =
+                            zenoh::time::Timestamp::parse_rfc3339(&timestamp).map_err(|error| {
+                                rustler::Error::Term(crate::zenoh_error!(error.cause))
+                            })?;
+                        Ok(builder.timestamp(timestamp))
+                    } else {
+                        Ok(builder)
+                    }
+                }
                 _ => Ok(builder),
             }
         })
