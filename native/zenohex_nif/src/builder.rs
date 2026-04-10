@@ -330,6 +330,14 @@ impl Builder for zenoh::session::SessionGetBuilder<'_, '_, zenoh::handlers::Defa
                         Ok(builder)
                     }
                 }
+                k if k == crate::atoms::accept_replies() => {
+                    let accept_replies = v.decode::<ReplyKeyExpr>()?;
+                    Ok(builder.accept_replies(accept_replies.into()))
+                }
+                k if k == crate::atoms::allowed_destination() => {
+                    let allowed_destination = v.decode::<Locality>()?;
+                    Ok(builder.allowed_destination(allowed_destination.into()))
+                }
                 k if k == crate::atoms::congestion_control() => {
                     let congestion_control = v.decode::<CongestionControl>()?;
                     Ok(builder.congestion_control(congestion_control.into()))
