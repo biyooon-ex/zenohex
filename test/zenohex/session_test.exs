@@ -2,56 +2,75 @@ defmodule Zenohex.SessionTest do
   use ExUnit.Case
 
   setup do
-    {:ok, sessoin_id} =
+    {:ok, session_id} =
       Zenohex.Config.default()
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(sessoin_id) end)
+    on_exit(fn -> Zenohex.Session.close(session_id) end)
 
-    %{sessoin_id: sessoin_id}
+    %{session_id: session_id}
   end
 
   test "open/0" do
-    assert {:ok, _sessoin_id} = Zenohex.Session.open()
+    assert {:ok, _session_id} = Zenohex.Session.open()
   end
 
   test "open/1" do
-    assert {:ok, _sessoin_id} =
+    assert {:ok, _session_id} =
              Zenohex.Config.default()
              |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
              |> Zenohex.Session.open()
   end
 
-  test "close/0", context do
-    assert Zenohex.Session.close(context.sessoin_id) == :ok
-    assert Zenohex.Session.close(context.sessoin_id) == {:error, "session not found"}
+  test "close/1", context do
+    assert Zenohex.Session.close(context.session_id) == :ok
+    assert Zenohex.Session.close(context.session_id) == {:error, "session not found"}
   end
 
   test "put/3", context do
-    assert Zenohex.Session.put(context.sessoin_id, "key/expr", "payload") == :ok
+    assert Zenohex.Session.put(context.session_id, "key/expr", "payload") == :ok
   end
 
   test "delete/2", context do
-    assert Zenohex.Session.delete(context.sessoin_id, "key/expr") == :ok
+    assert Zenohex.Session.delete(context.session_id, "key/expr") == :ok
+  end
+
+  test "delete/3 accepts timestamp", context do
+    {:ok, subscriber_id} =
+      Zenohex.Session.declare_subscriber(context.session_id, "key/expr", self())
+
+    on_exit(fn -> Zenohex.Subscriber.undeclare(subscriber_id) end)
+
+    {:ok, timestamp} = Zenohex.Session.new_timestamp(context.session_id)
+
+    assert :ok =
+             Zenohex.Session.delete(context.session_id, "key/expr", timestamp: timestamp)
+
+    assert_receive %Zenohex.Sample{kind: :delete, key_expr: "key/expr", timestamp: ^timestamp}
   end
 
   test "get/3", context do
-    assert {:error, _} = Zenohex.Session.get(context.sessoin_id, "key/expr", 100)
+    assert {:error, _} = Zenohex.Session.get(context.session_id, "key/expr", 100)
   end
 
   test "new_timestamp/1", context do
-    assert {:ok, zenoh_timestamp} = Zenohex.Session.new_timestamp(context.sessoin_id)
+    assert {:ok, zenoh_timestamp} = Zenohex.Session.new_timestamp(context.session_id)
     assert [timestamp, _zenoh_id_string] = String.split(zenoh_timestamp, "/")
     assert {:ok, %DateTime{}, 0} = DateTime.from_iso8601(timestamp)
   end
 
   test "info/1", context do
-    assert {:ok, %Zenohex.Session.Info{}} = Zenohex.Session.info(context.sessoin_id)
+    assert {:ok, %Zenohex.Session.Info{}} = Zenohex.Session.info(context.session_id)
   end
 
   test "declare_publisher/2", context do
     assert {:ok, _publisher_id} =
-             Zenohex.Session.declare_publisher(context.sessoin_id, "key/expr")
+             Zenohex.Session.declare_publisher(context.session_id, "key/expr")
+  end
+
+  test "declare_querier/2", context do
+    assert {:ok, _querier_id} =
+             Zenohex.Session.declare_querier(context.session_id, "key/expr")
   end
 end

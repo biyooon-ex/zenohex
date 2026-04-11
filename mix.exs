@@ -87,6 +87,7 @@ defmodule Zenohex.MixProject do
         Examples: [
           Zenohex.Examples.Publisher,
           Zenohex.Examples.Subscriber,
+          Zenohex.Examples.Querier,
           Zenohex.Examples.Queryable,
           Zenohex.Examples.LivelinessSubscriber,
           Zenohex.Examples.Scout,
@@ -101,7 +102,7 @@ defmodule Zenohex.MixProject do
       ignore_modules: [
         Zenohex.Nif,
         ~r/Zenohex.Nif.Logger.*/,
-        Zenohex.Examples.Plugins.StorageBackendFs
+        ~r/Zenohex.Examples.*/
       ]
     ]
   end

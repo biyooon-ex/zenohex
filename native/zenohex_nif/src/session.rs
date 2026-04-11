@@ -17,6 +17,10 @@ pub enum Entity<'a> {
         zenoh::pubsub::Publisher<'a>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
+    Querier(
+        zenoh::query::Querier<'a>,
+        #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
+    ),
     Subscriber(
         zenoh::pubsub::Subscriber<()>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
@@ -31,6 +35,7 @@ impl fmt::Display for Entity<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Entity::Publisher(_, _) => write!(f, "Publisher"),
+            Entity::Querier(_, _) => write!(f, "Querier"),
             Entity::Subscriber(_, _) => write!(f, "Subscriber"),
             Entity::Queryable(_, _) => write!(f, "Queryable"),
         }
@@ -328,13 +333,18 @@ fn session_get<'a>(
 ) -> rustler::NifResult<(rustler::Atom, Vec<rustler::Term<'a>>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
-    let session_get_builder = session_locked.get(selector);
+    // WHY: Keep the read lock only around handler creation.
+    //      If session_locked lives through the reply loop, write-lock operations such as
+    //      undeclare or session close can be blocked until timeout.
+    let channel_handler = {
+        let session_locked = session.read().unwrap();
+        let session_get_builder = session_locked.get(selector);
 
-    let channel_handler = session_get_builder
-        .apply_opts(opts)?
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+        session_get_builder
+            .apply_opts(opts)?
+            .wait()
+            .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?
+    };
 
     let deadline = Instant::now() + Duration::from_millis(timeout);
     let mut replies = Vec::new();
@@ -425,6 +435,32 @@ fn session_declare_publisher(
     Ok((
         rustler::types::atom::ok(),
         rustler::ResourceArc::new(EntityGlobalIdResource::new(publisher_id)),
+    ))
+}
+
+#[rustler::nif]
+fn session_declare_querier(
+    session_id_resource: rustler::ResourceArc<SessionIdResource>,
+    key_expr: String,
+    opts: rustler::Term,
+) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
+    let session_id = &session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let mut session_locked = session.write().unwrap();
+
+    let querier_builder = session_locked.declare_querier(key_expr);
+
+    let querier = querier_builder
+        .apply_opts(opts)?
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    let querier_id = querier.id();
+    session_locked.insert_entity(querier_id, Entity::Querier(querier, session_id_resource))?;
+
+    Ok((
+        rustler::types::atom::ok(),
+        rustler::ResourceArc::new(EntityGlobalIdResource::new(querier_id)),
     ))
 }
 

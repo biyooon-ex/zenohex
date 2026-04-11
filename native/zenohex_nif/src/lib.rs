@@ -15,7 +15,9 @@ mod config;
 mod helper;
 mod keyexpr;
 mod liveliness;
+mod matching;
 mod publisher;
+mod querier;
 mod query;
 mod queryable;
 mod sample;
@@ -25,18 +27,24 @@ mod subscriber;
 
 mod atoms {
     rustler::atoms! {
+        accept_replies,
         attachment,
+        history,
+        allowed_destination,
+        allowed_origin,
         complete,
         congestion_control,
         consolidation,
         encoding,
         express,
         is_final = "final?",
+        parameters,
         payload,
         priority,
         query_timeout,
         target,
         timeout,
+        unsupported_entity,
         timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }

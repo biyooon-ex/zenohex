@@ -26,7 +26,9 @@ fn publisher_put(
 
             Ok(rustler::types::atom::ok())
         }
-        _ => unreachable!("unexpected entity"),
+        _ => Err(rustler::Error::Term(Box::new(
+            crate::atoms::unsupported_entity(),
+        ))),
     }
 }
 
@@ -53,7 +55,9 @@ fn publisher_delete(
 
             Ok(rustler::types::atom::ok())
         }
-        _ => unreachable!("unexpected entity"),
+        _ => Err(rustler::Error::Term(Box::new(
+            crate::atoms::unsupported_entity(),
+        ))),
     }
 }
 
@@ -67,17 +71,27 @@ fn publisher_undeclare(
     let session =
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
     let mut session_locked = session.write().unwrap();
-    let entity = session_locked.remove_entity(entity_global_id)?;
 
-    match entity {
-        crate::session::Entity::Publisher(publisher, _) => {
-            publisher
-                .undeclare()
-                .wait()
-                .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    let is_publisher = matches!(
+        session_locked.get_entity(entity_global_id)?,
+        crate::session::Entity::Publisher(_, _)
+    );
 
-            Ok(rustler::types::atom::ok())
-        }
-        _ => unreachable!("unexpected entity"),
+    if !is_publisher {
+        return Err(rustler::Error::Term(Box::new(
+            crate::atoms::unsupported_entity(),
+        )));
     }
+
+    let entity = session_locked.remove_entity(entity_global_id)?;
+    let crate::session::Entity::Publisher(publisher, _) = entity else {
+        unreachable!("entity kind changed after publisher check")
+    };
+
+    publisher
+        .undeclare()
+        .wait()
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    Ok(rustler::types::atom::ok())
 }
