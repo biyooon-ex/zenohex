@@ -42,7 +42,7 @@ defmodule Zenohex.Examples.Scout do
   @doc """
   Stops #{__MODULE__}
   """
-  @spec stop(GenServer.server()) :: :ok
+  @spec stop(GenServer.server()) :: :ok | {:error, reason :: term()}
   def stop(name \\ __MODULE__) do
     GenServer.call(name, :stop)
   end
