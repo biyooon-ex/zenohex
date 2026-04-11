@@ -27,7 +27,7 @@ defmodule Zenohex.Matching do
   @doc """
   Declares a matching listener for a publisher or querier.
 
-  Status updates are delivered to `pid` as `%Zenohex.Matching.Status{}` messages.
+  Status updates are delivered to `pid` as `t:Zenohex.Matching.Status.t/0` messages.
 
   > ### Important {: .info}
   >
