@@ -3,6 +3,7 @@ defmodule Zenohex.Nif do
 
   @type session_id :: reference()
   @type entity_id :: reference()
+  @type matching_listener :: reference()
   @type query :: reference()
   @type scout :: reference()
   @type liveliness_token :: reference()
@@ -101,6 +102,19 @@ defmodule Zenohex.Nif do
 
   @spec querier_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def querier_undeclare(_querier_id), do: err()
+
+  # Matching
+
+  @spec matching_status(entity_id()) ::
+          {:ok, boolean()} | {:error, reason :: term()}
+  def matching_status(_entity_id), do: err()
+
+  @spec matching_declare_listener(entity_id(), pid()) ::
+          {:ok, matching_listener()} | {:error, reason :: term()}
+  def matching_declare_listener(_entity_id, _pid), do: err()
+
+  @spec matching_undeclare_listener(matching_listener()) :: :ok | {:error, reason :: term()}
+  def matching_undeclare_listener(_matching_listener), do: err()
 
   # Subscriber
 

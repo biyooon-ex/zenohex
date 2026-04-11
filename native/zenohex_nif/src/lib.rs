@@ -15,6 +15,7 @@ mod config;
 mod helper;
 mod keyexpr;
 mod liveliness;
+mod matching;
 mod publisher;
 mod querier;
 mod query;
@@ -43,6 +44,7 @@ mod atoms {
         query_timeout,
         target,
         timeout,
+        unsupported_entity,
         timestamp,
         zenohex_nif = "Elixir.Zenohex.Nif",
     }
