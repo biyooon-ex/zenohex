@@ -114,6 +114,7 @@
       period_increase_factor: 2,
     },
   },
+
   /// Configure the session open behavior.
   open: {
     /// Configure the conditions to be met before session open returns.
@@ -126,6 +127,7 @@
       declares: true,
     },
   },
+
   /// Configure the scouting mechanisms and their behaviours
   scouting: {
     /// In client mode, the period in milliseconds dedicated to scouting for a router before failing.
@@ -146,7 +148,7 @@
       /// Accepts a single value (e.g. autoconnect: ["router", "peer"]) which applies whatever the configured "mode" is,
       /// or different values for router, peer or client mode (e.g. autoconnect: { router: [], peer: ["router", "peer"] }).
       /// Each value is a list of: "peer", "router" and/or "client".
-      autoconnect: { router: [], peer: ["router", "peer"], client: ["router"] },
+      autoconnect: { router: [], peer: ["router", "peer", "client"], client: ["router", "peer", "client"] },
       /// Strategy for autoconnection, mainly to avoid nodes connecting to each other redundantly.
       /// Possible options are:
       /// - "always": always attempt to autoconnect, may result in redundant connections.
@@ -161,7 +163,7 @@
       /// (e.g. autoconnect_strategy : { peer: { to_router:  "always", to_peer: "greater-zid" } }).
       autoconnect_strategy: { peer: { to_router: "always", to_peer: "always" } },
       /// Whether or not to listen for scout messages on UDP multicast and reply to them.
-      listen: true,
+      listen: { router: true, peer: true, client: true },
     },
     /// The gossip scouting configuration. Note that instances in "client" mode do not participate in gossip.
     gossip: {
@@ -182,7 +184,7 @@
       /// Accepts a single value (e.g. autoconnect: ["router", "peer"]) which applies whatever the configured "mode" is,
       /// or different values for router or peer mode (e.g. autoconnect: { router: [], peer: ["router", "peer"] }).
       /// Each value is a list of: "peer" and/or "router".
-      autoconnect: { router: [], peer: ["router", "peer"] },
+      autoconnect: { router: [], peer: ["router", "peer", "client"], client: ["router", "peer", "client"] },
       /// Strategy for autoconnection, mainly to avoid nodes connecting to each other redundantly.
       /// Possible options are:
       /// - "always": always attempt to autoconnect, may result in redundant connections.
@@ -217,40 +219,17 @@
   routing: {
     /// The routing strategy to use in routers and it's configuration.
     router: {
-      /// When set to true a router will forward data between two peers
-      /// directly connected to it if it detects that those peers are not
-      /// connected to each other.
-      /// The failover brokering only works if gossip discovery is enabled
-      /// and peers are configured with gossip target "router".
-      peers_failover_brokering: true,
       /// Linkstate mode configuration.
       linkstate: {
         /// Weights of the outgoing transports in linkstate mode.
         /// If none of the two endpoint nodes of a transport specifies its weight, a weight of 100 is applied.
         /// If only one of the two endpoint nodes of a transport specifies its weight, the specified weight is applied.
         /// If both endpoint nodes of a transport specify its weight, the greater weight is applied.
- //        transport_weights: [
- //          { dst_zid: "1", weight: "10" },
- //          { dst_zid: "2", weight: "200" },
- //        ]
-      }
-    },
-    /// The routing strategy to use in peers and it's configuration.
-    peer: {
-      /// The routing strategy to use in peers. ("peer_to_peer" or "linkstate").
-      /// This option needs to be set to the same value in all peers and routers of the subsystem.
-      mode: "peer_to_peer",
-        /// Linkstate mode configuration (only taken into account if mode == "linkstate").
-        linkstate: {
-        /// Weights of the outgoing transports in linkstate mode.
-        /// If none of the two endpoint nodes of a transport specifies its weight, a weight of 100 is applied.
-        /// If only one of the two endpoint nodes of a transport specifies its weight, the specified weight is applied.
-        /// If both endpoint nodes of a transport specify its weight, the greater weight is applied.
- //        transport_weights: [
- //          { dst_zid: "1", weight: "10" },
- //          { dst_zid: "2", weight: "200" },
- //        ]
-      }
+        // transport_weights: [
+        //   { dst_zid: "1", weight: "10" },
+        //   { dst_zid: "2", weight: "200" },
+        // ]
+      },
     },
     /// The interests-based routing configuration.
     /// This configuration applies regardless of the mode (router, peer or client).
@@ -262,76 +241,108 @@
     },
   },
 
-  //  /// Overwrite QoS options for Zenoh messages by key expression (ignores Zenoh API QoS config for overwritten values)
-  //  qos: {
-  //    /// Overwrite QoS options for PUT and DELETE messages
-  //    publication: [
-  //      {
-  //        /// PUT and DELETE messages on key expressions that are included by these key expressions
-  //        /// will have their QoS options overwritten by the given config.
-  //        key_exprs: ["demo/**", "example/key"],
-  //        /// Configurations that will be applied on the publisher.
-  //        /// Options that are supplied here will overwrite the configuration given in Zenoh API
-  //        config: {
-  //          congestion_control: "block",
-  //          priority: "data_high",
-  //          express: true,
-  //          reliability: "best_effort",
-  //          allowed_destination: "remote",
-  //        },
-  //      },
-  //    ],
-  //    /// Overwrite QoS options for messages sent and received from/to the network
-  //    /// This allows more fine grained rules (per network card, etc...) but is
-  //    /// less performant than the publication option above.
-  //    network: [
-  //      {
-  //        /// Optional Id, has to be unique.
-  //        id: "lo0_en0_qos_overwrite",
-  //        // Optional list of ZIDs on which qos will be overwritten when communicating with.
-  //        // zids: ["38a4829bce9166ee"],
-  //        // Optional list of interfaces, if not specified, will be applied to all interfaces.
-  //        interfaces: [
-  //          "lo0",
-  //          "en0",
-  //        ],
-  //        /// Optional list of link protocols. Transports with at least one of these links will have their qos overwritten.
-  //        /// If absent, the overwrite will be applied to all transports. An empty list is invalid.
-  //        link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
-  //        /// List of message types to apply to.
-  //        messages: [
-  //          "put", // put publications
-  //          "delete" // delete publications
-  //          "query", // get queries
-  //          "reply", // replies to queries
-  //        ],
-  //        /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
-  //        /// If absent, the rules will be applied to both flows.
-  //        flows: ["egress", "ingress"],
-  //        key_exprs: ["test/demo"],
-  //        overwrite: {
-  //          /// Optional new priority value, if not specified priority of the messages will stay unchanged.
-  //          priority: "real_time",
-  //          /// Optional new congestion control value, if not specified congestion control of the messages will stay unchanged.
-  //          congestion_control: "block",
-  //          /// Optional new express value, if not specified express flag of the messages will stay unchanged.
-  //          express: true
-  //        },
-  //      },
-  //    ],
-  //  },
+  /// North region name.
+  ///
+  /// A non-empty UTF-8 strings of at most 32 bytes. It is used during establishment to assign
+  /// remotes to a region through the `gateway.south[].filters[].region_names` filter.
+  region_name: null,
 
-  //  /// The declarations aggregation strategy.
-  //  aggregation: {
-  //      /// A list of key-expressions for which all included subscribers will be aggregated into.
-  //      subscribers: [
-  //        // key_expression
-  //      ],
-  //      /// A list of key-expressions for which all included publishers will be aggregated into.
-  //      publishers: [
-  //        // key_expression
-  //      ],
-  //  },
+  /// Gateway configuration.
+  ///
+  /// `gateway.south` is either a _preset_ denoted by a string (e.g. `"auto"`), or a _custom_ value.
+  ///
+  /// A custom `gateway.south` is a array of arrays of objects. Each element of `gateway.south`
+  /// defines a (south-bound) subregion. Remotes are assigned subregion id `<i>` if
+  /// `gateway.south[<i>].filters` matches said remote—the first matching filter is selected. Each
+  /// filter in `gateway.south[].filters` array may contain the following optional keys:
+  ///   - `modes`: a WhatAmI matcher.
+  ///   - `interfaces`: a non-empty array of network interface names.
+  ///   - `zids`: a non-empty array of Zenoh IDs.
+  ///   - `region_names`: a non-empty array of region names.
+  gateway: {
+    /// The `auto` preset mode puts peers and clients south of routers and client south of peers.
+    /// This is the only available preset.
+    south: "auto"
+  },
+
+  // /// Overwrite QoS options for Zenoh messages by key expression (ignores Zenoh API QoS config for overwritten values)
+  // qos: {
+  //   /// Overwrite QoS options for PUT and DELETE messages
+  //   publication: [
+  //     {
+  //       /// PUT and DELETE messages on key expressions that are included by these key expressions
+  //       /// will have their QoS options overwritten by the given config.
+  //       key_exprs: ["demo/**", "example/key"],
+  //       /// Configurations that will be applied on the publisher.
+  //       /// Options that are supplied here will overwrite the configuration given in Zenoh API
+  //       config: {
+  //         congestion_control: "block",
+  //         priority: "data_high",
+  //         express: true,
+  //         reliability: "best_effort",
+  //         allowed_destination: "remote",
+  //       },
+  //     },
+  //   ],
+  //   /// Overwrite QoS options for messages sent and received from/to the network
+  //   /// This allows more fine grained rules (per network card, etc...) but is
+  //   /// less performant than the publication option above.
+  //   network: [
+  //     {
+  //       /// Optional Id, has to be unique.
+  //       id: "lo0_en0_qos_overwrite",
+  //       /// Optional list of ZIDs on which qos will be overwritten when communicating with.
+  //       // zids: ["38a4829bce9166ee"],
+  //       /// Optional list of interfaces, if not specified, will be applied to all interfaces.
+  //       interfaces: [
+  //         "lo0",
+  //         "en0",
+  //       ],
+  //       /// Optional list of link protocols. Transports with at least one of these links will have their qos overwritten.
+  //       /// If absent, the overwrite will be applied to all transports. An empty list is invalid.
+  //       link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
+  //       /// List of message types to apply to (replies qos cannot be overwritten).
+  //       messages: [
+  //         "put", // put publications
+  //         "delete", // delete publications
+  //         "query", // get queries
+  //       ],
+  //       /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
+  //       /// If absent, the rules will be applied to both flows.
+  //       flows: ["egress", "ingress"],
+  //       /// QoS filter to apply to the messages matching this item.
+  //       qos: {
+  //         congestion_control: "drop",
+  //         priority: "data",
+  //         express: true,
+  //         reliability: "reliable",
+  //       },
+  //       /// payload_size range for the messages matching this item.
+  //       payload_size: "1000000..",
+  //       key_exprs: ["test/demo"],
+  //       overwrite: {
+  //         /// Optional new priority value, if not specified priority of the messages will stay unchanged.
+  //         priority: "real_time",
+  //         /// Optional new congestion control value, if not specified congestion control of the messages will stay unchanged.
+  //         congestion_control: "block",
+  //         /// Optional new express value, if not specified express flag of the messages will stay unchanged.
+  //         express: true,
+  //       },
+  //     },
+  //   ],
+  // },
+
+  // /// The declarations aggregation strategy.
+  // aggregation: {
+  //   /// A list of key-expressions for which all included subscribers will be aggregated into.
+  //   subscribers: [
+  //     // key_expression
+  //   ],
+  //   /// A list of key-expressions for which all included publishers will be aggregated into.
+  //   publishers: [
+  //     // key_expression
+  //   ],
+  // },
 
   // /// Namespace prefix.
   // /// If specified, all outgoing key expressions will be automatically prefixed with specified string,
@@ -339,42 +350,44 @@
   // /// The namespace prefix should satisfy all key expression constraints
   // /// and additionally it can not contain wild characters ('*').
   // /// Namespace is applied to the session.
-  // /// E. g. if session has a namespace of "1" then session.put("my/keyexpr", my_message), 
+  // /// E. g. if session has a namespace of "1" then session.put("my/keyexpr", my_message),
   // /// will put a message into 1/my/keyexpr. Same applies to all other operations within this session.
   // namespace: "my/namespace",
 
-  //  /// The downsampling declaration.
-  //  downsampling: [
-  //    {
-  //      /// Optional Id, has to be unique
-  //      "id": "wlan0egress",
-  //      /// Optional list of network interfaces messages will be processed on, the rest will be passed as is.
-  //      /// If absent, the rules will be applied to all interfaces. An empty list is invalid.
-  //      interfaces: [ "wlan0" ],
-  //      /// Optional list of link protocols. Transports with at least one of these links will have their messages filtered.
-  //      /// If absent, the rules will be applied to all transports. An empty list is invalid.
-  //      link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
-  //      /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
-  //      /// If absent, the rules will be applied to both flows.
-  //      flow: ["ingress", "egress"],
-  //      /// List of message type on which downsampling will be applied. Must not be empty.
-  //      messages: [
-  //        /// Publication (Put and Delete)
-  //        "push",
-  //        /// Get
-  //        "query",
-  //        /// Queryable Reply to a Query
-  //        "reply"
-  //      ],
-  //      /// A list of downsampling rules: key_expression and the maximum frequency in Hertz
-  //      rules: [
-  //        { key_expr: "demo/example/zenoh-rs-pub", freq: 0.1 },
-  //      ],
-  //    },
-  //  ],
+  // /// The downsampling declaration.
+  // downsampling: [
+  //   {
+  //     /// Optional Id, has to be unique
+  //     id: "wlan0egress",
+  //     /// Optional list of network interfaces messages will be processed on, the rest will be passed as is.
+  //     /// If absent, the rules will be applied to all interfaces. An empty list is invalid.
+  //     interfaces: [ "wlan0" ],
+  //     /// Optional list of link protocols. Transports with at least one of these links will have their messages filtered.
+  //     /// If absent, the rules will be applied to all transports. An empty list is invalid.
+  //     link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
+  //     /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
+  //     /// If absent, the rules will be applied to both flows.
+  //     flows: ["ingress", "egress"],
+  //     /// List of message type on which downsampling will be applied. Must not be empty.
+  //     messages: [
+  //       /// Delete
+  //       "delete",
+  //       /// Put
+  //       "put",
+  //       /// Get
+  //       "query",
+  //       /// Queryable Reply to a Query
+  //       "reply",
+  //     ],
+  //     /// A list of downsampling rules: key_expression and the maximum frequency in Hertz
+  //     rules: [
+  //       { key_expr: "demo/example/zenoh-rs-pub", freq: 0.1 },
+  //     ],
+  //   },
+  // ],
 
-  //  /// Configure access control (ACL) rules
-  //  access_control: {
+  // /// Configure access control (ACL) rules
+  // access_control: {
   //   /// [true/false] acl will be activated only if this is set to true
   //   "enabled": false,
   //   /// [deny/allow] default permission is deny (even if this is left empty or not specified)
@@ -454,57 +467,71 @@
   //     },
   //     {
   //       "id": "subject4",
-  //      /// link protocols can also be used to identify transports to filter messages on.
-  //      /// If absent, the rules will be applied to all transports. An empty list is invalid.
-  //      link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
+  //       /// link protocols can also be used to identify transports to filter messages on.
+  //       /// If absent, the rules will be applied to all transports. An empty list is invalid.
+  //       link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
+  //       /// ZIDs can also be used to identify transports to filter messages on.
+  //       /// NOTE: ZID is not backed by an authentication mechanism, it can only be trusted for ACL if it is
+  //       ///       dynamically added/removed by eventual dedicated Zenoh mechanisms when transports are opened/closed.
+  //       ///       If managed manually in ACL config, can be useful for prototyping but should not be used in production!
+  //       zids: ["38a4829bce9166ee"],
   //     },
   //   ],
   //   /// The policies list associates rules to subjects
   //   "policies":
   //   [
-  //      /// Each policy associates one or multiple rules to one or multiple subject combinations
-  //      {
-  //         /// Id is optional. If provided, it has to be unique within the policies list
-  //         "id": "policy1",
-  //         /// Rules and Subjects are identified with their unique IDs declared above
-  //         "rules": ["rule1"],
-  //         "subjects": ["subject1", "subject2"],
-  //      },
-  //      {
-  //         "rules": ["rule2"],
-  //         "subjects": ["subject3", "subject4"],
-  //      },
+  //     /// Each policy associates one or multiple rules to one or multiple subject combinations
+  //     {
+  //       /// Id is optional. If provided, it has to be unique within the policies list
+  //       "id": "policy1",
+  //       /// Rules and Subjects are identified with their unique IDs declared above
+  //       "rules": ["rule1"],
+  //       "subjects": ["subject1", "subject2"],
+  //     },
+  //     {
+  //       "rules": ["rule2"],
+  //       "subjects": ["subject3", "subject4"],
+  //     },
   //   ]
-  //},
+  // },
 
-  //  low_pass_filter: [
-  //    {
-  //      /// Optional Id, has to be unique
-  //      "id": "filter1",
-  //      /// Optional list of network interfaces messages will be processed on, the rest will not be filtered.
-  //      /// If absent, the filter will be applied to all interfaces.
-  //      interfaces: [ "wlan0" ],
-  //      /// Optional list of link protocols. Transports with at least one of these links will have their messages filtered.
-  //      /// If absent, the rule will be applied to all transports. An empty list is invalid.
-  //      link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
-  //      /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
-  //      /// If absent, the filter will be applied to both flows.
-  //      flow: ["ingress", "egress"],
-  //      /// List of message type on which the filter will be applied. Must not be empty.
-  //      messages: [
-  //        "put",
-  //        "delete",
-  //        "query",
-  //        "reply"
-  //      ],
-  //      /// List of key_expressions which matching messages will be filtered
-  //      key_exprs: [
-  //        "demo/**",
-  //      ],
-  //      /// Inclusive max size of serialized payload + serialized attachment
-  //      size_limit: 8192,
-  //    },
-  //  ],
+  // low_pass_filter: [
+  //   {
+  //     /// Optional Id, has to be unique
+  //     "id": "filter1",
+  //     /// Optional list of network interfaces messages will be processed on, the rest will not be filtered.
+  //     /// If absent, the filter will be applied to all interfaces.
+  //     interfaces: [ "wlan0" ],
+  //     /// Optional list of link protocols. Transports with at least one of these links will have their messages filtered.
+  //     /// If absent, the rule will be applied to all transports. An empty list is invalid.
+  //     link_protocols: [ "tcp", "udp", "tls", "quic", "ws", "serial", "unixsock-stream", "unixpipe", "vsock"],
+  //     /// Optional list of data flows messages will be processed on ("egress" and/or "ingress").
+  //     /// If absent, the filter will be applied to both flows.
+  //     flows: ["ingress", "egress"],
+  //     /// List of message type on which the filter will be applied. Must not be empty.
+  //     messages: [
+  //       "put",
+  //       "delete",
+  //       "query",
+  //       "reply"
+  //     ],
+  //     /// List of key_expressions which matching messages will be filtered
+  //     key_exprs: [
+  //       "demo/**",
+  //     ],
+  //     /// Inclusive max size of serialized payload + serialized attachment
+  //     size_limit: 8192,
+  //   },
+  // ],
+
+  /// Enable stats per key expression.
+  // stats: {
+  //   filters: [
+  //     {
+  //       key: "some/key/expression/**",
+  //     }
+  //   ],
+  // },
 
   /// Configure internal transport parameters
   transport: {
@@ -635,8 +662,8 @@
             time_limit: 1,
           },
           allocation: {
-            /// Mode for memory allocation of batches in the priority queues. 
-            /// - "init": batches are allocated at queue initialization time. 
+            /// Mode for memory allocation of batches in the priority queues.
+            /// - "init": batches are allocated at queue initialization time.
             /// - "lazy": batches are allocated when needed up to the maximum number of batches configured in the size configuration parameter.
             mode: "lazy",
           },
@@ -672,14 +699,14 @@
         connect_private_key: null,
         /// Path to the TLS connecting side certificate
         connect_certificate: null,
-        // Whether or not to verify the matching between hostname/dns and certificate when connecting,
-        // if set to false zenoh will disregard the common names of the certificates when verifying servers.
-        // This could be dangerous because your CA can have signed a server cert for foo.com, that's later being used to host a server at baz.com. If you wan't your
-        // ca to verify that the server at baz.com is actually baz.com, let this be true (default).
+        /// Whether or not to verify the matching between hostname/dns and certificate when connecting,
+        /// if set to false zenoh will disregard the common names of the certificates when verifying servers.
+        /// This could be dangerous because your CA can have signed a server cert for foo.com, that's later being used to host a server at baz.com. If you wan't your
+        /// ca to verify that the server at baz.com is actually baz.com, let this be true (default).
         verify_name_on_connect: true,
-        // Whether or not to close links when remote certificates expires.
-        // If set to true, links that require certificates (tls/quic) will automatically disconnect when the time of expiration of the remote certificate chain is reached
-        // note that mTLS (client authentication) is required for a listener to disconnect a client on expiration
+        /// Whether or not to close links when remote certificates expires.
+        /// If set to true, links that require certificates (tls/quic) will automatically disconnect when the time of expiration of the remote certificate chain is reached
+        /// note that mTLS (client authentication) is required for a listener to disconnect a client on expiration
         close_link_on_expiration: false,
         /// Optional configuration for TCP system buffers sizes for TLS links
         ///
@@ -688,15 +715,15 @@
         /// Configure TCP write buffer size (bytes)
         // so_sndbuf: 123456,
       },
-    // // Configure optional TCP link specific parameters
-    // tcp: {
-    //   /// Optional configuration for TCP system buffers sizes for TCP links
-    //   ///
-    //   /// Configure TCP read buffer size (bytes)
-    //   // so_rcvbuf: 123456,
-    //   /// Configure TCP write buffer size (bytes)
-    //   // so_sndbuf: 123456,
-    // }
+      // // Configure optional TCP link specific parameters
+      // tcp: {
+      //   /// Optional configuration for TCP system buffers sizes for TCP links
+      //   ///
+      //   /// Configure TCP read buffer size (bytes)
+      //   // so_rcvbuf: 123456,
+      //   /// Configure TCP write buffer size (bytes)
+      //   // so_sndbuf: 123456,
+      // },
     },
     /// Shared memory configuration.
     /// NOTE: shared memory can be used only if zenoh is compiled with "shared-memory" feature, otherwise
@@ -716,6 +743,15 @@
       /// - "init": SHM subsystem internals will be initialized upon Session opening. This setting sacrifices
       /// startup time, but guarantees no latency impact when first SHM buffer is processed.
       mode: "lazy",
+      transport_optimization: {
+          /// Enables transport optimization for large messages (default `true`).
+          /// Implicitly puts large messages into shared memory for transports with SHM-compatible connection.
+          enabled: true,
+          /// SHM memory size in bytes used for transport optimization (default `16 * 1024 * 1024`).
+          pool_size: 16777216,
+          /// Allow optimization for messages equal or larger than this threshold in bytes (default `3072`).
+          message_size_threshold: 3072,
+      },
     },
     auth: {
       /// The configuration of authentication.
@@ -750,12 +786,43 @@
   },
 
   ///
-  /// Plugins configurations
+  /// Plugins configurations for testing storage backend for filesystem
   ///
-  //
-      plugins_loading: {
+  plugins_loading: {
+    /// Enable plugins loading.
+    enabled: true,
+  },
+  plugins: {
+    /// Configure the storage manager plugin
+    storage_manager: {
+      volumes: {
+        fs: {}
+      },
+      /// Configure the storages supported by the volumes
+      storages: {
+        /// configuration of a "demo" storage using the "fs" volume
+        demo: {
+          /// the key expression this storage will subscribe to
+          key_expr: "demo/example/**",
+          /// this prefix will be stripped from the received key when converting to file path
+          /// this argument is optional.
+          strip_prefix: "demo/example",
+          volume: {
+            id: "fs",
+            // the key/values will be stored as files within this directory (relative to ${ZENOH_BACKEND_FS_ROOT})
+            dir: "example"
+          },
+        },
+      },
+    },
+  },
+
+  //  ///
+  //  /// Plugins configurations
+  //  ///
+  //  plugins_loading: {
   //    /// Enable plugins loading.
-        enabled: true,
+  //    enabled: false,
   //    /// Directories where plugins configured by name should be looked for. Plugins configured by __path__ are not subject to lookup.
   //    /// Directories are specified as object with fields `kind` and `value` is accepted.
   //    ///   1. If `kind` is `current_exe_parent`, then the parent of the current executable's directory is searched and `value` should be `null`.
@@ -763,10 +830,10 @@
   //    ///   2. If `kind` is `path`, then `value` is interpreted as a filesystem path. Simply supplying a string instead of a object is equivalent to this.
   //    /// If `enabled: true` and `search_dirs` is not specified then `search_dirs` falls back to the default value:
   //    search_dirs: [{ "kind": "current_exe_parent" }, ".", "~/.zenoh/lib", "/opt/homebrew/lib", "/usr/local/lib", "/usr/lib"],
-      },
+  //  },
   //  /// Plugins are only loaded if `plugins_loading: { enabled: true }` and present in the configuration when starting.
   //  /// Once loaded, they may react to changes in the configuration made through the zenoh instance's adminspace.
-      plugins: {
+  //  plugins: {
   //    /// If no `__path__` is given to a plugin, zenohd will automatically search for a shared library matching the plugin's name (here, `libzenoh_plugin_rest.so` would be searched for on linux)
   //
   //    /// Plugin settings may contain field `__config__`
@@ -794,7 +861,7 @@
   //    },
   //
   //    /// Configure the storage manager plugin
-        storage_manager: {
+  //    storage_manager: {
   //      /// When a path is present, automatic search is disabled, and zenohd will instead select the first path which manages to load.
   //      __path__: [
   //        "./target/release/libzenoh_plugin_storage_manager.so",
@@ -803,7 +870,7 @@
   //      /// Directories where plugins configured by name should be looked for. Plugins configured by __path__ are not subject to lookup
   //      backend_search_dirs: [],
   //      /// The "memory" volume is always available, but you may create other volumes here, with various backends to support the actual storing.
-          volumes: {
+  //      volumes: {
   //        /// An influxdb backend is also available at https://github.com/eclipse-zenoh/zenoh-backend-influxdb
   //        influxdb: {
   //          url: "https://myinfluxdb.example",
@@ -824,24 +891,10 @@
   //          },
   //          url: "https://localhost:8086",
   //        },
-            fs: {},
-          },
+  //      },
   //
   //      /// Configure the storages supported by the volumes
-          storages: {
-            // configuration of a "demo" storage using the "fs" volume
-            demo: {
-              // the key expression this storage will subscribes to
-              key_expr: "demo/example/**",
-              // this prefix will be stripped from the received key when converting to file path
-              // this argument is optional.
-              strip_prefix: "demo/example",
-              volume: {
-                id: "fs",
-                // the key/values will be stored as files within this directory (relative to ${ZENOH_BACKEND_FS_ROOT})
-                dir: "example"
-              }
-            },
+  //      storages: {
   //        demo: {
   //          /// Storages always need to know what set of keys they must work with. These sets are defined by a key expression.
   //          key_expr: "demo/memory/**",
@@ -891,7 +944,7 @@
   //          volume: "memory",
   //          /// A complete storage advertises itself as containing all the known keys matching the configured key expression.
   //          /// If not configured, complete defaults to false.
-  //          complete: "true",
+  //          complete: true,
   //        },
   //        influx_demo: {
   //          key_expr: "demo/influxdb/**",
@@ -911,9 +964,9 @@
   //            db: "example",
   //          },
   //        },
-          },
-        },
-      },
+  //      },
+  //    },
+  //  },
 
   // /// Plugin configuration example using `__config__` property
   // plugins: {
