@@ -84,32 +84,4 @@ defmodule Zenohex.Config do
   """
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate insert_json5(config, key, value), to: Zenohex.Nif, as: :config_insert_json5
-
-  @deprecated "Use insert_json5/3 instead."
-  @doc """
-  Updates a key in a nested JSON binary.
-
-  This function decodes the JSON, applies the given function to the value
-  at the specified path, and re-encodes the result into a binary.
-
-  ## Parameters
-
-    - `config`: A JSON config binary.
-    - `keys`: A list representing the nested path to update.
-    - `fun`: A function to apply to the value at the specified path.
-
-  ## Examples
-
-      iex> config = Zenohex.Config.default()
-      iex> Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
-  """
-  @spec update_in(t(), [term(), ...], (term() -> term())) :: t()
-  def update_in(config, keys, fun)
-      when is_binary(config) and is_list(keys) and is_function(fun) do
-    config
-    |> :json.decode()
-    |> Kernel.update_in(keys, fun)
-    |> :json.encode()
-    |> IO.iodata_to_binary()
-  end
 end

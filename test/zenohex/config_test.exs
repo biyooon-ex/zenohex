@@ -71,14 +71,4 @@ defmodule Zenohex.ConfigTest do
     assert is_binary(updated)
     assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
   end
-
-  test "update_in/3" do
-    config = Zenohex.Config.default()
-
-    assert config =~ "scouting\":{\"delay\":null"
-
-    config = Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
-
-    assert config =~ "scouting\":{\"delay\":100"
-  end
 end
