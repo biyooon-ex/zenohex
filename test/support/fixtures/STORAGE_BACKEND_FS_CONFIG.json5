@@ -205,7 +205,7 @@
   timestamping: {
     /// Whether data messages should be timestamped if not already.
     /// Accepts a single boolean value or different values for router, peer and client.
-    enabled: { router: true, peer: false, client: false },
+    enabled: { router: true, peer: true, client: false },
     /// Whether data messages with timestamps in the future should be dropped or not.
     /// If set to false (default), messages with timestamps in the future are retimestamped.
     /// Timestamps are ignored if timestamping is disabled.
@@ -782,6 +782,38 @@
     permissions: {
       read: true,
       write: false,
+    },
+  },
+
+  ///
+  /// Plugins configurations for testing storage backend for filesystem
+  ///
+  plugins_loading: {
+    /// Enable plugins loading.
+    enabled: true,
+    plugins: {
+      /// Configure the storage manager plugin
+      storage_manager: {
+        volumes: {
+          fs: {}
+        },
+        /// Configure the storages supported by the volumes
+        storages: {
+          /// configuration of a "demo" storage using the "fs" volume
+          demo: {
+            /// the key expression this storage will subscribe to
+            key_expr: "demo/example/**",
+            /// this prefix will be stripped from the received key when converting to file path
+            /// this argument is optional.
+            strip_prefix: "demo/example",
+            volume: {
+              id: "fs",
+              // the key/values will be stored as files within this directory (relative to ${ZENOH_BACKEND_FS_ROOT})
+              dir: "example"
+            },
+          },
+        },
+      },
     },
   },
 
