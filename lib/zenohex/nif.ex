@@ -196,8 +196,8 @@ defmodule Zenohex.Nif do
   @spec config_default() :: String.t()
   def config_default(), do: err()
 
-  @spec config_from_env() :: {:ok, String.t()} | {:error, reason :: term()}
-  def config_from_env(), do: err()
+  @spec config_from_env(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  def config_from_env(_path), do: err()
 
   @spec config_from_file(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
   def config_from_file(_path), do: err()

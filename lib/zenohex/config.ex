@@ -37,11 +37,8 @@ defmodule Zenohex.Config do
   @spec from_env() :: {:ok, t()} | {:error, reason :: term()}
   def from_env() do
     case System.get_env("ZENOH_CONFIG") do
-      nil ->
-        {:error, "environment variable not found: ZENOH_CONFIG"}
-
-      path ->
-        from_file(path)
+      nil -> {:error, "environment variable not found: ZENOH_CONFIG"}
+      path -> Zenohex.Nif.config_from_env(path)
     end
   end
 

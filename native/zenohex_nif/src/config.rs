@@ -50,8 +50,8 @@ fn config_default() -> String {
 }
 
 #[rustler::nif]
-fn config_from_env() -> rustler::NifResult<(rustler::Atom, String)> {
-    let config = zenoh::Config::from_env()
+fn config_from_env(path: String) -> rustler::NifResult<(rustler::Atom, String)> {
+    let config = zenoh::Config::from_file(PathBuf::from(path))
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
     Ok((rustler::types::atom::ok(), config.to_string()))
 }
