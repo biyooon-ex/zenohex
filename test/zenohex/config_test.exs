@@ -5,16 +5,29 @@ defmodule Zenohex.ConfigTest do
     assert is_binary(Zenohex.Config.default())
   end
 
-  test "from_env/0 when ZENOH_CONFIG is set" do
-    System.put_env("ZENOH_CONFIG", "test/support/fixtures/DEFAULT_CONFIG.json5")
-    assert {:ok, config} = Zenohex.Config.from_env()
-    assert is_binary(config)
-    on_exit(fn -> System.delete_env("ZENOH_CONFIG") end)
-  end
+  describe "operation for ZENOH_CONFIG" do
+    setup do
+      previous_zenoh_config = System.get_env("ZENOH_CONFIG")
 
-  test "from_env/0 when ZENOH_CONFIG is not set" do
-    System.delete_env("ZENOH_CONFIG")
-    assert {:error, _reason} = Zenohex.Config.from_env()
+      on_exit(fn ->
+        if previous_zenoh_config == nil do
+          System.delete_env("ZENOH_CONFIG")
+        else
+          System.put_env("ZENOH_CONFIG", previous_zenoh_config)
+        end
+      end)
+    end
+
+    test "from_env/0 when ZENOH_CONFIG is set" do
+      System.put_env("ZENOH_CONFIG", "test/support/fixtures/DEFAULT_CONFIG.json5")
+      assert {:ok, config} = Zenohex.Config.from_env()
+      assert is_binary(config)
+    end
+
+    test "from_env/0 when ZENOH_CONFIG is not set" do
+      System.delete_env("ZENOH_CONFIG")
+      assert {:error, _reason} = Zenohex.Config.from_env()
+    end
   end
 
   test "from_file/1 with valid file" do
