@@ -29,6 +29,7 @@ defmodule Zenohex.Config do
 
   ## Examples
 
+      iex> System.put_env("ZENOH_CONFIG", "path/to/DEFAULT_CONFIG.json5")
       iex> {:ok, config} = Zenohex.Config.from_env()
       iex> is_binary(config)
       true
@@ -67,8 +68,7 @@ defmodule Zenohex.Config do
 
       iex> config = Zenohex.Config.default()
       iex> {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
-      iex> is_binary(value)
-      true
+      {:ok, "null"}
   """
   @spec get_json(t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
   defdelegate get_json(config, key), to: Zenohex.Nif, as: :config_get_json
@@ -80,7 +80,8 @@ defmodule Zenohex.Config do
 
       iex> config = Zenohex.Config.default()
       iex> {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-      iex> {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
+      iex> Zenohex.Config.get_json(updated, "scouting/delay")
+      {:ok, "100"}
   """
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate insert_json5(config, key, value), to: Zenohex.Nif, as: :config_insert_json5
