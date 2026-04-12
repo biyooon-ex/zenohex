@@ -94,13 +94,13 @@ defmodule Zenohex.Config do
       {:ok, _} = ok ->
         ok
 
-      {:error, _} ->
-        quoted =
-          value
-          |> :json.encode()
-          |> IO.iodata_to_binary()
+      {:error, _} = original_error ->
+        quoted = value |> :json.encode() |> IO.iodata_to_binary()
 
-        Zenohex.Nif.config_insert_json5(config, key, quoted)
+        case Zenohex.Nif.config_insert_json5(config, key, quoted) do
+          {:ok, _} = ok -> ok
+          {:error, _} -> original_error
+        end
     end
   end
 end
