@@ -791,26 +791,26 @@
   plugins_loading: {
     /// Enable plugins loading.
     enabled: true,
-    plugins: {
-      /// Configure the storage manager plugin
-      storage_manager: {
-        volumes: {
-          fs: {}
-        },
-        /// Configure the storages supported by the volumes
-        storages: {
-          /// configuration of a "demo" storage using the "fs" volume
-          demo: {
-            /// the key expression this storage will subscribe to
-            key_expr: "demo/example/**",
-            /// this prefix will be stripped from the received key when converting to file path
-            /// this argument is optional.
-            strip_prefix: "demo/example",
-            volume: {
-              id: "fs",
-              // the key/values will be stored as files within this directory (relative to ${ZENOH_BACKEND_FS_ROOT})
-              dir: "example"
-            },
+  },
+  plugins: {
+    /// Configure the storage manager plugin
+    storage_manager: {
+      volumes: {
+        fs: {}
+      },
+      /// Configure the storages supported by the volumes
+      storages: {
+        /// configuration of a "demo" storage using the "fs" volume
+        demo: {
+          /// the key expression this storage will subscribe to
+          key_expr: "demo/example/**",
+          /// this prefix will be stripped from the received key when converting to file path
+          /// this argument is optional.
+          strip_prefix: "demo/example",
+          volume: {
+            id: "fs",
+            // the key/values will be stored as files within this directory (relative to ${ZENOH_BACKEND_FS_ROOT})
+            dir: "example"
           },
         },
       },
