@@ -10,8 +10,7 @@ defmodule Zenohex.Test.Support.TestHelper do
   end
 
   def mode(config, mode) when mode in ["peer", "client"] do
-    {:ok, updated_config} =
-      Zenohex.Config.insert_json5(config, "mode", ~s("#{mode}"))
+    {:ok, updated_config} = Zenohex.Config.insert_json5(config, "mode", mode)
 
     updated_config
   end

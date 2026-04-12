@@ -68,7 +68,9 @@ defmodule Zenohex.ConfigTest do
     config = Zenohex.Config.default()
 
     assert {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-    assert is_binary(updated)
     assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
+
+    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "peer")
+    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated2, "mode")
   end
 end

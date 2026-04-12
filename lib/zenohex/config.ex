@@ -76,13 +76,34 @@ defmodule Zenohex.Config do
   @doc """
   Inserts or updates a JSON5 configuration value at `key`, returning the updated config.
 
+  If `value` is not valid JSON5 by itself (for example, `"peer"` passed as a bare
+  identifier), this function retries by treating it as a plain string value.
+
   ## Examples
 
       iex> config = Zenohex.Config.default()
       iex> {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
       iex> Zenohex.Config.get_json(updated, "scouting/delay")
       {:ok, "100"}
+
+      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "peer")
+      iex> Zenohex.Config.get_json(updated2, "mode")
+      {:ok, "\"peer\""}
   """
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
-  defdelegate insert_json5(config, key, value), to: Zenohex.Nif, as: :config_insert_json5
+  def insert_json5(config, key, value)
+      when is_binary(config) and is_binary(key) and is_binary(value) do
+    case Zenohex.Nif.config_insert_json5(config, key, value) do
+      {:ok, _} = ok ->
+        ok
+
+      {:error, _} ->
+        quoted =
+          value
+          |> :json.encode()
+          |> IO.iodata_to_binary()
+
+        Zenohex.Nif.config_insert_json5(config, key, quoted)
+    end
+  end
 end
