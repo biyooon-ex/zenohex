@@ -29,7 +29,7 @@ defmodule Zenohex.Config do
 
   ## Examples
 
-      iex> System.put_env("ZENOH_CONFIG", "path/to/DEFAULT_CONFIG.json5")
+      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
       iex> {:ok, config} = Zenohex.Config.from_env()
       iex> is_binary(config)
       true
@@ -47,7 +47,7 @@ defmodule Zenohex.Config do
 
   ## Examples
 
-      iex> {:ok, config} = Zenohex.Config.from_file("path/to/config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
       iex> is_binary(config)
       true
   """
