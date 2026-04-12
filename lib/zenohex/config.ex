@@ -85,6 +85,7 @@ defmodule Zenohex.Config do
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate insert_json5(config, key, value), to: Zenohex.Nif, as: :config_insert_json5
 
+  @deprecated "Use insert_json5/3 instead."
   @doc """
   Updates a key in a nested JSON binary.
 
