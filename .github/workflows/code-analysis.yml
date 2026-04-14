@@ -36,6 +36,31 @@ jobs:
           restore-keys: |
             deps-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
 
+      - name: Cache compiled NIF
+        id: nif-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            priv/native
+          key: nif-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ hashFiles('native/zenohex_nif/Cargo.lock', 'native/zenohex_nif/Cargo.toml', 'native/zenohex_nif/rust-toolchain.toml', 'native/zenohex_nif/.cargo/**', 'native/zenohex_nif/src/**') }}
+
+      - name: Cache cargo target and registry
+        id: rust-cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            native/zenohex_nif -> target
+          cache-workspace-crates: "true"
+
+      - name: Show rust-cache status
+        run: 'echo "rust-cache hit: ${{ steps.rust-cache.outputs.cache-hit }}"'
+
+      - name: Show NIF cache status
+        run: 'echo "nif-cache hit: ${{ steps.nif-cache.outputs.cache-hit }}"'
+
+      - name: Export NIF build mode
+        run: echo "SKIP_ZENOHEX_NIF_BUILD=${{ steps.nif-cache.outputs.cache-hit }}" >> "$GITHUB_ENV"
+
       - name: Install deps
         if: steps.deps-cache.outputs.cache-hit != 'true'
         run: mix do deps.get, deps.compile
@@ -60,9 +85,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: priv/plts
-          key: plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/*.lock') }}
+          key: plts-${{ runner.os }}-${{ env.MIX_ENV }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
-            plts-${{ runner.os }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
+            plts-${{ runner.os }}-${{ env.MIX_ENV }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
 
       - name: Build PLTs
         if: steps.plts-cache.outputs.cache-hit != 'true'
