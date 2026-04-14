@@ -70,7 +70,10 @@ defmodule Zenohex.ConfigTest do
     assert {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
     assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
 
-    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "peer")
-    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated2, "mode")
+    assert {:ok, updated1} = Zenohex.Config.insert_json5(updated, "mode", "\"peer\"")
+    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated1, "mode")
+
+    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "client")
+    assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated2, "mode")
   end
 end

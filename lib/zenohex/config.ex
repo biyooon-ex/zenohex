@@ -73,8 +73,9 @@ defmodule Zenohex.Config do
   @doc """
   Inserts or updates a JSON5 configuration value at `key`, returning the updated config.
 
-  If `value` is not valid JSON5 by itself (for example, `"peer"` passed as a bare
-  identifier), this function retries by treating it as a plain string value.
+  `value` should be a valid JSON5 string (e.g., `"500"`, `"true"`, or `"\"peer\""`).
+  If `value` is not valid JSON5 format (for example, a plain string like `"peer"`
+  missing its quotes), this function automatically quotes it and retries the insertion.
 
   ## Examples
 
@@ -83,23 +84,32 @@ defmodule Zenohex.Config do
       iex> Zenohex.Config.get_json(updated, "scouting/delay")
       {:ok, "100"}
 
-      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "peer")
-      iex> Zenohex.Config.get_json(updated2, "mode")
+      # Pass a valid JSON5 string (manually quoted)
+      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "mode", "\"peer\"")
+      iex> Zenohex.Config.get_json(updated1, "mode")
       {:ok, "\"peer\""}
+
+      # Pass a plain string (automatically quoted by this function)
+      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
+      iex> Zenohex.Config.get_json(updated2, "mode")
+      {:ok, "\"client\""}
   """
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
   def insert_json5(config, key, value)
       when is_binary(config) and is_binary(key) and is_binary(value) do
     case Zenohex.Nif.config_insert_json5(config, key, value) do
-      {:ok, _} = ok ->
-        ok
+      {:ok, _updated_config} = result ->
+        result
 
-      {:error, _} = original_error ->
-        quoted = value |> :json.encode() |> IO.iodata_to_binary()
+      {:error, _reason} = original_error ->
+        # If the value is not a valid JSON5 format (e.g., `"peer"`),
+        # retry by quoting it as a JSON string.
+        # If the retry also fails, return the original error.
+        quoted_value = value |> :json.encode() |> IO.iodata_to_binary()
 
-        case Zenohex.Nif.config_insert_json5(config, key, quoted) do
-          {:ok, _} = ok -> ok
-          {:error, _} -> original_error
+        case Zenohex.Nif.config_insert_json5(config, key, quoted_value) do
+          {:ok, _updated_config} = result -> result
+          {:error, _reason} -> original_error
         end
     end
   end
