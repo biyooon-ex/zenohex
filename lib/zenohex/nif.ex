@@ -196,8 +196,21 @@ defmodule Zenohex.Nif do
   @spec config_default() :: String.t()
   def config_default(), do: err()
 
+  @spec config_from_env(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  def config_from_env(_path), do: err()
+
+  @spec config_from_file(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  def config_from_file(_path), do: err()
+
   @spec config_from_json5(String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
   def config_from_json5(_json5), do: err()
+
+  @spec config_get_json(String.t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  def config_get_json(_json5, _key), do: err()
+
+  @spec config_insert_json5(String.t(), String.t(), String.t()) ::
+          {:ok, String.t()} | {:error, reason :: term()}
+  def config_insert_json5(_json5, _key, _value), do: err()
 
   # Logger
 

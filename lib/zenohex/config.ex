@@ -5,11 +5,12 @@ defmodule Zenohex.Config do
   Utility functions for working with Zenoh session configurations.
 
   This module provides helpers to obtain default configuration,
-  parse JSON5 strings, and manipulate nested config structures using Elixir functions.
+  load from files or environment variables, parse JSON5 strings,
+  and retrieve or update individual config keys.
   """
 
   @doc """
-  Returns the default Zenoh configuration as a JSON5 binary.
+  Returns the default Zenoh configuration as a JSON binary.
 
   The returned configuration is valid input for `Zenohex.Session.open/1`.
 
@@ -23,34 +24,112 @@ defmodule Zenohex.Config do
   @spec default() :: t()
   defdelegate default(), to: Zenohex.Nif, as: :config_default
 
+  @doc """
+  Loads configuration from the file path specified by the `ZENOH_CONFIG` environment variable.
+
+  ## Examples
+
+      ### Set the environment variable and load the config
+      $ ZENOH_CONFIG=path/to/zenoh_config.json5 iex -S mix
+      iex> {:ok, config} = Zenohex.Config.from_env()
+      iex> is_binary(config)
+      true
+
+      ### Set the environment variable in IEx
+      $ unset ZENOH_CONFIG && iex -S mix
+      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_env()
+      iex> is_binary(config)
+      true
+  """
+  @spec from_env() :: {:ok, t()} | {:error, reason :: term()}
+  def from_env() do
+    case System.get_env("ZENOH_CONFIG") do
+      nil -> {:error, "environment variable not found: ZENOH_CONFIG"}
+      path -> Zenohex.Nif.config_from_env(path)
+    end
+  end
+
+  @doc """
+  Loads configuration from the file at the given path.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
+      iex> is_binary(config)
+      true
+  """
+  @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
+  defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
+
   @doc false
   @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
   @doc """
-  Updates a key in a nested JSON binary.
-
-  This function decodes the JSON, applies the given function to the value
-  at the specified path, and re-encodes the result into a binary.
-
-  ## Parameters
-
-    - `config`: A JSON config binary.
-    - `keys`: A list representing the nested path to update.
-    - `fun`: A function to apply to the value at the specified path.
+  Returns the JSON string of the configuration value at `key`.
 
   ## Examples
 
       iex> config = Zenohex.Config.default()
-      iex> Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
+      iex> {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
+      {:ok, "null"}
   """
-  @spec update_in(t(), [term(), ...], (term() -> term())) :: t()
-  def update_in(config, keys, fun)
-      when is_binary(config) and is_list(keys) and is_function(fun) do
-    config
-    |> :json.decode()
-    |> Kernel.update_in(keys, fun)
-    |> :json.encode()
-    |> IO.iodata_to_binary()
+  @spec get_json(t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  defdelegate get_json(config, key), to: Zenohex.Nif, as: :config_get_json
+
+  @doc """
+  Inserts or updates a JSON5 configuration value at `key`, returning the updated config.
+
+  `value` should be a valid JSON5 string (e.g., `"500"`, `"true"`, or `"\"peer\""`).
+  If `value` is not valid JSON5 format (for example, a plain string like `"peer"`
+  missing its quotes), this function automatically quotes it and retries the insertion.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+      iex> Zenohex.Config.get_json(updated, "scouting/delay")
+      {:ok, "100"}
+
+      ### Pass a valid JSON5 string (manually quoted)
+      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "mode", "\"peer\"")
+      iex> Zenohex.Config.get_json(updated1, "mode")
+      {:ok, "\"peer\""}
+
+      ### Pass a plain string (automatically quoted by this function)
+      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
+      iex> Zenohex.Config.get_json(updated2, "mode")
+      {:ok, "\"client\""}
+
+  > #### Migration from `update_in/3` {: .info}
+  > The function `update_in/3` has been removed in v0.9.0.
+  > For updating Zenoh configurations, please use `insert_json5/3` instead.
+
+  ```elixir
+  ### Past usage with `update_in/3`:
+  Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
+  ### Use `insert_json5/3` with the key path joined by `/`:
+  Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+  ```
+  """
+  @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
+  def insert_json5(config, key, value)
+      when is_binary(config) and is_binary(key) and is_binary(value) do
+    case Zenohex.Nif.config_insert_json5(config, key, value) do
+      {:ok, _updated_config} = result ->
+        result
+
+      {:error, _reason} = original_error ->
+        # If the value is not a valid JSON5 format (e.g., `"peer"`),
+        # retry by quoting it as a JSON string.
+        # If the retry also fails, return the original error.
+        quoted_value = value |> :json.encode() |> IO.iodata_to_binary()
+
+        case Zenohex.Nif.config_insert_json5(config, key, quoted_value) do
+          {:ok, _updated_config} = result -> result
+          {:error, _reason} -> original_error
+        end
+    end
   end
 end
