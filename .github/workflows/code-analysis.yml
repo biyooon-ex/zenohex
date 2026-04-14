@@ -52,14 +52,8 @@ jobs:
             native/zenohex_nif -> target
           cache-workspace-crates: "true"
 
-      - name: Show rust-cache status
-        run: 'echo "rust-cache hit: ${{ steps.rust-cache.outputs.cache-hit }}"'
-
-      - name: Show NIF cache status
-        run: 'echo "nif-cache hit: ${{ steps.nif-cache.outputs.cache-hit }}"'
-
       - name: Export NIF build mode
-        run: echo "SKIP_ZENOHEX_NIF_BUILD=${{ steps.nif-cache.outputs.cache-hit }}" >> "$GITHUB_ENV"
+        run: echo "GHA_SKIP_ZENOHEX_NIF_BUILD=${{ steps.nif-cache.outputs.cache-hit }}" >> "$GITHUB_ENV"
 
       - name: Install deps
         if: steps.deps-cache.outputs.cache-hit != 'true'
