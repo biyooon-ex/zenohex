@@ -61,6 +61,7 @@ jobs:
           cache-workspace-crates: "true"
 
       - name: Export NIF build mode
+        shell: bash
         run: echo "GHA_SKIP_ZENOHEX_NIF_BUILD=${{ steps.nif-cache.outputs.cache-hit }}" >> "$GITHUB_ENV"
 
       - name: Install deps
