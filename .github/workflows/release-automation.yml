@@ -1,0 +1,139 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - mix.exs
+      - native/zenohex_nif/Cargo.toml
+  workflow_dispatch:
+
+jobs:
+  detect-version-bump:
+    runs-on: ubuntu-latest
+    outputs:
+      release_needed: ${{ steps.detect.outputs.release_needed }}
+      version: ${{ steps.detect.outputs.version }}
+      tag: ${{ steps.detect.outputs.tag }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version bump
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          current_mix_version=$(sed -n 's/^  @version "\(.*\)"/\1/p' mix.exs | head -n1)
+          current_cargo_version=$(sed -n 's/^version = "\(.*\)"/\1/p' native/zenohex_nif/Cargo.toml | head -n1)
+
+          if [[ -z "$current_mix_version" || -z "$current_cargo_version" ]]; then
+            echo "Failed to detect version from mix.exs or Cargo.toml"
+            exit 1
+          fi
+
+          if [[ "$current_mix_version" != "$current_cargo_version" ]]; then
+            echo "Version mismatch: mix.exs=$current_mix_version, Cargo.toml=$current_cargo_version"
+            exit 1
+          fi
+
+          if git show HEAD~1:mix.exs >/tmp/prev_mix.exs 2>/dev/null; then
+            previous_mix_version=$(sed -n 's/^  @version "\(.*\)"/\1/p' /tmp/prev_mix.exs | head -n1)
+          else
+            previous_mix_version=""
+          fi
+
+          tag="v${current_mix_version}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "Tag ${tag} already exists. Skipping release automation."
+            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$current_mix_version" != "$previous_mix_version" ]]; then
+            echo "Detected version bump: ${previous_mix_version} -> ${current_mix_version}"
+            echo "release_needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version unchanged (${current_mix_version}). Skipping release automation."
+            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "version=${current_mix_version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+  create-tag-and-release:
+    needs: detect-version-bump
+    if: needs.detect-version-bump.outputs.release_needed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create tag and GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.detect-version-bump.outputs.tag }}
+          name: ${{ needs.detect-version-bump.outputs.tag }}
+          generate_release_notes: true
+
+  build-precompiled-nifs:
+    needs:
+      - detect-version-bump
+      - create-tag-and-release
+    if: needs.detect-version-bump.outputs.release_needed == 'true'
+    uses: ./.github/workflows/nif_precompile.yml
+    permissions:
+      contents: write
+    with:
+      tag: ${{ needs.detect-version-bump.outputs.tag }}
+    secrets: inherit
+
+  update-checksum-and-publish-hex:
+    needs:
+      - detect-version-bump
+      - build-precompiled-nifs
+    if: needs.detect-version-bump.outputs.release_needed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      OTP_VERSION: 27.3.4.2
+      ELIXIR_VERSION: 1.18.4
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Erlang/Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Download all precompiled NIF checksums
+        run: mix rustler_precompiled.download Zenohex.Nif --all
+
+      - name: Commit checksum update
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add checksum-Elixir.Zenohex.Nif.exs
+
+          if git diff --cached --quiet; then
+            echo "No checksum changes to commit"
+          else
+            git commit -m "chore(release): update NIF checksums for ${{ needs.detect-version-bump.outputs.tag }}"
+            git push
+          fi
+
+      - name: Publish to Hex
+        env:
+          HEX_API_KEY: ${{ secrets['HEX_API_KEY'] }}
+        run: mix hex.publish --yes
