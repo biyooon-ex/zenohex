@@ -29,6 +29,14 @@ defmodule Zenohex.Config do
 
   ## Examples
 
+      ### Set the environment variable and load the config
+      $ ZENOH_CONFIG=path/to/zenoh_config.json5 iex -S mix
+      iex> {:ok, config} = Zenohex.Config.from_env()
+      iex> is_binary(config)
+      true
+
+      ### Set the environment variable in IEx
+      $ unset ZENOH_CONFIG && iex -S mix
       iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
       iex> {:ok, config} = Zenohex.Config.from_env()
       iex> is_binary(config)
@@ -84,12 +92,12 @@ defmodule Zenohex.Config do
       iex> Zenohex.Config.get_json(updated, "scouting/delay")
       {:ok, "100"}
 
-      # Pass a valid JSON5 string (manually quoted)
+      ### Pass a valid JSON5 string (manually quoted)
       iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "mode", "\"peer\"")
       iex> Zenohex.Config.get_json(updated1, "mode")
       {:ok, "\"peer\""}
 
-      # Pass a plain string (automatically quoted by this function)
+      ### Pass a plain string (automatically quoted by this function)
       iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
       iex> Zenohex.Config.get_json(updated2, "mode")
       {:ok, "\"client\""}
