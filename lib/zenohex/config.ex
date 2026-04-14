@@ -101,6 +101,17 @@ defmodule Zenohex.Config do
       iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
       iex> Zenohex.Config.get_json(updated2, "mode")
       {:ok, "\"client\""}
+
+  > #### Migration from `update_in/3` {: .info}
+  > The function `update_in/3` has been removed in v0.9.0.
+  > For updating Zenoh configurations, please use `insert_json5/3` instead.
+
+  ```elixir
+  ### Past usage with `update_in/3`:
+  Zenohex.Config.update_in(config, ["scouting", "delay"], fn _ -> 100 end)
+  ### Use `insert_json5/3` with the key path joined by `/`:
+  Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+  ```
   """
   @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
   def insert_json5(config, key, value)
