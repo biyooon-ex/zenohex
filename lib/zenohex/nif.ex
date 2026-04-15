@@ -53,6 +53,10 @@ defmodule Zenohex.Nif do
           | {:error, reason :: term()}
   def session_get(_session_id, _selector, _timeout, _opts), do: err()
 
+  @spec session_get_async(session_id(), String.t(), pid(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def session_get_async(_session_id, _selector, _pid, _opts), do: err()
+
   @spec session_new_timestamp(session_id()) :: {:ok, String.t()} | {:error, reason :: term()}
   def session_new_timestamp(_session_id), do: err()
 
@@ -99,6 +103,10 @@ defmodule Zenohex.Nif do
           | {:error, :timeout}
           | {:error, reason :: term()}
   def querier_get(_querier_id, _timeout, _opts), do: err()
+
+  @spec querier_get_async(entity_id(), pid(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def querier_get_async(_querier_id, _pid, _opts), do: err()
 
   @spec querier_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def querier_undeclare(_querier_id), do: err()
@@ -166,6 +174,10 @@ defmodule Zenohex.Nif do
           | {:error, :timeout}
           | {:error, reason :: term()}
   def liveliness_get(_session_id, _key_expr, _timeout, _opts \\ []), do: err()
+
+  @spec liveliness_get_async(session_id(), String.t(), pid(), keyword()) ::
+          :ok | {:error, reason :: term()}
+  def liveliness_get_async(_session_id, _key_expr, _pid, _opts \\ []), do: err()
 
   @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
           {:ok, subscriber_id :: entity_id()} | {:error, reason :: term()}

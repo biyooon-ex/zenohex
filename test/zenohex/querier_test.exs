@@ -67,4 +67,22 @@ defmodule Zenohex.QuerierTest do
     assert {:ok, [%Zenohex.Sample{key_expr: "key/expr/1", payload: "payload"}]} =
              Task.await(task)
   end
+
+  test "get_async/2 delivers put replies to pid", context do
+    assert :ok = Zenohex.Querier.get_async(context.querier_id, self())
+
+    assert_receive %Zenohex.Query{zenoh_query: zenoh_query}
+    assert :ok = Zenohex.Query.reply(zenoh_query, "key/expr/1", "async_payload")
+
+    assert_receive %Zenohex.Sample{kind: :put, key_expr: "key/expr/1", payload: "async_payload"}
+  end
+
+  test "get_async/2 delivers error replies to pid", context do
+    assert :ok = Zenohex.Querier.get_async(context.querier_id, self())
+
+    assert_receive %Zenohex.Query{zenoh_query: zenoh_query}
+    assert :ok = Zenohex.Query.reply_error(zenoh_query, "error_payload")
+
+    assert_receive %Zenohex.Query.ReplyError{payload: "error_payload"}
+  end
 end
