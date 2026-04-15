@@ -70,11 +70,29 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Extract Zenoh version info from README
+        id: zenoh-info
+        shell: bash
+        run: |
+          zenoh_info=$(sed -n '/^\*\*Currently, Zenohex uses version.*\*\*$/p' README.md)
+          # Escape for use in github output
+          {
+            echo "content<<EOF"
+            echo "$zenoh_info"
+            echo ""
+            echo "We recommend using the same Zenoh version for communication compatibility."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create tag and GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.detect-version-bump.outputs.tag }}
           name: ${{ needs.detect-version-bump.outputs.tag }}
+          body: ${{ steps.zenoh-info.outputs.content }}
           generate_release_notes: true
 
   build-precompiled-nifs:
@@ -135,5 +153,5 @@ jobs:
 
       - name: Publish to Hex
         env:
-          HEX_API_KEY: ${{ secrets['HEX_API_KEY'] }}
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: mix hex.publish --yes
