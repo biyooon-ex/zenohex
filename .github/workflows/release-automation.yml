@@ -3,7 +3,7 @@ name: Automated Release
 on:
   push:
     branches:
-      - main
+      - release_automation
     paths:
       - mix.exs
       - native/zenohex_nif/Cargo.toml
@@ -43,25 +43,14 @@ jobs:
             exit 1
           fi
 
-          previous_sha="${{ github.event.before }}"
-          if [[ -n "$previous_sha" && "$previous_sha" != "0000000000000000000000000000000000000000" ]] && \
-             git show "${previous_sha}":mix.exs >/tmp/prev_mix.exs 2>/dev/null; then
-            previous_mix_version=$(sed -n 's/^  @version "\(.*\)"/\1/p' /tmp/prev_mix.exs | head -n1)
-          else
-            previous_mix_version=""
-          fi
-
           tag="v${current_mix_version}"
 
           if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
             echo "Tag ${tag} already exists. Skipping release automation."
             echo "release_needed=false" >> "$GITHUB_OUTPUT"
-          elif [[ "$current_mix_version" != "$previous_mix_version" ]]; then
-            echo "Detected version bump: ${previous_mix_version} -> ${current_mix_version}"
-            echo "release_needed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Version unchanged (${current_mix_version}). Skipping release automation."
-            echo "release_needed=false" >> "$GITHUB_OUTPUT"
+            echo "Versions are aligned and tag ${tag} does not exist. Proceeding with release automation."
+            echo "release_needed=true" >> "$GITHUB_OUTPUT"
           fi
 
           echo "version=${current_mix_version}" >> "$GITHUB_OUTPUT"
