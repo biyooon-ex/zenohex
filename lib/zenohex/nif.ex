@@ -17,6 +17,9 @@ defmodule Zenohex.Nif do
     # NOTE: FROM HERE Rustler opts which are passed through to Rustler
     otp_app: :zenohex,
     crate: "zenohex_nif",
+    # CI optimization for GitHub Actions workflows:
+    # skip Rustler compilation during `mix compile` if a cached NIF has been restored.
+    skip_compilation?: System.get_env("GHA_SKIP_ZENOHEX_NIF_BUILD") in ["1", "true"],
     # NOTE: Uncomment during zenohhex_nif development.
     #       Setting `mode: :debug` makes `cargo build` skip the `--release` flag.
     # mode: :debug,
