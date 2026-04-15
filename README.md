@@ -145,6 +145,8 @@ Therefore, we clearly specify these version numbers with `==` in mix.exs and `=`
 
 ### How to release
 
+We expect [release-automation.yml](.github/workflows/release-automation.yml) to automatically trigger the following workflow when the version numbers in `mix.exs`, `Cargo.toml`, and `Cargo.lock` are updated and pushed to main branch; if that doesn’t happen, operate the following steps manually.
+
 These steps just follow the [Recommended flow of rustler_precompiled](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
 
 1. Change versions, `mix.exs`, `native/zenohex_nif/Cargo.toml`
