@@ -31,14 +31,15 @@ jobs:
 
           current_mix_version=$(sed -n 's/^  @version "\(.*\)"/\1/p' mix.exs | head -n1)
           current_cargo_version=$(sed -n 's/^version = "\(.*\)"/\1/p' native/zenohex_nif/Cargo.toml | head -n1)
+          current_lock_version=$(grep -A1 '^name = "zenohex_nif"' native/zenohex_nif/Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
 
-          if [[ -z "$current_mix_version" || -z "$current_cargo_version" ]]; then
-            echo "Failed to detect version from mix.exs or Cargo.toml"
+          if [[ -z "$current_mix_version" || -z "$current_cargo_version" || -z "$current_lock_version" ]]; then
+            echo "Failed to detect version from mix.exs, Cargo.toml, or Cargo.lock"
             exit 1
           fi
 
-          if [[ "$current_mix_version" != "$current_cargo_version" ]]; then
-            echo "Version mismatch: mix.exs=$current_mix_version, Cargo.toml=$current_cargo_version"
+          if [[ "$current_mix_version" != "$current_cargo_version" || "$current_mix_version" != "$current_lock_version" ]]; then
+            echo "Version mismatch: mix.exs=$current_mix_version, Cargo.toml=$current_cargo_version, Cargo.lock=$current_lock_version"
             exit 1
           fi
 
