@@ -3,7 +3,7 @@ name: Automated Release
 on:
   push:
     branches:
-      - release_automation
+      - main
     paths:
       - mix.exs
       - native/zenohex_nif/Cargo.toml
