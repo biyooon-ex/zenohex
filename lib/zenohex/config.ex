@@ -83,7 +83,12 @@ defmodule Zenohex.Config do
 
   `value` should be a valid JSON5 string (e.g., `"500"`, `"true"`, or `"\"peer\""`).
   If `value` is not valid JSON5 format (for example, a plain string like `"peer"`
-  missing its quotes), this function automatically quotes it and retries the insertion.
+  missing its quotes), this function automatically encodes as a JSON string and retries.
+
+  A list value (e.g, `["tcp/localhost:7447"]`) is also accepted and encoded as a JSON
+  array before insertion.
+  `charlist` values (single-quoted text like `'peer'`) are rejected to avoid
+  accidentally inserting a list of integer codepoints.
 
   ## Examples
 
@@ -102,6 +107,10 @@ defmodule Zenohex.Config do
       iex> Zenohex.Config.get_json(updated2, "mode")
       {:ok, "\"client\""}
 
+      iex> {:ok, updated3} = Zenohex.Config.insert_json5(config, "connect/endpoints", ["tcp/localhost:7447"])
+      iex> Zenohex.Config.get_json(updated3, "connect/endpoints")
+      {:ok, "[\"tcp/localhost:7447\"]"}
+
   > #### Migration from `update_in/3` {: .info}
   > The function `update_in/3` has been removed in v0.9.0.
   > For updating Zenoh configurations, please use `insert_json5/3` instead.
@@ -113,7 +122,19 @@ defmodule Zenohex.Config do
   Zenohex.Config.insert_json5(config, "scouting/delay", "100")
   ```
   """
-  @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
+  @spec insert_json5(t(), String.t(), String.t() | list()) ::
+          {:ok, t()} | {:error, reason :: term()}
+  def insert_json5(config, key, value)
+      when is_binary(config) and is_binary(key) and is_list(value) do
+    if List.ascii_printable?(value) do
+      {:error,
+       "charlist is not supported for insert_json5/3. Pass a binary string (\"peer\") or a JSON array list."}
+    else
+      encoded_value = value |> :json.encode() |> IO.iodata_to_binary()
+      insert_json5(config, key, encoded_value)
+    end
+  end
+
   def insert_json5(config, key, value)
       when is_binary(config) and is_binary(key) and is_binary(value) do
     case Zenohex.Nif.config_insert_json5(config, key, value) do
