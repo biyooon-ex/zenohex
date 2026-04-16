@@ -83,12 +83,14 @@ defmodule Zenohex.Config do
 
   `value` should be a valid JSON5 string (e.g., `"500"`, `"true"`, or `"\"peer\""`).
   If `value` is not valid JSON5 format (for example, a plain string like `"peer"`
-  missing its quotes), this function automatically encodes as a JSON string and retries.
+  missing its quotes), this function automatically quotes it (encodes as a JSON string)
+  and retries the insertion.
 
-  A list value (e.g, `["tcp/localhost:7447"]`) is also accepted and encoded as a JSON
+  A list value (e.g., `["tcp/localhost:7447"]`) is also accepted and encoded as a JSON
   array before insertion.
-  `charlist` values (single-quoted text like `'peer'`) are rejected to avoid
-  accidentally inserting a list of integer codepoints.
+  Printable ASCII `charlist` values (e.g., single-quoted text like `'peer'`) are
+  rejected to avoid accidentally inserting a list of integer codepoints. Other
+  non-ASCII charlists are treated as lists and may be encoded as JSON arrays of integers.
 
   ## Examples
 
@@ -126,12 +128,16 @@ defmodule Zenohex.Config do
           {:ok, t()} | {:error, reason :: term()}
   def insert_json5(config, key, value)
       when is_binary(config) and is_binary(key) and is_list(value) do
-    if List.ascii_printable?(value) do
+    if value != [] and List.ascii_printable?(value) do
       {:error,
        "charlist is not supported for insert_json5/3. Pass a binary string (\"peer\") or a JSON array list."}
     else
-      encoded_value = value |> :json.encode() |> IO.iodata_to_binary()
-      insert_json5(config, key, encoded_value)
+      try do
+        encoded_value = value |> :json.encode() |> IO.iodata_to_binary()
+        insert_json5(config, key, encoded_value)
+      catch
+        kind, reason -> {:error, {:json_encode_failed, {kind, reason}}}
+      end
     end
   end
 
