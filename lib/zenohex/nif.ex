@@ -147,7 +147,7 @@ defmodule Zenohex.Nif do
   # @spec keyexpr_undeclare(id(), key_expr :: reference()) :: :ok | {:error, term()}
   # def keyexpr_undeclare(_session_id, _key_expr), do: err()
 
-  @spec keyexpr_autocanonize(String.t()) :: String.t()
+  @spec keyexpr_autocanonize(String.t()) :: {:ok, String.t()} | {:error, String.t()}
   def keyexpr_autocanonize(_key_expr), do: err()
 
   @spec keyexpr_valid?(String.t()) :: boolean()
@@ -158,6 +158,9 @@ defmodule Zenohex.Nif do
 
   @spec keyexpr_includes?(String.t(), String.t()) :: boolean()
   def keyexpr_includes?(_key_expr1, _keyexpr2), do: err()
+
+  @spec keyexpr_join(String.t(), String.t()) :: {:ok, String.t()} | {:error, String.t()}
+  def keyexpr_join(_key_expr1, _key_expr2), do: err()
 
   # Liveliness
 
