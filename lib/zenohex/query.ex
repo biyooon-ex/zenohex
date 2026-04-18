@@ -107,7 +107,7 @@ defmodule Zenohex.Query do
     as: :query_reply_error
 
   @doc """
-  Sends an delete reply to the given Zenoh query.
+  Sends a delete reply to the given Zenoh query.
 
   ## Options
 
