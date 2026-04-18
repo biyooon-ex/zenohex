@@ -25,7 +25,7 @@ defmodule Zenohex.KeyExpr do
   @doc """
   Returns true if the keyexprs intersect.
 
-  There exists at least one key which is contained in both of the sets defined by `keyr_expr1` and `key_expr2`.
+  There exists at least one key which is contained in both of the sets defined by `key_expr1` and `key_expr2`.
   """
   @spec intersects?(String.t(), String.t()) :: boolean()
   defdelegate intersects?(key_expr1, key_expr2),
