@@ -40,7 +40,7 @@ defmodule ZenohexTestModeCommon do
         on_exit(fn ->
           # WHY: Explicitly undeclare `queryable_id`.
           #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
-          #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
+          #      which triggers Rust's `Drop`, so the callback is no longer called, and Queries stop being sent.
           :ok = Zenohex.Queryable.undeclare(queryable_id)
         end)
 
@@ -92,7 +92,7 @@ defmodule ZenohexTestModeCommon do
         on_exit(fn ->
           # WHY: Explicitly undeclare `queryable_id`.
           #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
-          #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
+          #      which triggers Rust's `Drop`, so the callback is no longer called, and Queries stop being sent.
           :ok = Zenohex.Queryable.undeclare(queryable_id)
         end)
 
