@@ -386,45 +386,6 @@ fn session_get<'a>(
 }
 
 #[rustler::nif]
-fn session_get_async(
-    session_id_resource: rustler::ResourceArc<SessionIdResource>,
-    selector: String,
-    pid: rustler::LocalPid,
-    opts: rustler::Term,
-) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
-
-    session_locked
-        .get(selector.as_str())
-        .apply_opts(opts)?
-        .callback(move |reply| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    let term = match reply.result() {
-                        Ok(sample) => {
-                            crate::sample::ZenohexSample::from(env, sample.clone()).encode(env)
-                        }
-                        Err(reply_error) => {
-                            crate::query::ZenohexQueryReplyError::from(env, reply_error.clone())
-                                .encode(env)
-                        }
-                    };
-                    env.send(&pid, term)
-                });
-            });
-        })
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
-
-    Ok(rustler::types::atom::ok())
-}
-
-#[rustler::nif]
 fn session_new_timestamp(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
 ) -> rustler::NifResult<(rustler::Atom, String)> {

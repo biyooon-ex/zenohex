@@ -251,18 +251,6 @@ defmodule Zenohex.Session do
     as: :session_get
 
   @doc """
-  Issues a query asynchronously.
-
-  Each reply is sent as a message (`%Zenohex.Sample{}` or `%Zenohex.Query.ReplyError{}`)
-  to `pid`. Unlike `get/4`, there is no way to know when all replies have been received;
-  use an application-level protocol to determine when to stop waiting.
-  """
-  @spec get_async(id(), String.t(), pid(), get_opts()) :: :ok | {:error, reason :: term()}
-  defdelegate get_async(session_id, selector, pid \\ self(), opts \\ []),
-    to: Zenohex.Nif,
-    as: :session_get_async
-
-  @doc """
   New zenoh timestamp string associated with the given session.
 
   ## Parameters

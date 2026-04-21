@@ -53,9 +53,12 @@ defmodule Zenohex.Nif do
           | {:error, reason :: term()}
   def session_get(_session_id, _selector, _timeout, _opts), do: err()
 
-  @spec session_get_async(session_id(), String.t(), pid(), keyword()) ::
-          :ok | {:error, reason :: term()}
-  def session_get_async(_session_id, _selector, _pid, _opts), do: err()
+  # NOTE: Not supported in Zenohex.
+  #       Use `session_get/4` for one-shot queries or
+  #       `querier_get_async/3` with a declared querier.
+  # @spec session_get_async(session_id(), String.t(), pid(), keyword()) ::
+  #         :ok | {:error, reason :: term()}
+  # def session_get_async(_session_id, _selector, _pid, _opts), do: err()
 
   @spec session_new_timestamp(session_id()) :: {:ok, String.t()} | {:error, reason :: term()}
   def session_new_timestamp(_session_id), do: err()

@@ -54,34 +54,6 @@ defmodule Zenohex.SessionTest do
     assert {:error, _} = Zenohex.Session.get(context.session_id, "key/expr", 100)
   end
 
-  test "get_async/2 delivers put replies to pid", context do
-    {:ok, queryable_id} =
-      Zenohex.Session.declare_queryable(context.session_id, "key/expr", self())
-
-    on_exit(fn -> Zenohex.Queryable.undeclare(queryable_id) end)
-
-    assert :ok = Zenohex.Session.get_async(context.session_id, "key/expr", self())
-
-    assert_receive %Zenohex.Query{zenoh_query: zenoh_query}
-    assert :ok = Zenohex.Query.reply(zenoh_query, "key/expr", "async_payload")
-
-    assert_receive %Zenohex.Sample{kind: :put, key_expr: "key/expr", payload: "async_payload"}
-  end
-
-  test "get_async/2 delivers error replies to pid", context do
-    {:ok, queryable_id} =
-      Zenohex.Session.declare_queryable(context.session_id, "key/expr", self())
-
-    on_exit(fn -> Zenohex.Queryable.undeclare(queryable_id) end)
-
-    assert :ok = Zenohex.Session.get_async(context.session_id, "key/expr", self())
-
-    assert_receive %Zenohex.Query{zenoh_query: zenoh_query}
-    assert :ok = Zenohex.Query.reply_error(zenoh_query, "error_payload")
-
-    assert_receive %Zenohex.Query.ReplyError{payload: "error_payload"}
-  end
-
   test "new_timestamp/1", context do
     assert {:ok, zenoh_timestamp} = Zenohex.Session.new_timestamp(context.session_id)
     assert [timestamp, _zenoh_id_string] = String.split(zenoh_timestamp, "/")
