@@ -175,9 +175,12 @@ defmodule Zenohex.Nif do
           | {:error, reason :: term()}
   def liveliness_get(_session_id, _key_expr, _timeout, _opts \\ []), do: err()
 
-  @spec liveliness_get_async(session_id(), String.t(), pid(), keyword()) ::
-          :ok | {:error, reason :: term()}
-  def liveliness_get_async(_session_id, _key_expr, _pid, _opts \\ []), do: err()
+  # NOTE: Not supported in Zenohex.
+  #       Use `liveliness_get/4` for one-shot queries or
+  #       `liveliness_declare_subscriber/4` for liveliness monitoring.
+  # @spec liveliness_get_async(session_id(), String.t(), pid(), keyword()) ::
+  #         :ok | {:error, reason :: term()}
+  # def liveliness_get_async(_session_id, _key_expr, _pid, _opts \\ []), do: err()
 
   @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
           {:ok, subscriber_id :: entity_id()} | {:error, reason :: term()}

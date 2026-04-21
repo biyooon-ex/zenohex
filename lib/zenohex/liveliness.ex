@@ -35,19 +35,6 @@ defmodule Zenohex.Liveliness do
   defdelegate get(session_id, key_expr, timeout, opts \\ []), to: Zenohex.Nif, as: :liveliness_get
 
   @doc """
-  Query liveliness tokens asynchronously.
-
-  Each reply is sent as a `%Zenohex.Sample{}` or `%Zenohex.Query.ReplyError{}` message to `pid`.
-  Unlike `get/4`, there is no way to know when all replies have been received;
-  use an application-level protocol to determine when to stop waiting.
-  """
-  @spec get_async(Zenohex.Session.id(), String.t(), pid(), get_opts()) ::
-          :ok | {:error, reason :: term()}
-  defdelegate get_async(session_id, key_expr, pid \\ self(), opts \\ []),
-    to: Zenohex.Nif,
-    as: :liveliness_get_async
-
-  @doc """
   Create a Subscriber for liveliness changes matching the given key expression.
 
   ## Parameters

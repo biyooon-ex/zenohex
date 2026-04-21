@@ -66,14 +66,4 @@ defmodule Zenohex.LivelinessTest do
     assert {:ok, [%Zenohex.Sample{kind: :put}]} =
              Zenohex.Liveliness.get(context.session_id, "key/expr", 100)
   end
-
-  test "get_async/3 delivers token samples to pid", context do
-    {:ok, token} = Zenohex.Liveliness.declare_token(context.session_id, "key/expr")
-
-    on_exit(fn -> Zenohex.Liveliness.undeclare_token(token) end)
-
-    assert :ok = Zenohex.Liveliness.get_async(context.session_id, "key/expr", self())
-
-    assert_receive %Zenohex.Sample{kind: :put}
-  end
 end
