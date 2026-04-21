@@ -164,7 +164,7 @@ impl Drop for SessionIdResource {
 
         match SessionMap::remove_session(&SESSION_MAP, session_id) {
             Ok(session) => {
-                let session_locked = session.write().unwrap();
+                let session_locked = session.read().unwrap();
                 let message = if session_locked.is_closed() {
                     "session already closed"
                 } else {
@@ -274,7 +274,7 @@ fn session_close(
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &session_id_resource;
     let session = SessionMap::remove_session(&SESSION_MAP, session_id)?;
-    let session_locked = session.write().unwrap();
+    let session_locked = session.read().unwrap();
 
     session_locked
         .close()
