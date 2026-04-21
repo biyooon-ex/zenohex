@@ -11,20 +11,22 @@ defmodule Zenohex.QuerierTest do
     {:ok, querier_id} = Zenohex.Session.declare_querier(session_id, "key/expr/**")
 
     on_exit(fn ->
-      Zenohex.Queryable.undeclare(queryable_id)
-      Zenohex.Querier.undeclare(querier_id)
-      Zenohex.Session.close(session_id)
+      :ok = Zenohex.Queryable.undeclare(queryable_id)
+      :ok = Zenohex.Querier.undeclare(querier_id)
+      :ok = Zenohex.Session.close(session_id)
     end)
 
     %{
+      session_id: session_id,
       querier_id: querier_id,
       queryable_id: queryable_id
     }
   end
 
   test "undeclare/1", context do
-    assert :ok = Zenohex.Querier.undeclare(context.querier_id)
-    assert {:error, _} = Zenohex.Querier.undeclare(context.querier_id)
+    {:ok, querier_id} = Zenohex.Session.declare_querier(context.session_id, "key/expr/1")
+    assert :ok = Zenohex.Querier.undeclare(querier_id)
+    assert {:error, _} = Zenohex.Querier.undeclare(querier_id)
   end
 
   test "get/3 returns put replies", context do

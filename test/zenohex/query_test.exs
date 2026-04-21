@@ -11,8 +11,8 @@ defmodule Zenohex.QueryTest do
       Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 
     on_exit(fn ->
-      Zenohex.Queryable.undeclare(queryable_id)
-      Zenohex.Session.close(session_id)
+      :ok = Zenohex.Queryable.undeclare(queryable_id)
+      :ok = Zenohex.Session.close(session_id)
     end)
 
     %{

@@ -7,7 +7,7 @@ defmodule Zenohex.SessionTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     %{session_id: session_id}
   end
@@ -23,9 +23,10 @@ defmodule Zenohex.SessionTest do
              |> Zenohex.Session.open()
   end
 
-  test "close/1", context do
-    assert Zenohex.Session.close(context.session_id) == :ok
-    assert Zenohex.Session.close(context.session_id) == {:error, "session not found"}
+  test "close/1" do
+    {:ok, session_id} = Zenohex.Session.open()
+    assert Zenohex.Session.close(session_id) == :ok
+    assert Zenohex.Session.close(session_id) == {:error, "session not found"}
   end
 
   test "put/3", context do
@@ -40,7 +41,7 @@ defmodule Zenohex.SessionTest do
     {:ok, subscriber_id} =
       Zenohex.Session.declare_subscriber(context.session_id, "key/expr", self())
 
-    on_exit(fn -> Zenohex.Subscriber.undeclare(subscriber_id) end)
+    on_exit(fn -> :ok = Zenohex.Subscriber.undeclare(subscriber_id) end)
 
     {:ok, timestamp} = Zenohex.Session.new_timestamp(context.session_id)
 

@@ -7,7 +7,7 @@ defmodule Zenohex.LivelinessTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     %{
       session_id: session_id
@@ -33,7 +33,7 @@ defmodule Zenohex.LivelinessTest do
     {:ok, subscriber_id} =
       Zenohex.Liveliness.declare_subscriber(context.session_id, "key/expr", self())
 
-    on_exit(fn -> Zenohex.Liveliness.undeclare_subscriber(subscriber_id) end)
+    on_exit(fn -> :ok = Zenohex.Liveliness.undeclare_subscriber(subscriber_id) end)
 
     assert {:ok, _token} = Zenohex.Liveliness.declare_token(context.session_id, "key/expr")
 
@@ -44,7 +44,7 @@ defmodule Zenohex.LivelinessTest do
     {:ok, subscriber_id} =
       Zenohex.Liveliness.declare_subscriber(context.session_id, "key/expr", self())
 
-    on_exit(fn -> Zenohex.Liveliness.undeclare_subscriber(subscriber_id) end)
+    on_exit(fn -> :ok = Zenohex.Liveliness.undeclare_subscriber(subscriber_id) end)
 
     {:ok, token} = Zenohex.Liveliness.declare_token(context.session_id, "key/expr")
 
@@ -61,7 +61,7 @@ defmodule Zenohex.LivelinessTest do
   test "get/3", context do
     {:ok, token} = Zenohex.Liveliness.declare_token(context.session_id, "key/expr")
 
-    on_exit(fn -> Zenohex.Liveliness.undeclare_token(token) end)
+    on_exit(fn -> :ok = Zenohex.Liveliness.undeclare_token(token) end)
 
     assert {:ok, [%Zenohex.Sample{kind: :put}]} =
              Zenohex.Liveliness.get(context.session_id, "key/expr", 100)

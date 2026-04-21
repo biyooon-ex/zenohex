@@ -7,7 +7,7 @@ defmodule ZenohexTestModeCommon do
           |> Zenohex.Test.Support.TestHelper.mode(unquote(mode))
           |> Zenohex.Session.open()
 
-        on_exit(fn -> Zenohex.Session.close(session_id) end)
+        on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
         %{session_id: session_id}
       end
@@ -20,7 +20,7 @@ defmodule ZenohexTestModeCommon do
           # WHY: Explicitly undeclare `subscriber_id`.
           #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
           #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
-          Zenohex.Subscriber.undeclare(subscriber_id)
+          :ok = Zenohex.Subscriber.undeclare(subscriber_id)
         end)
 
         {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
@@ -41,7 +41,7 @@ defmodule ZenohexTestModeCommon do
           # WHY: Explicitly undeclare `queryable_id`.
           #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
           #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
-          Zenohex.Queryable.undeclare(queryable_id)
+          :ok = Zenohex.Queryable.undeclare(queryable_id)
         end)
 
         task =
@@ -93,7 +93,7 @@ defmodule ZenohexTestModeCommon do
           # WHY: Explicitly undeclare `queryable_id`.
           #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
           #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
-          Zenohex.Queryable.undeclare(queryable_id)
+          :ok = Zenohex.Queryable.undeclare(queryable_id)
         end)
 
         task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])

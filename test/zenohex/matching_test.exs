@@ -7,7 +7,7 @@ defmodule Zenohex.MatchingTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     %{session_id: session_id}
   end
@@ -20,7 +20,7 @@ defmodule Zenohex.MatchingTest do
       # WHY: Explicitly undeclare `subscriber_id` after the assertion.
       #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
       #      which triggers Rust's `Drop` before matching status is observed.
-      Zenohex.Subscriber.undeclare(subscriber_id)
+      :ok = Zenohex.Subscriber.undeclare(subscriber_id)
     end)
 
     {:ok, publisher_id} = Zenohex.Session.declare_publisher(context.session_id, "key/expr")
@@ -36,7 +36,7 @@ defmodule Zenohex.MatchingTest do
       # WHY: Explicitly undeclare `queryable_id` after the assertion.
       #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
       #      which triggers Rust's `Drop` before matching status is observed.
-      Zenohex.Queryable.undeclare(queryable_id)
+      :ok = Zenohex.Queryable.undeclare(queryable_id)
     end)
 
     {:ok, querier_id} = Zenohex.Session.declare_querier(context.session_id, "key/expr/**")
@@ -51,7 +51,7 @@ defmodule Zenohex.MatchingTest do
       # WHY: Explicitly undeclare `publisher_id`.
       #      Otherwise, the Elixir GC may release `publisher_id` if it appears unused,
       #      which triggers Rust's `Drop`, so matching status updates may no longer be received.
-      Zenohex.Publisher.undeclare(publisher_id)
+      :ok = Zenohex.Publisher.undeclare(publisher_id)
     end)
 
     {:ok, listener_id} = Zenohex.Matching.declare_listener(publisher_id, self())
