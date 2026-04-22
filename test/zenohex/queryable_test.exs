@@ -7,7 +7,7 @@ defmodule Zenohex.QueryableTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
 

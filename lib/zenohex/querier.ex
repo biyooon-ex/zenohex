@@ -30,6 +30,16 @@ defmodule Zenohex.Querier do
   defdelegate get(id, timeout, opts \\ []), to: Zenohex.Nif, as: :querier_get
 
   @doc """
+  Executes a query asynchronously using the specified querier.
+
+  Each reply is sent as a message (`%Zenohex.Sample{}` or `%Zenohex.Query.ReplyError{}`)
+  to `pid`. Unlike `get/3`, there is no way to know when all replies have been received;
+  use an application-level protocol to determine when to stop waiting.
+  """
+  @spec get_async(id(), pid(), get_opts()) :: :ok | {:error, reason :: term()}
+  defdelegate get_async(id, pid \\ self(), opts \\ []), to: Zenohex.Nif, as: :querier_get_async
+
+  @doc """
   Undeclares the querier identified by the given ID.
   """
   @spec undeclare(id()) :: :ok | {:error, reason :: term()}

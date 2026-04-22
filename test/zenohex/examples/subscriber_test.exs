@@ -7,6 +7,8 @@ defmodule Zenohex.Examples.SubscriberTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
+
     %{
       me: self(),
       session_id: session_id,
