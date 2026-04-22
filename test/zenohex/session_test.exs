@@ -13,14 +13,32 @@ defmodule Zenohex.SessionTest do
   end
 
   test "open/0" do
-    assert {:ok, _session_id} = Zenohex.Session.open()
+    assert {:ok, session_id} = Zenohex.Session.open()
+
+    # Use explicit cleanup here because relying on Drop was flaky on Windows CI.
+    # Without this, Windows CI intermittently failed with the following error:
+    #
+    #   ** (MatchError) no match of right hand side value:
+    #   {:error,
+    #    "native/zenohex_nif/src\\session.rs:282: close operation timed out! at
+    #    C:\\Users\\runneradmin\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\zenoh-1.9.0\\src\\api\\builders\\close.rs:124."}
+    :ok = Zenohex.Session.close(session_id)
   end
 
   test "open/1" do
-    assert {:ok, _session_id} =
+    assert {:ok, session_id} =
              Zenohex.Config.default()
              |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
              |> Zenohex.Session.open()
+
+    # Use explicit cleanup here because relying on Drop was flaky on Windows CI.
+    # Without this, Windows CI intermittently failed with the following error:
+    #
+    #   ** (MatchError) no match of right hand side value:
+    #   {:error,
+    #    "native/zenohex_nif/src\\session.rs:282: close operation timed out! at
+    #    C:\\Users\\runneradmin\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\zenoh-1.9.0\\src\\api\\builders\\close.rs:124."}
+    :ok = Zenohex.Session.close(session_id)
   end
 
   test "close/1" do
