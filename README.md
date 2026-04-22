@@ -2,7 +2,7 @@
 
 [![Hex version](https://img.shields.io/hexpm/v/zenohex.svg "Hex version")](https://hex.pm/packages/zenohex)
 [![API docs](https://img.shields.io/hexpm/v/zenohex.svg?label=hexdocs "API docs")](https://hexdocs.pm/zenohex/)
-[![License](https://img.shields.io/hexpm/l/zenohex.svg)](https://github.com/zenohex/zenohex/blob/main/LICENSE)
+[![License](https://img.shields.io/hexpm/l/zenohex.svg)](https://github.com/biyooon-ex/zenohex/blob/main/LICENSE)
 [![Code Analysis](https://github.com/biyooon-ex/zenohex/actions/workflows/code-analysis.yml/badge.svg)](https://github.com/biyooon-ex/zenohex/actions/workflows/code-analysis.yml)
 [![Test](https://github.com/biyooon-ex/zenohex/actions/workflows/test.yml/badge.svg)](https://github.com/biyooon-ex/zenohex/actions/workflows/test.yml)
 
@@ -103,7 +103,7 @@ iex()> flush()
 
 ### Practical examples
 
-We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples).
+We implemented practical examples under [lib/zenohex/examples](https://github.com/biyooon-ex/zenohex/tree/main/lib/zenohex/examples).
 Since they consist of `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
 ## Notice
@@ -112,7 +112,7 @@ Please note that Zenohex does not support every API and feature provided by the 
 This includes APIs and features marked as `unstable` or `internal`, as well as those we currently consider lower priority.
 We also exclude features related to plugins, routers, and transport operations, as we do not consider those to be the responsibility of a language binding.
 
-If there are unsupported APIs or features you would like to use in your project, please let us know by opening an [issue](https://github.com/biyooon-ex/zenohex/issues) in this repository.
+If there are unsupported APIs or features you would like to use in your project, please let us know by opening an [Issue](https://github.com/biyooon-ex/zenohex/issues) in this repository.
 In addition, [Pull requests](https://github.com/biyooon-ex/zenohex/pulls) are always welcome:D  
 (Our core developers often communicate in Japanese, but English is of course welcome as well.)
 
@@ -157,7 +157,7 @@ Therefore, we clearly specify these version numbers with `==` in mix.exs and `=`
 
 ### How to release
 
-We expect [release-automation.yml](.github/workflows/release-automation.yml) to automatically trigger the following workflow when the version numbers in `mix.exs`, `Cargo.toml`, and `Cargo.lock` are updated and pushed to main branch; if that doesn’t happen, operate the following steps manually.
+We expect [release-automation.yml](https://github.com/biyooon-ex/zenohex/blob/main/.github/workflows/release-automation.yml) to automatically trigger the following workflow when the version numbers in `mix.exs`, `Cargo.toml`, and `Cargo.lock` are updated and pushed to main branch; if that doesn’t happen, operate the following steps manually.
 
 These steps just follow the [Recommended flow of rustler_precompiled](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
 
@@ -181,5 +181,5 @@ These steps just follow the [Recommended flow of rustler_precompiled](https://he
 
 ## License
 
-The source code of this repository itself is published under [MIT License](https://github.com/b5g-ex/zenohex/blob/main/LICENSE).  
+The source code of this repository itself is published under [MIT License](https://github.com/biyooon-ex/zenohex/blob/main/LICENSE).  
 Please note that this repository mainly uses [Zenoh which is licensed under Apache 2.0 and EPL 2.0](https://github.com/eclipse-zenoh/zenoh/blob/main/LICENSE) and [Rustler which is licensed under either of Apache 2.0 or MIT](https://github.com/rusterlium/rustler?tab=readme-ov-file#license).
