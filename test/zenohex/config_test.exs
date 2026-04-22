@@ -75,5 +75,23 @@ defmodule Zenohex.ConfigTest do
 
     assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "client")
     assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated2, "mode")
+
+    assert {:ok, updated3} =
+             Zenohex.Config.insert_json5(updated2, "connect/endpoints", ["tcp/localhost:7447"])
+
+    assert {:ok, "[\"tcp/localhost:7447\"]"} =
+             Zenohex.Config.get_json(updated3, "connect/endpoints")
+
+    assert {:error, reason} = Zenohex.Config.insert_json5(updated3, "mode", ~c"client")
+    assert reason =~ "charlist is not supported"
+
+    assert {:error, {:json_encode_failed, {kind, reason}}} =
+             Zenohex.Config.insert_json5(updated3, "connect/endpoints", [self()])
+
+    assert kind == :error
+    refute is_nil(reason)
+
+    assert {:ok, updated4} = Zenohex.Config.insert_json5(updated, "connect/endpoints", [])
+    assert {:ok, "[]"} = Zenohex.Config.get_json(updated4, "connect/endpoints")
   end
 end
