@@ -106,6 +106,18 @@ iex()> flush()
 We implemented practical examples under the [lib/zenohex/examples](https://github.com/b5g-ex/zenohex/tree/main/lib/zenohex/examples).
 Since they consist of `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
+## Notice
+
+Please note that Zenohex does not support every API and feature provided by the core Zenoh library, which is implemented in Rust.
+This includes APIs and features marked as `unstable` or `internal`, as well as those we currently consider lower priority.
+We also exclude features related to plugins, routers, and transport operations, as we do not consider those to be the responsibility of a language binding.
+
+If there are unsupported APIs or features you would like to use in your project, please let us know by opening an [issue](https://github.com/biyooon-ex/zenohex/issues) in this repository.
+In addition, [Pull requests](https://github.com/biyooon-ex/zenohex/pulls) are always welcome:D  
+(Our core developers often communicate in Japanese, but English is of course welcome as well.)
+
+Additionally, we prioritize features that feel more natural in Elixir over strict parity with the native Rust API, so some interfaces and behavior may differ from the Zenoh core implementation or from APIs in other languages.
+
 ## For developers
 
 For most users, this section should be skipped.
