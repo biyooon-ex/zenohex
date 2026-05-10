@@ -14,10 +14,10 @@ on:
 
 jobs:
   code-analysis:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: erlef/setup-beam@v1
         id: setup-beam
