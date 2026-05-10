@@ -177,13 +177,17 @@ defmodule Zenohex.Session do
   def open(config) when is_binary(config), do: Zenohex.Nif.session_open(config)
 
   def open(config) when is_map(config) do
-    with {:ok, normalized} <- Zenohex.Config.from_map(config) do
-      try do
-        json = JSON.encode!(normalized)
-        Zenohex.Nif.session_open(json)
-      rescue
-        error -> {:error, {:json_encode_failed, error}}
-      end
+    with {:ok, normalized} <- Zenohex.Config.from_map(config),
+         {:ok, json} <- encode_json(normalized) do
+      Zenohex.Nif.session_open(json)
+    end
+  end
+
+  defp encode_json(value) do
+    try do
+      {:ok, JSON.encode!(value)}
+    rescue
+      error -> {:error, {:json_encode_failed, error}}
     end
   end
 

@@ -389,12 +389,19 @@ defmodule Zenohex.Config do
 
   defp get_in_data(data, key) when is_map(data) do
     path = split_key_path(key)
+    fetch_path_value(data, path)
+  end
 
-    case get_in(data, Enum.map(path, &Access.key(&1))) do
-      nil -> {:error, :not_found}
-      value -> {:ok, value}
+  defp fetch_path_value(value, []), do: {:ok, value}
+
+  defp fetch_path_value(data, [segment | rest]) when is_map(data) do
+    case Map.fetch(data, segment) do
+      {:ok, value} -> fetch_path_value(value, rest)
+      :error -> {:error, :not_found}
     end
   end
+
+  defp fetch_path_value(_data, _path), do: {:error, :not_found}
 
   defp put_in_data(data, key, value) when is_map(data) do
     path = split_key_path(key)

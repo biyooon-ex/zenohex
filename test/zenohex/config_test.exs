@@ -42,6 +42,14 @@ defmodule Zenohex.ConfigTest do
       assert {:ok, 42} = Zenohex.Config.get(map, "scouting/delay")
     end
 
+    test "get/2 returns nil when key exists with null value" do
+      map = %{"mode" => nil, "scouting" => %{"delay" => nil}}
+
+      assert {:ok, nil} = Zenohex.Config.get(map, "mode")
+      assert {:ok, nil} = Zenohex.Config.get(map, "scouting/delay")
+      assert {:error, :not_found} = Zenohex.Config.get(map, "scouting/timeout")
+    end
+
     test "insert/3 with map config and key normalization" do
       map = %{mode: "peer", scouting: %{delay: 500}}
 
