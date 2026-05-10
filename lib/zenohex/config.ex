@@ -114,16 +114,14 @@ defmodule Zenohex.Config do
   """
   @spec get(t() | map(), String.t()) :: {:ok, json_value()} | {:error, reason :: term()}
   def get(config, key) when is_binary(config) and is_binary(key) do
-    with {:ok, json} <- get_json(config, key),
-         {:ok, decoded} <- decode_json(json) do
-      {:ok, decoded}
+    with {:ok, json} <- get_json(config, key) do
+      decode_json(json)
     end
   end
 
   def get(config, key) when is_map(config) and is_binary(key) do
-    with {:ok, normalized} <- normalize_data(config),
-         {:ok, value} <- get_in_data(normalized, key) do
-      {:ok, value}
+    with {:ok, normalized} <- normalize_data(config) do
+      get_in_data(normalized, key)
     end
   end
 
@@ -151,17 +149,15 @@ defmodule Zenohex.Config do
           {:ok, data_t()} | {:error, reason :: term()}
   def insert(config, key, value) when is_binary(config) and is_binary(key) do
     with {:ok, normalized_config} <- decode_config_result({:ok, config}),
-         {:ok, normalized_value} <- normalize_value(value),
-         {:ok, updated} <- put_in_data(normalized_config, key, normalized_value) do
-      {:ok, updated}
+         {:ok, normalized_value} <- normalize_value(value) do
+      put_in_data(normalized_config, key, normalized_value)
     end
   end
 
   def insert(config, key, value) when is_map(config) and is_binary(key) do
     with {:ok, normalized} <- normalize_data(config),
-         {:ok, normalized_value} <- normalize_value(value),
-         {:ok, updated} <- put_in_data(normalized, key, normalized_value) do
-      {:ok, updated}
+         {:ok, normalized_value} <- normalize_value(value) do
+      put_in_data(normalized, key, normalized_value)
     end
   end
 
@@ -384,9 +380,8 @@ defmodule Zenohex.Config do
   end
 
   defp decode_config_result({:ok, config_binary}) do
-    with {:ok, decoded} <- decode_json(config_binary),
-         {:ok, normalized} <- normalize_data(decoded) do
-      {:ok, normalized}
+    with {:ok, decoded} <- decode_json(config_binary) do
+      normalize_data(decoded)
     end
   end
 
