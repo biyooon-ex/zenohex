@@ -62,7 +62,20 @@ defmodule Zenohex.Config do
   @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
 
-  @doc false
+  @doc """
+  Parses a JSON5 configuration string and returns canonical JSON.
+
+  This is useful when you already have configuration content in memory,
+  such as text loaded from a file, template output, or environment-driven
+  string construction.
+
+  ## Examples
+
+      iex> json5 = File.read!("path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_json5(json5)
+      iex> is_binary(config)
+      true
+  """
   @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
