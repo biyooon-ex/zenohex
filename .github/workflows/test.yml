@@ -20,9 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
+          # WHY: not using `-latest` to `os:`, see https://github.com/biyooon-ex/zenohex/pull/196
           - ubuntu-24.04
           - macos-26
-          - windows-2025
+          - windows-2022
 
     steps:
       - uses: actions/checkout@v4
