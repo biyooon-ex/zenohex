@@ -20,12 +20,13 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+          # WHY: not using `-latest` to `os:`, see https://github.com/biyooon-ex/zenohex/pull/196
+          - ubuntu-24.04
+          - macos-26
+          - windows-2022
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: erlef/setup-beam@v1
         id: setup-beam
