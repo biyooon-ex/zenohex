@@ -7,7 +7,7 @@ defmodule ZenohexTestModeCommon do
           |> Zenohex.Test.Support.TestHelper.mode(unquote(mode))
           |> Zenohex.Session.open()
 
-        on_exit(fn -> Zenohex.Session.close(session_id) end)
+        on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
         %{session_id: session_id}
       end
@@ -15,6 +15,13 @@ defmodule ZenohexTestModeCommon do
       test "pub/sub", %{session_id: session_id} do
         {:ok, subscriber_id} =
           Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
+
+        on_exit(fn ->
+          # WHY: Explicitly undeclare `subscriber_id`.
+          #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
+          #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
+          :ok = Zenohex.Subscriber.undeclare(subscriber_id)
+        end)
 
         {:ok, publisher_id} = Zenohex.Session.declare_publisher(session_id, "key/expr")
 
@@ -25,15 +32,17 @@ defmodule ZenohexTestModeCommon do
           key_expr: "key/expr",
           payload: "Hello Zenoh Dragon"
         }
-
-        # WHY: Explicitly undeclare `subscriber_id`.
-        #      Otherwise, the Elixir GC may release `subscriber_id` if it appears unused,
-        #      which triggers Rust's `Drop`, so the callback is no longer called, and Samples stop being sent.
-        :ok = Zenohex.Subscriber.undeclare(subscriber_id)
       end
 
       test "get/reply without ReplyError", %{session_id: session_id} do
         {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
+        on_exit(fn ->
+          # WHY: Explicitly undeclare `queryable_id`.
+          #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
+          #      which triggers Rust's `Drop`, so the callback is no longer called, and Queries stop being sent.
+          :ok = Zenohex.Queryable.undeclare(queryable_id)
+        end)
 
         task =
           Task.async(Zenohex.Session, :get, [
@@ -75,15 +84,17 @@ defmodule ZenohexTestModeCommon do
                      payload: ""
                    }
                  ])
-
-        # WHY: Explicitly undeclare `queryable_id`.
-        #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
-        #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
-        :ok = Zenohex.Queryable.undeclare(queryable_id)
       end
 
       test "get/reply with ReplyError", %{session_id: session_id} do
         {:ok, queryable_id} = Zenohex.Session.declare_queryable(session_id, "key/expr", self())
+
+        on_exit(fn ->
+          # WHY: Explicitly undeclare `queryable_id`.
+          #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
+          #      which triggers Rust's `Drop`, so the callback is no longer called, and Queries stop being sent.
+          :ok = Zenohex.Queryable.undeclare(queryable_id)
+        end)
 
         task = Task.async(Zenohex.Session, :get, [session_id, "key/expr/**", 100])
 
@@ -117,11 +128,6 @@ defmodule ZenohexTestModeCommon do
                      payload: <<3>>
                    }
                  ])
-
-        # WHY: Explicitly undeclare `queryable_id`.
-        #      Otherwise, the Elixir GC may release `queryable_id` if it appears unused,
-        #      which triggers Rust's `Drop`, so the callback is no longer called, and Query stop being sent.
-        :ok = Zenohex.Queryable.undeclare(queryable_id)
       end
 
       test "scout/3 convenience API", %{config: config} do

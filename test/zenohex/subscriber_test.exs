@@ -7,7 +7,7 @@ defmodule Zenohex.SubscriberTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     {:ok, subscriber_id} = Zenohex.Session.declare_subscriber(session_id, "key/expr", self())
 

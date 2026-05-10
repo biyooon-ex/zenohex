@@ -11,7 +11,7 @@ defmodule Zenohex.Examples.Subscriber do
 
   ## Examples
 
-      iex> Zenohex.Examples.Queryable.start_link([])
+      iex> Zenohex.Examples.Subscriber.start_link([])
   """
 
   use GenServer

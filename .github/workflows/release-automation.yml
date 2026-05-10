@@ -12,14 +12,14 @@ on:
 
 jobs:
   detect-version-bump:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       release_needed: ${{ steps.detect.outputs.release_needed }}
       version: ${{ steps.detect.outputs.version }}
       tag: ${{ steps.detect.outputs.tag }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -59,12 +59,12 @@ jobs:
   create-tag-and-release:
     needs: detect-version-bump
     if: needs.detect-version-bump.outputs.release_needed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract Zenoh version info from README
         id: zenoh-info
@@ -81,7 +81,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create tag and GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.detect-version-bump.outputs.tag }}
           name: ${{ needs.detect-version-bump.outputs.tag }}
@@ -104,7 +104,7 @@ jobs:
       - detect-version-bump
       - build-precompiled-nifs
     if: needs.detect-version-bump.outputs.release_needed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:
@@ -112,7 +112,7 @@ jobs:
       ELIXIR_VERSION: 1.18.4
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

@@ -2,8 +2,8 @@ defmodule Zenohex.KeyExprTest do
   use ExUnit.Case
 
   test "canonize/1" do
-    assert Zenohex.KeyExpr.canonize("key/expr/**/*") == "key/expr/*/**"
-    assert_raise ArgumentError, fn -> Zenohex.KeyExpr.canonize("invalid/key/expr?") end
+    assert {:ok, "key/expr/*/**"} == Zenohex.KeyExpr.canonize("key/expr/**/*")
+    assert {:error, _} = Zenohex.KeyExpr.canonize("invalid/key/expr?")
   end
 
   test "valid?/1" do
@@ -26,5 +26,14 @@ defmodule Zenohex.KeyExprTest do
     assert_raise ArgumentError, fn ->
       Zenohex.KeyExpr.includes?("valid/key/expr", "invalid/key/expr?")
     end
+  end
+
+  test "join/2" do
+    assert {:ok, "key/expr/sub"} = Zenohex.KeyExpr.join("key/expr", "sub")
+    assert {:error, _} = Zenohex.KeyExpr.join("invalid/key/expr?", "sub")
+  end
+
+  test "join/2 returns canonized key expression" do
+    assert {:ok, "key/expr/*/**"} == Zenohex.KeyExpr.join("key/expr/**", "*")
   end
 end

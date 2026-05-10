@@ -7,7 +7,7 @@ defmodule Zenohex.Examples.PublisherTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> Zenohex.Session.close(session_id) end)
+    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
 
     key_expr = "key/expr"
 
