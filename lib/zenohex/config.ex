@@ -71,14 +71,10 @@ defmodule Zenohex.Config do
   ## Examples
 
       iex> {:ok, config} = Zenohex.Config.default_map()
-      iex> {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
+      iex> {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer", scouting: %{delay: 100}, connect: %{endpoints: ["tcp/localhost:7447"]}})
       iex> {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
-
-      iex> {:ok, updated1} = Zenohex.Config.put(config, %{scouting: %{delay: 100}})
-      iex> {:ok, 100} = Zenohex.Config.get(updated1, "scouting/delay")
-
-      iex> {:ok, updated2} = Zenohex.Config.put(config, %{connect: %{endpoints: ["tcp/localhost:7447"]}})
-      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated2, "connect/endpoints")
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
   """
   @spec put(t() | map(), map()) :: {:ok, data_t()} | {:error, reason :: term()}
   def put(_config, map) when is_map(map) do
@@ -133,17 +129,13 @@ defmodule Zenohex.Config do
 
   ## Examples
 
-      ### Update keys in a canonical JSON config binary
-      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
-      iex> {:ok, updated0} = Zenohex.Config.insert(config, "mode", "peer")
-      iex> {:ok, "peer"} = Zenohex.Config.get(updated0, "mode")
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-      ### Update keys in an Elixir map
-      iex> {:ok, config} = Zenohex.Config.from_map(%{mode: "client", connect: %{endpoints: []}})
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "connect", %{endpoints: ["tcp/localhost:7447"]})
-      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, updated1} = Zenohex.Config.insert(config, "mode", "peer")
+      iex> {:ok, updated2} = Zenohex.Config.insert(updated1, "scouting/delay", 100)
+      iex> {:ok, updated3} = Zenohex.Config.insert(updated2, "connect/endpoints", ["tcp/localhost:7447"])
+      iex> {:ok, "peer"} = Zenohex.Config.get(updated3, "mode")
+      iex> {:ok, 100} = Zenohex.Config.get(updated3, "scouting/delay")
+      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated3, "connect/endpoints")
   """
   @spec insert(t() | map(), String.t(), json_value() | map()) ::
           {:ok, data_t()} | {:error, reason :: term()}
@@ -306,23 +298,25 @@ defmodule Zenohex.Config do
 
   ## Examples
 
+      ### Case 1: Insert numeric value
       iex> config = Zenohex.Config.default()
-      iex> {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-      iex> Zenohex.Config.get_json(updated, "scouting/delay")
+      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+      iex> Zenohex.Config.get_json(updated1, "scouting/delay")
       {:ok, "100"}
 
-      ### Pass a valid JSON5 string (manually quoted)
-      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "mode", "\"peer\"")
-      iex> Zenohex.Config.get_json(updated1, "mode")
+      ### Case 2: Insert valid JSON5 string (manually quoted)
+      iex> {:ok, updated2} = Zenohex.Config.insert_json5(updated1, "mode", "\"peer\"")
+      iex> Zenohex.Config.get_json(updated2, "mode")
       {:ok, "\"peer\""}
 
-      ### Pass a plain string (automatically quoted by this function)
-      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
-      iex> Zenohex.Config.get_json(updated2, "mode")
+      ### Case 3: Insert plain string (automatically quoted by this function)
+      iex> {:ok, updated3} = Zenohex.Config.insert_json5(updated2, "mode", "client")
+      iex> Zenohex.Config.get_json(updated3, "mode")
       {:ok, "\"client\""}
 
-      iex> {:ok, updated3} = Zenohex.Config.insert_json5(config, "connect/endpoints", ["tcp/localhost:7447"])
-      iex> Zenohex.Config.get_json(updated3, "connect/endpoints")
+      ### Case 4: Insert list as JSON array
+      iex> {:ok, updated4} = Zenohex.Config.insert_json5(updated3, "connect/endpoints", ["tcp/localhost:7447"])
+      iex> Zenohex.Config.get_json(updated4, "connect/endpoints")
       {:ok, "[\"tcp/localhost:7447\"]"}
 
   > #### Migration from `update_in/3` {: .info}
