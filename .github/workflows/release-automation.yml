@@ -19,7 +19,7 @@ jobs:
       tag: ${{ steps.detect.outputs.tag }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -64,7 +64,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Extract Zenoh version info from README
         id: zenoh-info
@@ -112,7 +112,7 @@ jobs:
       ELIXIR_VERSION: 1.18.4
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
