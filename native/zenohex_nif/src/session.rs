@@ -141,6 +141,44 @@ impl<'a> SessionMap<'_> {
 
 pub static SESSION_MAP: LazyLock<SessionMap> = LazyLock::new(SessionMap::new);
 
+enum SessionCloseStatus {
+    AlreadyClosed,
+    Closed,
+    TimedOutIgnored,
+}
+
+// WHY: Keep close behavior consistent between explicit close and resource drop,
+//      including timeout-tolerant cleanup on Windows.
+fn close_session_tolerating_timeout(
+    session: &Session<'_>,
+    context: &str,
+) -> rustler::NifResult<SessionCloseStatus> {
+    if session.is_closed() {
+        return Ok(SessionCloseStatus::AlreadyClosed);
+    }
+
+    match session.close().wait() {
+        Ok(_) => Ok(SessionCloseStatus::Closed),
+        Err(error) => {
+            let error_string = error.to_string();
+
+            // Closing a session can intermittently time out during cleanup, especially on
+            // Windows CI. The session has already been removed from SESSION_MAP, so treat
+            // that timeout as a successful close and avoid failing teardown.
+            if error_string.contains("close operation timed out") {
+                log::warn!(
+                    "ignoring session close timeout during {}: {}",
+                    context,
+                    error_string
+                );
+                Ok(SessionCloseStatus::TimedOutIgnored)
+            } else {
+                Err(rustler::Error::Term(crate::zenoh_error!(error)))
+            }
+        }
+    }
+}
+
 // WHY: Use zenoh::session::ZenohId for resource, instead of zenoh::Session itself
 //      If we use the session for resource, we got the following error.
 //      the trait std::panic::RefUnwindSafe is not implemented for
@@ -165,12 +203,18 @@ impl Drop for SessionIdResource {
         match SessionMap::remove_session(&SESSION_MAP, session_id) {
             Ok(session) => {
                 let session_locked = session.read().unwrap();
-                let message = if session_locked.is_closed() {
-                    "session already closed"
-                } else {
-                    session_locked.close().wait().unwrap();
-                    "session closed by drop"
-                };
+                let message =
+                    match close_session_tolerating_timeout(&session_locked, "drop cleanup") {
+                        Ok(SessionCloseStatus::AlreadyClosed) => "session already closed",
+                        Ok(SessionCloseStatus::Closed) => "session closed by drop",
+                        Ok(SessionCloseStatus::TimedOutIgnored) => {
+                            "session close timeout ignored by drop"
+                        }
+                        Err(error) => {
+                            log::warn!("session close failed during drop cleanup: {:?}", error);
+                            return;
+                        }
+                    };
                 log::debug!("{}", message)
             }
             Err(_error) => log::debug!("session already removed"),
@@ -268,34 +312,20 @@ fn session_open(
     ))
 }
 
-#[rustler::nif]
+// WHY: close().wait() can block until timeout, so run this NIF on DirtyIo.
+#[rustler::nif(schedule = "DirtyIo")]
 fn session_close(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &session_id_resource;
 
+    // Remove first so concurrent operations fail fast while close is in progress.
     let session = SessionMap::remove_session(&SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
 
-    match session_locked.close().wait() {
-        Ok(_) => Ok(rustler::types::atom::ok()),
-        Err(error) => {
-            let error_string = error.to_string();
+    close_session_tolerating_timeout(&session_locked, "session_close")?;
 
-            // Closing a session can intermittently time out during cleanup, especially on
-            // Windows CI. The session has already been removed from SESSION_MAP, so treat
-            // that timeout as a successful close and avoid failing teardown.
-            if error_string.contains("close operation timed out") {
-                log::warn!(
-                    "ignoring session close timeout during cleanup: {}",
-                    error_string
-                );
-                Ok(rustler::types::atom::ok())
-            } else {
-                Err(rustler::Error::Term(crate::zenoh_error!(error)))
-            }
-        }
-    }
+    Ok(rustler::types::atom::ok())
 }
 
 #[rustler::nif]
