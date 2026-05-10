@@ -144,14 +144,19 @@ defmodule Zenohex.Session do
   def open(), do: open(Zenohex.Config.default())
 
   @doc """
-  Opens a session with the given JSON5 or JSON configuration.
+  Opens a session with the given configuration.
 
-  The configuration must be provided as a JSON5 string.
-  JSON is also supported as a subset of JSON5.
+  You can pass either:
+
+  - a JSON5 string (JSON is supported as a subset of JSON5), or
+  - an Elixir map.
+
+  When a map is provided, keys are normalized via `Zenohex.Config.from_map/1`,
+  then encoded to JSON and passed to the NIF.
 
   ## Parameters
 
-  - `json5_binary` : A JSON5 string representing the Zenoh configuration.
+  - `config` : A JSON5 string or Elixir map representing the Zenoh configuration.
 
   > ### Important {: .info}
   >
@@ -164,9 +169,23 @@ defmodule Zenohex.Session do
       iex> {:ok, session_id} =
       ...> File.read!("test/support/fixtures/DEFAULT_CONFIG.json5") |>
       ...> Zenohex.Session.open()
+
+      iex> config = Zenohex.Config.default_map()
+      iex> {:ok, session_id} = Zenohex.Session.open(config)
   """
-  @spec open(String.t()) :: {:ok, session_id :: id()} | {:error, reason :: term()}
-  defdelegate open(json5_binary), to: Zenohex.Nif, as: :session_open
+  @spec open(String.t() | map()) :: {:ok, session_id :: id()} | {:error, reason :: term()}
+  def open(config) when is_binary(config), do: Zenohex.Nif.session_open(config)
+
+  def open(config) when is_map(config) do
+    with {:ok, normalized} <- Zenohex.Config.from_map(config) do
+      try do
+        json = JSON.encode!(normalized)
+        Zenohex.Nif.session_open(json)
+      rescue
+        error -> {:error, {:json_encode_failed, error}}
+      end
+    end
+  end
 
   @doc """
   Closes a session.
