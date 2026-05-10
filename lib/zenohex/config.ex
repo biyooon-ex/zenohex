@@ -19,7 +19,7 @@ defmodule Zenohex.Config do
   Print the config in a readable form to check its contents.
 
       iex> config = Zenohex.Config.default()
-      iex> config |> :json.decode() |> :json.format() |> IO.puts()
+      iex> config |> JSON.decode!() |> IO.inspect(pretty: true)
   """
   @spec default() :: t()
   defdelegate default(), to: Zenohex.Nif, as: :config_default
@@ -133,10 +133,10 @@ defmodule Zenohex.Config do
        "charlist is not supported for insert_json5/3. Pass a binary string (\"peer\") or a JSON array list."}
     else
       try do
-        encoded_value = value |> :json.encode() |> IO.iodata_to_binary()
+        encoded_value = value |> JSON.encode_to_iodata!() |> IO.iodata_to_binary()
         insert_json5(config, key, encoded_value)
-      catch
-        kind, reason -> {:error, {:json_encode_failed, {kind, reason}}}
+      rescue
+        error -> {:error, {:json_encode_failed, error}}
       end
     end
   end
@@ -151,7 +151,7 @@ defmodule Zenohex.Config do
         # If the value is not a valid JSON5 format (e.g., `"peer"`),
         # retry by quoting it as a JSON string.
         # If the retry also fails, return the original error.
-        quoted_value = value |> :json.encode() |> IO.iodata_to_binary()
+        quoted_value = JSON.encode!(value)
 
         case Zenohex.Nif.config_insert_json5(config, key, quoted_value) do
           {:ok, _updated_config} = result -> result

@@ -85,11 +85,10 @@ defmodule Zenohex.ConfigTest do
     assert {:error, reason} = Zenohex.Config.insert_json5(updated3, "mode", ~c"client")
     assert reason =~ "charlist is not supported"
 
-    assert {:error, {:json_encode_failed, {kind, reason}}} =
+    assert {:error, {:json_encode_failed, reason}} =
              Zenohex.Config.insert_json5(updated3, "connect/endpoints", [self()])
 
-    assert kind == :error
-    refute is_nil(reason)
+    assert %Protocol.UndefinedError{} = reason
 
     assert {:ok, updated4} = Zenohex.Config.insert_json5(updated, "connect/endpoints", [])
     assert {:ok, "[]"} = Zenohex.Config.get_json(updated4, "connect/endpoints")
