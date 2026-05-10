@@ -1,15 +1,158 @@
 defmodule Zenohex.ConfigTest do
   use ExUnit.Case
 
-  test "default/0" do
-    assert is_binary(Zenohex.Config.default())
+  describe "map-centric API" do
+    test "default_map/0" do
+      config = Zenohex.Config.default_map()
+
+      assert is_map(config)
+      assert Map.has_key?(config, "scouting")
+    end
+
+    test "from_map/1" do
+      map = %{mode: "peer", scouting: %{delay: 100}}
+
+      assert {:ok, config} = Zenohex.Config.from_map(map)
+      assert is_map(config)
+      assert {:ok, 100} = Zenohex.Config.get(config, "scouting/delay")
+    end
+
+    test "put/2" do
+      config = Zenohex.Config.default_map()
+
+      assert {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
+      assert {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
+      assert {:error, _reason} = Zenohex.Config.get(updated, "scouting/delay")
+    end
+
+    test "get/2 with binary and map config" do
+      assert {:ok, config} =
+               Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert {:ok, 500} = Zenohex.Config.get(config, "scouting/delay")
+
+      map = %{"scouting" => %{"delay" => 42}}
+      assert {:ok, 42} = Zenohex.Config.get(map, "scouting/delay")
+    end
+
+    test "insert/3 with map config and key normalization" do
+      map = %{mode: "peer", scouting: %{delay: 500}}
+
+      assert {:ok, updated} = Zenohex.Config.insert(map, "scouting/delay", 123)
+      assert {:ok, 123} = Zenohex.Config.get(updated, "scouting/delay")
+
+      assert {:ok, updated2} =
+               Zenohex.Config.insert(updated, "connect/endpoints", ["tcp/localhost:7447"])
+
+      assert {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated2, "connect/endpoints")
+    end
+
+    test "insert/3 with binary config" do
+      config = Zenohex.Config.default()
+
+      assert {:ok, updated} =
+               Zenohex.Config.insert(config, "connect/endpoints", ["tcp/localhost:7447"])
+
+      assert is_map(updated)
+      assert {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
+    end
+
+    test "insert/3 rejects printable charlist" do
+      config = Zenohex.Config.default()
+
+      assert {:error, reason} = Zenohex.Config.insert(config, "mode", ~c"peer")
+      assert reason =~ "charlist is not supported"
+    end
+
+    test "from_file_map/1 with valid file" do
+      assert {:ok, config} =
+               Zenohex.Config.from_file_map("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert is_map(config)
+    end
+
+    test "from_file_map/1 with nonexistent file" do
+      assert {:error, _reason} = Zenohex.Config.from_file_map("nonexistent.json5")
+    end
+
+    test "from_json5_map/1" do
+      json5_binary = File.read!("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert {:ok, config_map} = Zenohex.Config.from_json5_map(json5_binary)
+      assert is_map(config_map)
+
+      assert {:error, _reason} = Zenohex.Config.from_json5_map("")
+    end
   end
 
-  test "default_map/0" do
-    config = Zenohex.Config.default_map()
+  describe "raw JSON/JSON5 API" do
+    test "default/0" do
+      assert is_binary(Zenohex.Config.default())
+    end
 
-    assert is_map(config)
-    assert Map.has_key?(config, "scouting")
+    test "from_file/1 with valid file" do
+      assert {:ok, config} =
+               Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert is_binary(config)
+    end
+
+    test "from_file/1 with nonexistent file" do
+      assert {:error, _reason} = Zenohex.Config.from_file("nonexistent.json5")
+    end
+
+    test "from_json5/1" do
+      json5_binary = File.read!("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert {:ok, json_binary} = Zenohex.Config.from_json5(json5_binary)
+      assert is_binary(json_binary)
+
+      assert {:error, _reason} = Zenohex.Config.from_json5("")
+    end
+
+    test "get_json/2" do
+      assert {:ok, config} =
+               Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
+
+      assert {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
+      assert value == "500"
+      assert is_binary(value)
+    end
+
+    test "get_json/2 with invalid key" do
+      config = Zenohex.Config.default()
+      assert {:error, _reason} = Zenohex.Config.get_json(config, "nonexistent/key/path")
+    end
+
+    test "insert_json5/3" do
+      config = Zenohex.Config.default()
+
+      assert {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+      assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
+
+      assert {:ok, updated1} = Zenohex.Config.insert_json5(updated, "mode", "\"peer\"")
+      assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated1, "mode")
+
+      assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "client")
+      assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated2, "mode")
+
+      assert {:ok, updated3} =
+               Zenohex.Config.insert_json5(updated2, "connect/endpoints", ["tcp/localhost:7447"])
+
+      assert {:ok, "[\"tcp/localhost:7447\"]"} =
+               Zenohex.Config.get_json(updated3, "connect/endpoints")
+
+      assert {:error, reason} = Zenohex.Config.insert_json5(updated3, "mode", ~c"client")
+      assert reason =~ "charlist is not supported"
+
+      assert {:error, {:json_encode_failed, reason}} =
+               Zenohex.Config.insert_json5(updated3, "connect/endpoints", [self()])
+
+      assert %Protocol.UndefinedError{} = reason
+
+      assert {:ok, updated4} = Zenohex.Config.insert_json5(updated, "connect/endpoints", [])
+      assert {:ok, "[]"} = Zenohex.Config.get_json(updated4, "connect/endpoints")
+    end
   end
 
   describe "operation for ZENOH_CONFIG" do
@@ -25,165 +168,26 @@ defmodule Zenohex.ConfigTest do
       end)
     end
 
-    test "from_env/0 when ZENOH_CONFIG is set" do
-      System.put_env("ZENOH_CONFIG", "test/support/fixtures/DEFAULT_CONFIG.json5")
-      assert {:ok, config} = Zenohex.Config.from_env()
-      assert is_binary(config)
-    end
-
     test "from_env_map/0 when ZENOH_CONFIG is set" do
       System.put_env("ZENOH_CONFIG", "test/support/fixtures/DEFAULT_CONFIG.json5")
       assert {:ok, config} = Zenohex.Config.from_env_map()
       assert is_map(config)
     end
 
-    test "from_env/0 when ZENOH_CONFIG is not set" do
-      System.delete_env("ZENOH_CONFIG")
-      assert {:error, _reason} = Zenohex.Config.from_env()
-    end
-
     test "from_env_map/0 when ZENOH_CONFIG is not set" do
       System.delete_env("ZENOH_CONFIG")
       assert {:error, _reason} = Zenohex.Config.from_env_map()
     end
-  end
 
-  test "from_file/1 with valid file" do
-    assert {:ok, config} =
-             Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
+    test "from_env/0 when ZENOH_CONFIG is set" do
+      System.put_env("ZENOH_CONFIG", "test/support/fixtures/DEFAULT_CONFIG.json5")
+      assert {:ok, config} = Zenohex.Config.from_env()
+      assert is_binary(config)
+    end
 
-    assert is_binary(config)
-  end
-
-  test "from_file_map/1 with valid file" do
-    assert {:ok, config} =
-             Zenohex.Config.from_file_map("test/support/fixtures/DEFAULT_CONFIG.json5")
-
-    assert is_map(config)
-  end
-
-  test "from_file/1 with nonexistent file" do
-    assert {:error, _reason} = Zenohex.Config.from_file("nonexistent.json5")
-  end
-
-  test "from_file_map/1 with nonexistent file" do
-    assert {:error, _reason} = Zenohex.Config.from_file_map("nonexistent.json5")
-  end
-
-  test "from_json5/1" do
-    json5_binary = File.read!("test/support/fixtures/DEFAULT_CONFIG.json5")
-
-    assert {:ok, json_binary} = Zenohex.Config.from_json5(json5_binary)
-    assert is_binary(json_binary)
-
-    assert {:error, _reason} = Zenohex.Config.from_json5("")
-  end
-
-  test "from_json5_map/1" do
-    json5_binary = File.read!("test/support/fixtures/DEFAULT_CONFIG.json5")
-
-    assert {:ok, config_map} = Zenohex.Config.from_json5_map(json5_binary)
-    assert is_map(config_map)
-
-    assert {:error, _reason} = Zenohex.Config.from_json5_map("")
-  end
-
-  test "from_map/1" do
-    data = %{mode: "peer", scouting: %{delay: 100}}
-
-    assert {:ok, config} = Zenohex.Config.from_map(data)
-    assert is_map(config)
-    assert {:ok, 100} = Zenohex.Config.get(config, "scouting/delay")
-  end
-
-  test "put/2" do
-    config = Zenohex.Config.default_map()
-
-    assert {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
-    assert {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
-    assert {:error, _reason} = Zenohex.Config.get(updated, "scouting/delay")
-  end
-
-  test "get_json/2" do
-    assert {:ok, config} =
-             Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
-
-    assert {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
-    assert value == "500"
-    assert is_binary(value)
-  end
-
-  test "get_json/2 with invalid key" do
-    config = Zenohex.Config.default()
-    assert {:error, _reason} = Zenohex.Config.get_json(config, "nonexistent/key/path")
-  end
-
-  test "get/2 with binary and map config" do
-    assert {:ok, config} =
-             Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")
-
-    assert {:ok, 500} = Zenohex.Config.get(config, "scouting/delay")
-
-    data = %{"scouting" => %{"delay" => 42}}
-    assert {:ok, 42} = Zenohex.Config.get(data, "scouting/delay")
-  end
-
-  test "insert_json5/3" do
-    config = Zenohex.Config.default()
-
-    assert {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-    assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
-
-    assert {:ok, updated1} = Zenohex.Config.insert_json5(updated, "mode", "\"peer\"")
-    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated1, "mode")
-
-    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "client")
-    assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated2, "mode")
-
-    assert {:ok, updated3} =
-             Zenohex.Config.insert_json5(updated2, "connect/endpoints", ["tcp/localhost:7447"])
-
-    assert {:ok, "[\"tcp/localhost:7447\"]"} =
-             Zenohex.Config.get_json(updated3, "connect/endpoints")
-
-    assert {:error, reason} = Zenohex.Config.insert_json5(updated3, "mode", ~c"client")
-    assert reason =~ "charlist is not supported"
-
-    assert {:error, {:json_encode_failed, reason}} =
-             Zenohex.Config.insert_json5(updated3, "connect/endpoints", [self()])
-
-    assert %Protocol.UndefinedError{} = reason
-
-    assert {:ok, updated4} = Zenohex.Config.insert_json5(updated, "connect/endpoints", [])
-    assert {:ok, "[]"} = Zenohex.Config.get_json(updated4, "connect/endpoints")
-  end
-
-  test "insert/3 with binary config" do
-    config = Zenohex.Config.default()
-
-    assert {:ok, updated} =
-             Zenohex.Config.insert(config, "connect/endpoints", ["tcp/localhost:7447"])
-
-    assert is_map(updated)
-    assert {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
-  end
-
-  test "insert/3 with map config and key normalization" do
-    data = %{mode: "peer", scouting: %{delay: 500}}
-
-    assert {:ok, updated} = Zenohex.Config.insert(data, "scouting/delay", 123)
-    assert {:ok, 123} = Zenohex.Config.get(updated, "scouting/delay")
-
-    assert {:ok, updated2} =
-             Zenohex.Config.insert(updated, "connect/endpoints", ["tcp/localhost:7447"])
-
-    assert {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated2, "connect/endpoints")
-  end
-
-  test "insert/3 rejects printable charlist" do
-    config = Zenohex.Config.default()
-
-    assert {:error, reason} = Zenohex.Config.insert(config, "mode", ~c"peer")
-    assert reason =~ "charlist is not supported"
+    test "from_env/0 when ZENOH_CONFIG is not set" do
+      System.delete_env("ZENOH_CONFIG")
+      assert {:error, _reason} = Zenohex.Config.from_env()
+    end
   end
 end

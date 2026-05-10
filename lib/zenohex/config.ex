@@ -7,25 +7,30 @@ defmodule Zenohex.Config do
   @moduledoc """
   Utility functions for working with Zenoh session configurations.
 
-  This module provides helpers to obtain default configuration,
-  load from files or environment variables, parse JSON5 strings,
-  and retrieve or update individual config keys.
+  ## Map-centric API
+
+  Use these as the primary API when working with Elixir data structures.
+
+  - `default_map/0`
+  - `from_map/1`
+  - `put/2`
+  - `get/2`
+  - `insert/3`
+  - `from_env_map/0`
+  - `from_file_map/1`
+  - `from_json5_map/1`
+
+  ## Raw JSON / JSON5 API
+
+  Use these when you explicitly want JSON/JSON5 string I/O.
+
+  - `default/0`
+  - `from_env/0`
+  - `from_file/1`
+  - `from_json5/1`
+  - `get_json/2`
+  - `insert_json5/3`
   """
-
-  @doc """
-  Returns the default Zenoh configuration as a JSON binary.
-
-  The returned configuration is valid input for `Zenohex.Session.open/1`.
-
-  ## Examples
-
-  Print the config in a readable form to check its contents.
-
-      iex> config = Zenohex.Config.default()
-      iex> config |> JSON.decode!() |> IO.inspect(pretty: true)
-  """
-  @spec default() :: t()
-  defdelegate default(), to: Zenohex.Nif, as: :config_default
 
   @doc """
   Returns the default Zenoh configuration as an Elixir map.
@@ -43,108 +48,6 @@ defmodule Zenohex.Config do
   end
 
   @doc """
-  Loads configuration from the file path specified by the `ZENOH_CONFIG` environment variable.
-
-  ## Examples
-
-      ### Set the environment variable and load the config
-      $ ZENOH_CONFIG=path/to/zenoh_config.json5 iex -S mix
-      iex> {:ok, config} = Zenohex.Config.from_env()
-      iex> is_binary(config)
-      true
-
-      ### Set the environment variable in IEx
-      $ unset ZENOH_CONFIG && iex -S mix
-      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
-      iex> {:ok, config} = Zenohex.Config.from_env()
-      iex> is_binary(config)
-      true
-  """
-  @spec from_env() :: {:ok, t()} | {:error, reason :: term()}
-  def from_env() do
-    case System.get_env("ZENOH_CONFIG") do
-      nil -> {:error, "environment variable not found: ZENOH_CONFIG"}
-      path -> Zenohex.Nif.config_from_env(path)
-    end
-  end
-
-  @doc """
-  Loads configuration from `ZENOH_CONFIG` and returns it as an Elixir map.
-
-  ## Examples
-
-      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
-      iex> {:ok, config} = Zenohex.Config.from_env_map()
-      iex> is_map(config)
-      true
-  """
-  @spec from_env_map() :: {:ok, data_t()} | {:error, reason :: term()}
-  def from_env_map() do
-    from_env()
-    |> decode_config_result()
-  end
-
-  @doc """
-  Loads configuration from the file at the given path.
-
-  ## Examples
-
-      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
-      iex> is_binary(config)
-      true
-  """
-  @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
-  defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
-
-  @doc """
-  Loads configuration from a file and returns it as an Elixir map.
-
-  ## Examples
-
-      iex> {:ok, config} = Zenohex.Config.from_file_map("path/to/zenoh_config.json5")
-      iex> is_map(config)
-      true
-  """
-  @spec from_file_map(String.t()) :: {:ok, data_t()} | {:error, reason :: term()}
-  def from_file_map(path) do
-    from_file(path)
-    |> decode_config_result()
-  end
-
-  @doc """
-  Parses a JSON5 configuration string and returns canonical JSON.
-
-  This is useful when you already have configuration content in memory,
-  such as text loaded from a file, template output, or environment-driven
-  string construction.
-
-  ## Examples
-
-      iex> json5 = File.read!("path/to/zenoh_config.json5")
-      iex> {:ok, config} = Zenohex.Config.from_json5(json5)
-      iex> is_binary(config)
-      true
-  """
-  @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
-  defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
-
-  @doc """
-  Parses a JSON5 configuration string and returns it as an Elixir map.
-
-  ## Examples
-
-      iex> json5 = File.read!("path/to/zenoh_config.json5")
-      iex> {:ok, config} = Zenohex.Config.from_json5_map(json5)
-      iex> is_map(config)
-      true
-  """
-  @spec from_json5_map(t()) :: {:ok, data_t()} | {:error, reason :: term()}
-  def from_json5_map(binary) do
-    from_json5(binary)
-    |> decode_config_result()
-  end
-
-  @doc """
   Builds normalized configuration map from Elixir data.
 
   Map keys are normalized to strings recursively.
@@ -156,8 +59,8 @@ defmodule Zenohex.Config do
       true
   """
   @spec from_map(map()) :: {:ok, data_t()} | {:error, reason :: term()}
-  def from_map(data) when is_map(data) do
-    normalize_data(data)
+  def from_map(map) when is_map(map) do
+    normalize_data(map)
   end
 
   @doc """
@@ -178,21 +81,9 @@ defmodule Zenohex.Config do
       iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated2, "connect/endpoints")
   """
   @spec put(t() | map(), map()) :: {:ok, data_t()} | {:error, reason :: term()}
-  def put(_config, data) when is_map(data) do
-    normalize_data(data)
+  def put(_config, map) when is_map(map) do
+    normalize_data(map)
   end
-
-  @doc """
-  Returns the JSON string of the configuration value at `key`.
-
-  ## Examples
-
-      iex> config = Zenohex.Config.default()
-      iex> {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
-      {:ok, "null"}
-  """
-  @spec get_json(t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
-  defdelegate get_json(config, key), to: Zenohex.Nif, as: :config_get_json
 
   @doc """
   Returns the configuration value at `key` as an Elixir data value.
@@ -242,6 +133,186 @@ defmodule Zenohex.Config do
       {:ok, value}
     end
   end
+
+  @doc """
+  Inserts or updates a value at `key` using Elixir data types.
+
+  This function accepts either canonical JSON config binary or Elixir map data.
+  The updated value is always returned as an Elixir map with string keys.
+
+  ## Examples
+
+      ### Update a canonical JSON config binary
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update an Elixir map
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update a nested scouting map directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update scouting/delay directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update connect endpoints directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{connect: %{endpoints: []}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "connect", %{endpoints: ["tcp/localhost:7447"]})
+      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
+  """
+  @spec insert(t() | map(), String.t(), json_value() | map()) ::
+          {:ok, data_t()} | {:error, reason :: term()}
+  def insert(config, key, value) when is_binary(config) and is_binary(key) do
+    with {:ok, normalized_config} <- decode_config_result({:ok, config}),
+         {:ok, normalized_value} <- normalize_value(value),
+         {:ok, updated} <- put_in_data(normalized_config, key, normalized_value) do
+      {:ok, updated}
+    end
+  end
+
+  def insert(config, key, value) when is_map(config) and is_binary(key) do
+    with {:ok, normalized} <- normalize_data(config),
+         {:ok, normalized_value} <- normalize_value(value),
+         {:ok, updated} <- put_in_data(normalized, key, normalized_value) do
+      {:ok, updated}
+    end
+  end
+
+  @doc """
+  Loads configuration from `ZENOH_CONFIG` and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_env_map()
+      iex> is_map(config)
+      true
+  """
+  @spec from_env_map() :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_env_map() do
+    from_env()
+    |> decode_config_result()
+  end
+
+  @doc """
+  Loads configuration from a file and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.from_file_map("path/to/zenoh_config.json5")
+      iex> is_map(config)
+      true
+  """
+  @spec from_file_map(String.t()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_file_map(path) do
+    from_file(path)
+    |> decode_config_result()
+  end
+
+  @doc """
+  Parses a JSON5 configuration string and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> json5 = File.read!("path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_json5_map(json5)
+      iex> is_map(config)
+      true
+  """
+  @spec from_json5_map(t()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_json5_map(binary) do
+    from_json5(binary)
+    |> decode_config_result()
+  end
+
+  @doc """
+  Returns the default Zenoh configuration as a JSON binary.
+
+  The returned configuration is valid input for `Zenohex.Session.open/1`.
+
+  ## Examples
+
+  Print the config in a readable form to check its contents.
+
+      iex> config = Zenohex.Config.default()
+      iex> config |> JSON.decode!() |> IO.inspect(pretty: true)
+  """
+  @spec default() :: t()
+  defdelegate default(), to: Zenohex.Nif, as: :config_default
+
+  @doc """
+  Loads configuration from the file path specified by the `ZENOH_CONFIG` environment variable.
+
+  ## Examples
+
+      ### Set the environment variable and load the config
+      $ ZENOH_CONFIG=path/to/zenoh_config.json5 iex -S mix
+      iex> {:ok, config} = Zenohex.Config.from_env()
+      iex> is_binary(config)
+      true
+
+      ### Set the environment variable in IEx
+      $ unset ZENOH_CONFIG && iex -S mix
+      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_env()
+      iex> is_binary(config)
+      true
+  """
+  @spec from_env() :: {:ok, t()} | {:error, reason :: term()}
+  def from_env() do
+    case System.get_env("ZENOH_CONFIG") do
+      nil -> {:error, "environment variable not found: ZENOH_CONFIG"}
+      path -> Zenohex.Nif.config_from_env(path)
+    end
+  end
+
+  @doc """
+  Loads configuration from the file at the given path.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
+      iex> is_binary(config)
+      true
+  """
+  @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
+  defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
+
+  @doc """
+  Parses a JSON5 configuration string and returns canonical JSON.
+
+  This is useful when you already have configuration content in memory,
+  such as text loaded from a file, template output, or environment-driven
+  string construction.
+
+  ## Examples
+
+      iex> json5 = File.read!("path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_json5(json5)
+      iex> is_binary(config)
+      true
+  """
+  @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
+  defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
+
+  @doc """
+  Returns the JSON string of the configuration value at `key`.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, value} = Zenohex.Config.get_json(config, "scouting/delay")
+      {:ok, "null"}
+  """
+  @spec get_json(t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
+  defdelegate get_json(config, key), to: Zenohex.Nif, as: :config_get_json
 
   @doc """
   Inserts or updates a JSON5 configuration value at `key`, returning the updated config.
@@ -325,62 +396,6 @@ defmodule Zenohex.Config do
     end
   end
 
-  @doc """
-  Inserts or updates a value at `key` using Elixir data types.
-
-  This function accepts either canonical JSON config binary or Elixir map data.
-  The updated value is always returned as an Elixir map with string keys.
-
-  ## Examples
-
-      ### Update a canonical JSON config binary
-      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-      ### Update an Elixir map
-      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-      ### Update a nested scouting map directly
-      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-      ### Update a map value directly
-      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-      ### Update scouting/delay directly
-      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
-      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
-      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
-
-        ### Update connect endpoints directly
-        iex> {:ok, config} = Zenohex.Config.from_map(%{connect: %{endpoints: []}})
-        iex> {:ok, updated} = Zenohex.Config.insert(config, "connect", %{endpoints: ["tcp/localhost:7447"]})
-        iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
-  """
-  @spec insert(t() | map(), String.t(), json_value() | map()) ::
-          {:ok, data_t()} | {:error, reason :: term()}
-  def insert(config, key, value) when is_binary(config) and is_binary(key) do
-    with {:ok, normalized_config} <- decode_config_result({:ok, config}),
-         {:ok, normalized_value} <- normalize_value(value),
-         {:ok, updated} <- put_in_data(normalized_config, key, normalized_value) do
-      {:ok, updated}
-    end
-  end
-
-  def insert(config, key, value) when is_map(config) and is_binary(key) do
-    with {:ok, normalized} <- normalize_data(config),
-         {:ok, normalized_value} <- normalize_value(value),
-         {:ok, updated} <- put_in_data(normalized, key, normalized_value) do
-      {:ok, updated}
-    end
-  end
-
   defp decode_json(binary) when is_binary(binary) do
     case JSON.decode(binary) do
       {:ok, decoded} -> {:ok, decoded}
@@ -396,14 +411,6 @@ defmodule Zenohex.Config do
   end
 
   defp decode_config_result({:error, _} = error), do: error
-
-  defp encode_json(value) do
-    try do
-      {:ok, value |> JSON.encode_to_iodata!() |> IO.iodata_to_binary()}
-    rescue
-      error -> {:error, {:json_encode_failed, error}}
-    end
-  end
 
   defp get_in_data(data, key) when is_map(data) do
     path = split_key_path(key)
