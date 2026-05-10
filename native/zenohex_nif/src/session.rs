@@ -274,29 +274,28 @@ fn session_close(
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &session_id_resource;
 
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session = SessionMap::remove_session(&SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
 
     match session_locked.close().wait() {
-        Ok(_) => {}
+        Ok(_) => Ok(rustler::types::atom::ok()),
         Err(error) => {
             let error_string = error.to_string();
 
-            // Windows CI intermittently times out during close even though
-            // this is only teardown. Treat that case as successful cleanup.
-            if !error_string.contains("close operation timed out") {
-                return Err(rustler::Error::Term(Box::new(error_string)));
+            // Closing a session can intermittently time out during cleanup, especially on
+            // Windows CI. The session has already been removed from SESSION_MAP, so treat
+            // that timeout as a successful close and avoid failing teardown.
+            if error_string.contains("close operation timed out") {
+                log::warn!(
+                    "ignoring session close timeout during cleanup: {}",
+                    error_string
+                );
+                Ok(rustler::types::atom::ok())
+            } else {
+                Err(rustler::Error::Term(crate::zenoh_error!(error)))
             }
-
-            log::warn!("ignoring session close timeout during cleanup: {}", error_string);
         }
     }
-
-    drop(session_locked);
-
-    let _ = SessionMap::remove_session(&SESSION_MAP, session_id);
-
-    Ok(rustler::types::atom::ok())
 }
 
 #[rustler::nif]
