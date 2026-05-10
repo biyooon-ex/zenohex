@@ -12,7 +12,7 @@ on:
 
 jobs:
   detect-version-bump:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       release_needed: ${{ steps.detect.outputs.release_needed }}
       version: ${{ steps.detect.outputs.version }}
@@ -59,7 +59,7 @@ jobs:
   create-tag-and-release:
     needs: detect-version-bump
     if: needs.detect-version-bump.outputs.release_needed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
@@ -104,7 +104,7 @@ jobs:
       - detect-version-bump
       - build-precompiled-nifs
     if: needs.detect-version-bump.outputs.release_needed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:
