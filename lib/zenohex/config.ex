@@ -1,5 +1,8 @@
 defmodule Zenohex.Config do
   @type t :: String.t()
+  @type json_scalar :: nil | boolean() | number() | String.t()
+  @type json_value :: json_scalar() | [json_value()] | %{optional(String.t()) => json_value()}
+  @type data_t :: %{optional(String.t()) => json_value()}
 
   @moduledoc """
   Utility functions for working with Zenoh session configurations.
@@ -23,6 +26,21 @@ defmodule Zenohex.Config do
   """
   @spec default() :: t()
   defdelegate default(), to: Zenohex.Nif, as: :config_default
+
+  @doc """
+  Returns the default Zenoh configuration as an Elixir map.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default_map()
+      iex> is_map(config)
+      true
+  """
+  @spec default_map() :: data_t()
+  def default_map() do
+    default()
+    |> JSON.decode!()
+  end
 
   @doc """
   Loads configuration from the file path specified by the `ZENOH_CONFIG` environment variable.
@@ -51,6 +69,15 @@ defmodule Zenohex.Config do
   end
 
   @doc """
+  Loads configuration from `ZENOH_CONFIG` and returns it as an Elixir map.
+  """
+  @spec from_env_map() :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_env_map() do
+    from_env()
+    |> decode_config_result()
+  end
+
+  @doc """
   Loads configuration from the file at the given path.
 
   ## Examples
@@ -61,6 +88,15 @@ defmodule Zenohex.Config do
   """
   @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
+
+  @doc """
+  Loads configuration from a file and returns it as an Elixir map.
+  """
+  @spec from_file_map(String.t()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_file_map(path) do
+    from_file(path)
+    |> decode_config_result()
+  end
 
   @doc """
   Parses a JSON5 configuration string and returns canonical JSON.
@@ -80,6 +116,31 @@ defmodule Zenohex.Config do
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
   @doc """
+  Parses a JSON5 configuration string and returns it as an Elixir map.
+  """
+  @spec from_json5_map(t()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_json5_map(binary) do
+    from_json5(binary)
+    |> decode_config_result()
+  end
+
+  @doc """
+  Builds normalized configuration map from Elixir data.
+
+  Map keys are normalized to strings recursively.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.from_map(%{mode: "peer", scouting: %{delay: 100}})
+      iex> is_map(config)
+      true
+  """
+  @spec from_map(map()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def from_map(data) when is_map(data) do
+    normalize_data(data)
+  end
+
+  @doc """
   Returns the JSON string of the configuration value at `key`.
 
   ## Examples
@@ -90,6 +151,27 @@ defmodule Zenohex.Config do
   """
   @spec get_json(t(), String.t()) :: {:ok, String.t()} | {:error, reason :: term()}
   defdelegate get_json(config, key), to: Zenohex.Nif, as: :config_get_json
+
+  @doc """
+  Returns the configuration value at `key` as an Elixir data value.
+
+  This function accepts either canonical JSON config binary or Elixir map data.
+  For map inputs, keys are normalized to strings before lookup.
+  """
+  @spec get(t() | map(), String.t()) :: {:ok, json_value()} | {:error, reason :: term()}
+  def get(config, key) when is_binary(config) and is_binary(key) do
+    with {:ok, json} <- get_json(config, key),
+         {:ok, decoded} <- decode_json(json) do
+      {:ok, decoded}
+    end
+  end
+
+  def get(config, key) when is_map(config) and is_binary(key) do
+    with {:ok, normalized} <- normalize_data(config),
+         {:ok, value} <- get_in_data(normalized, key) do
+      {:ok, value}
+    end
+  end
 
   @doc """
   Inserts or updates a JSON5 configuration value at `key`, returning the updated config.
@@ -171,5 +253,135 @@ defmodule Zenohex.Config do
           {:error, _reason} -> original_error
         end
     end
+  end
+
+  @doc """
+  Inserts or updates a value at `key` using Elixir data types.
+
+  This function accepts either canonical JSON config binary or Elixir map data.
+  The updated value is always returned as an Elixir map with string keys.
+  """
+  @spec insert(t() | map(), String.t(), json_value() | map()) ::
+          {:ok, data_t()} | {:error, reason :: term()}
+  def insert(config, key, value) when is_binary(config) and is_binary(key) do
+    with {:ok, normalized_config} <- decode_config_result({:ok, config}),
+         {:ok, normalized_value} <- normalize_value(value),
+         {:ok, updated} <- put_in_data(normalized_config, key, normalized_value) do
+      {:ok, updated}
+    end
+  end
+
+  def insert(config, key, value) when is_map(config) and is_binary(key) do
+    with {:ok, normalized} <- normalize_data(config),
+         {:ok, normalized_value} <- normalize_value(value),
+         {:ok, updated} <- put_in_data(normalized, key, normalized_value) do
+      {:ok, updated}
+    end
+  end
+
+  defp decode_json(binary) when is_binary(binary) do
+    case JSON.decode(binary) do
+      {:ok, decoded} -> {:ok, decoded}
+      {:error, reason} -> {:error, {:json_decode_failed, reason}}
+    end
+  end
+
+  defp decode_config_result({:ok, config_binary}) do
+    with {:ok, decoded} <- decode_json(config_binary),
+         {:ok, normalized} <- normalize_data(decoded) do
+      {:ok, normalized}
+    end
+  end
+
+  defp decode_config_result({:error, _} = error), do: error
+
+  defp encode_json(value) do
+    try do
+      {:ok, value |> JSON.encode_to_iodata!() |> IO.iodata_to_binary()}
+    rescue
+      error -> {:error, {:json_encode_failed, error}}
+    end
+  end
+
+  defp get_in_data(data, key) when is_map(data) do
+    path = split_key_path(key)
+
+    case get_in(data, Enum.map(path, &Access.key(&1))) do
+      nil -> {:error, :not_found}
+      value -> {:ok, value}
+    end
+  end
+
+  defp put_in_data(data, key, value) when is_map(data) do
+    path = split_key_path(key)
+    access_path = Enum.map(path, &Access.key(&1, %{}))
+    {:ok, put_in(data, access_path, value)}
+  rescue
+    error -> {:error, {:invalid_path, error}}
+  end
+
+  defp split_key_path(key) do
+    key
+    |> String.split("/", trim: true)
+    |> Enum.reject(&(&1 == ""))
+  end
+
+  defp normalize_data(data) when is_map(data) do
+    normalize_map(data)
+  end
+
+  defp normalize_data(data) do
+    {:error, {:config_must_be_map, data}}
+  end
+
+  defp normalize_value(value) when is_map(value), do: normalize_map(value)
+
+  defp normalize_value(value) when is_list(value) do
+    if value != [] and List.ascii_printable?(value) do
+      {:error,
+       "charlist is not supported. Pass a binary string (\"peer\") or JSON-compatible list values."}
+    else
+      normalize_list(value)
+    end
+  end
+
+  defp normalize_value(value)
+       when is_binary(value) or is_boolean(value) or is_number(value) or is_nil(value) do
+    {:ok, value}
+  end
+
+  defp normalize_value(value) do
+    {:error, {:unsupported_value_type, value}}
+  end
+
+  defp normalize_map(map) do
+    Enum.reduce_while(map, {:ok, %{}}, fn {key, value}, {:ok, acc} ->
+      with {:ok, normalized_key} <- normalize_map_key(key),
+           {:ok, normalized_value} <- normalize_value(value) do
+        {:cont, {:ok, Map.put(acc, normalized_key, normalized_value)}}
+      else
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp normalize_list(list) do
+    Enum.reduce_while(list, {:ok, []}, fn elem, {:ok, acc} ->
+      case normalize_value(elem) do
+        {:ok, normalized} -> {:cont, {:ok, [normalized | acc]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, normalized_list} -> {:ok, Enum.reverse(normalized_list)}
+      {:error, _} = error -> error
+    end
+  end
+
+  defp normalize_map_key(key) when is_binary(key), do: {:ok, key}
+  defp normalize_map_key(key) when is_atom(key), do: {:ok, Atom.to_string(key)}
+
+  defp normalize_map_key(key) do
+    {:error, {:unsupported_key_type, key}}
   end
 end
