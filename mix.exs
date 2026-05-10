@@ -8,7 +8,7 @@ defmodule Zenohex.MixProject do
     [
       app: :zenohex,
       version: @version,
-      elixir: "~> 1.15",
+      elixir: "~> 1.18",
       description: "Zenoh client library for elixir.",
       package: package(),
       start_permanent: Mix.env() == :prod,
