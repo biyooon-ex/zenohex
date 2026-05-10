@@ -70,6 +70,13 @@ defmodule Zenohex.Config do
 
   @doc """
   Loads configuration from `ZENOH_CONFIG` and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> System.put_env("ZENOH_CONFIG", "path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_env_map()
+      iex> is_map(config)
+      true
   """
   @spec from_env_map() :: {:ok, data_t()} | {:error, reason :: term()}
   def from_env_map() do
@@ -91,6 +98,12 @@ defmodule Zenohex.Config do
 
   @doc """
   Loads configuration from a file and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.from_file_map("path/to/zenoh_config.json5")
+      iex> is_map(config)
+      true
   """
   @spec from_file_map(String.t()) :: {:ok, data_t()} | {:error, reason :: term()}
   def from_file_map(path) do
@@ -117,6 +130,13 @@ defmodule Zenohex.Config do
 
   @doc """
   Parses a JSON5 configuration string and returns it as an Elixir map.
+
+  ## Examples
+
+      iex> json5 = File.read!("path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_json5_map(json5)
+      iex> is_map(config)
+      true
   """
   @spec from_json5_map(t()) :: {:ok, data_t()} | {:error, reason :: term()}
   def from_json5_map(binary) do
@@ -157,6 +177,20 @@ defmodule Zenohex.Config do
 
   This function accepts either canonical JSON config binary or Elixir map data.
   For map inputs, keys are normalized to strings before lookup.
+
+  ## Examples
+
+      ### Read from a canonical JSON config binary
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
+      iex> {:ok, delay} = Zenohex.Config.get(config, "scouting/delay")
+      iex> delay
+      500
+
+      ### Read from an Elixir map
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 100}})
+      iex> {:ok, delay} = Zenohex.Config.get(config, "scouting/delay")
+      iex> delay
+      100
   """
   @spec get(t() | map(), String.t()) :: {:ok, json_value()} | {:error, reason :: term()}
   def get(config, key) when is_binary(config) and is_binary(key) do
@@ -260,6 +294,23 @@ defmodule Zenohex.Config do
 
   This function accepts either canonical JSON config binary or Elixir map data.
   The updated value is always returned as an Elixir map with string keys.
+
+  ## Examples
+
+      ### Update a canonical JSON config binary
+      iex> {:ok, config} = Zenohex.Config.from_file("path/to/zenoh_config.json5")
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update an Elixir map
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update a map value directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
   """
   @spec insert(t() | map(), String.t(), json_value() | map()) ::
           {:ok, data_t()} | {:error, reason :: term()}
