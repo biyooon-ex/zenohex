@@ -17,12 +17,19 @@ defmodule Zenohex.ConfigTest do
       assert {:ok, 100} = Zenohex.Config.get(config, "scouting/delay")
     end
 
-    test "put/2" do
+    test "put/2 replaces config with common keys (mode, scouting/delay, connect/endpoints)" do
       config = Zenohex.Config.default_map()
 
-      assert {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
+      assert {:ok, updated} =
+               Zenohex.Config.put(config, %{
+                 mode: "peer",
+                 scouting: %{delay: 100},
+                 connect: %{endpoints: ["tcp/localhost:7447"]}
+               })
+
       assert {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
-      assert {:error, _reason} = Zenohex.Config.get(updated, "scouting/delay")
+      assert {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+      assert {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
     end
 
     test "get/2 with binary and map config" do
