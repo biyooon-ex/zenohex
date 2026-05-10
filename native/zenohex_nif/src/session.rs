@@ -141,6 +141,10 @@ impl<'a> SessionMap<'_> {
 
 pub static SESSION_MAP: LazyLock<SessionMap> = LazyLock::new(SessionMap::new);
 
+// NOTE: Zenoh close timeout detection currently relies on message text.
+// Keep this as a single constant so it is easy to audit/update when upgrading Zenoh.
+const CLOSE_TIMEOUT_MESSAGE: &str = "close operation timed out";
+
 enum SessionCloseStatus {
     AlreadyClosed,
     Closed,
@@ -149,6 +153,8 @@ enum SessionCloseStatus {
 
 // WHY: Keep close behavior consistent between explicit close and resource drop,
 //      including timeout-tolerant cleanup on Windows.
+// PRECONDITION: Caller must remove the session from SESSION_MAP before invoking this
+//               helper if timeout is treated as successful cleanup.
 fn close_session_tolerating_timeout(
     session: &Session<'_>,
     context: &str,
@@ -165,7 +171,7 @@ fn close_session_tolerating_timeout(
             // Closing a session can intermittently time out during cleanup, especially on
             // Windows CI. The session has already been removed from SESSION_MAP, so treat
             // that timeout as a successful close and avoid failing teardown.
-            if error_string.contains("close operation timed out") {
+            if error_string.contains(CLOSE_TIMEOUT_MESSAGE) {
                 log::warn!(
                     "ignoring session close timeout during {}: {}",
                     context,
