@@ -96,6 +96,14 @@ defmodule Zenohex.ConfigTest do
     assert {:ok, 100} = Zenohex.Config.get(config, "scouting/delay")
   end
 
+  test "put/2" do
+    config = Zenohex.Config.default_map()
+
+    assert {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
+    assert {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
+    assert {:error, _reason} = Zenohex.Config.get(updated, "scouting/delay")
+  end
+
   test "get_json/2" do
     assert {:ok, config} =
              Zenohex.Config.from_file("test/support/fixtures/DEFAULT_CONFIG.json5")

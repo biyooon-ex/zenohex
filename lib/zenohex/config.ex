@@ -161,6 +161,28 @@ defmodule Zenohex.Config do
   end
 
   @doc """
+  Replaces the whole configuration with Elixir map data.
+
+  The returned value is always a normalized Elixir map with string keys.
+
+  ## Examples
+
+      iex> {:ok, config} = Zenohex.Config.default_map()
+      iex> {:ok, updated} = Zenohex.Config.put(config, %{mode: "peer"})
+      iex> {:ok, "peer"} = Zenohex.Config.get(updated, "mode")
+
+      iex> {:ok, updated1} = Zenohex.Config.put(config, %{scouting: %{delay: 100}})
+      iex> {:ok, 100} = Zenohex.Config.get(updated1, "scouting/delay")
+
+      iex> {:ok, updated2} = Zenohex.Config.put(config, %{connect: %{endpoints: ["tcp/localhost:7447"]}})
+      iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated2, "connect/endpoints")
+  """
+  @spec put(t() | map(), map()) :: {:ok, data_t()} | {:error, reason :: term()}
+  def put(_config, data) when is_map(data) do
+    normalize_data(data)
+  end
+
+  @doc """
   Returns the JSON string of the configuration value at `key`.
 
   ## Examples
@@ -186,11 +208,25 @@ defmodule Zenohex.Config do
       iex> delay
       500
 
+      iex> {:ok, endpoints} = Zenohex.Config.get(config, "connect/endpoints")
+      iex> endpoints
+      []
+
       ### Read from an Elixir map
       iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 100}})
       iex> {:ok, delay} = Zenohex.Config.get(config, "scouting/delay")
       iex> delay
       100
+
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 100}, connect: %{endpoints: []}})
+      iex> {:ok, endpoints} = Zenohex.Config.get(config, "connect/endpoints")
+      iex> endpoints
+      []
+
+      iex> {:ok, config} = Zenohex.Config.from_map(%{connect: %{endpoints: ["tcp/localhost:7447"]}})
+      iex> {:ok, endpoints} = Zenohex.Config.get(config, "connect/endpoints")
+      iex> endpoints
+      ["tcp/localhost:7447"]
   """
   @spec get(t() | map(), String.t()) :: {:ok, json_value()} | {:error, reason :: term()}
   def get(config, key) when is_binary(config) and is_binary(key) do
@@ -307,10 +343,25 @@ defmodule Zenohex.Config do
       iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
       iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
 
+      ### Update a nested scouting map directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
       ### Update a map value directly
       iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
       iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting", %{delay: 100})
       iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+      ### Update scouting/delay directly
+      iex> {:ok, config} = Zenohex.Config.from_map(%{scouting: %{delay: 500}})
+      iex> {:ok, updated} = Zenohex.Config.insert(config, "scouting/delay", 100)
+      iex> {:ok, 100} = Zenohex.Config.get(updated, "scouting/delay")
+
+        ### Update connect endpoints directly
+        iex> {:ok, config} = Zenohex.Config.from_map(%{connect: %{endpoints: []}})
+        iex> {:ok, updated} = Zenohex.Config.insert(config, "connect", %{endpoints: ["tcp/localhost:7447"]})
+        iex> {:ok, ["tcp/localhost:7447"]} = Zenohex.Config.get(updated, "connect/endpoints")
   """
   @spec insert(t() | map(), String.t(), json_value() | map()) ::
           {:ok, data_t()} | {:error, reason :: term()}
