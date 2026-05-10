@@ -46,7 +46,7 @@ jobs:
 
     - name: Build the project
       id: build-crate
-      uses: philss/rustler-precompiled-action@v1.0.0
+      uses: philss/rustler-precompiled-action@v1.1.5
       with:
         project-name: zenohex_nif
         project-version: ${{ env.PROJECT_VERSION }}
