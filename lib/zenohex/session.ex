@@ -151,8 +151,8 @@ defmodule Zenohex.Session do
   - a JSON5 string (JSON is supported as a subset of JSON5), or
   - an Elixir map.
 
-  When a map is provided, it is encoded to JSON (atom keys are automatically
-  converted to strings) and passed to the NIF.
+  When a map is provided, it is first normalized and validated via
+  `Zenohex.ConfigMap.merge/2`, then encoded to JSON and passed to the NIF.
 
   ## Parameters
 
@@ -176,8 +176,15 @@ defmodule Zenohex.Session do
   def open(config) when is_binary(config), do: Zenohex.Nif.session_open(config)
 
   def open(config) when is_map(config) do
+    with {:ok, normalized} <- Zenohex.ConfigMap.merge(%{}, config),
+         {:ok, json} <- encode_json(normalized) do
+      Zenohex.Nif.session_open(json)
+    end
+  end
+
+  defp encode_json(value) do
     try do
-      Zenohex.Nif.session_open(JSON.encode!(config))
+      {:ok, JSON.encode!(value)}
     rescue
       error -> {:error, {:json_encode_failed, error}}
     end

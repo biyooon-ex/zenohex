@@ -37,6 +37,11 @@ defmodule Zenohex.SessionTest do
     assert {:ok, _session_id} = Zenohex.Session.open(map_config)
   end
 
+  test "open/1 rejects printable charlist in map config" do
+    assert {:error, reason} = Zenohex.Session.open(%{mode: ~c"peer"})
+    assert reason =~ "charlist is not supported"
+  end
+
   test "close/1" do
     {:ok, session_id} = Zenohex.Session.open()
     assert Zenohex.Session.close(session_id) == :ok
