@@ -83,7 +83,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           timeout_seconds: 30
-          max_attempts: 3
+          max_attempts: 2
           retry_wait_seconds: 10
           command: mix test --warnings-as-errors --cover || exit 1
           shell: bash
