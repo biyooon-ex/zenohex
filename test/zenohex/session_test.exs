@@ -28,10 +28,7 @@ defmodule Zenohex.SessionTest do
              Zenohex.Config.default_map()
              |> Zenohex.Config.insert("scouting/delay", 0)
 
-    assert {:ok, session_id} = Zenohex.Session.open(map_config)
-
-    # Use explicit cleanup here because relying on Drop was flaky on Windows CI.
-    :ok = Zenohex.Session.close(session_id)
+    assert {:ok, _session_id} = Zenohex.Session.open(map_config)
   end
 
   test "close/1" do
