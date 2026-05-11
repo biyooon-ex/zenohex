@@ -31,8 +31,8 @@ defmodule Zenohex.SessionTest do
 
   test "open/1 accepts map config" do
     assert {:ok, map_config} =
-             Zenohex.Config.default_map()
-             |> Zenohex.Config.insert("scouting/delay", 0)
+             Zenohex.ConfigMap.default()
+             |> Zenohex.ConfigMap.insert("scouting/delay", 0)
 
     assert {:ok, _session_id} = Zenohex.Session.open(map_config)
   end
