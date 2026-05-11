@@ -209,4 +209,50 @@ defmodule Zenohex.ConfigTest do
       assert {:error, _reason} = Zenohex.Config.from_env()
     end
   end
+
+  describe "error handling" do
+    test "from_map/1 rejects unsupported value types" do
+      # Test multiple unsupported types: PID, function, etc.
+      unsupported_values = [self(), fn -> :ok end, make_ref()]
+
+      Enum.each(unsupported_values, fn value ->
+        map = %{mode: "peer", invalid: value}
+        assert {:error, {:unsupported_value_type, _}} = Zenohex.Config.from_map(map)
+      end)
+    end
+
+    test "from_map/1 rejects unsupported key types" do
+      # Test multiple unsupported key types: integer, tuple
+      unsupported_keys = [
+        %{1 => "value"},
+        %{{:a, :b} => "value"}
+      ]
+
+      Enum.each(unsupported_keys, fn map ->
+        assert {:error, {:unsupported_key_type, _}} = Zenohex.Config.from_map(map)
+      end)
+    end
+
+    test "get/2 returns not_found when traversing through non-map values" do
+      map = %{"mode" => "peer", "scouting" => %{"delay" => 500}, "a" => "scalar"}
+
+      # Trying to access nested keys through scalar values
+      assert {:error, :not_found} = Zenohex.Config.get(map, "scouting/delay/invalid")
+      assert {:error, :not_found} = Zenohex.Config.get(map, "a/b/c")
+    end
+
+    test "insert/3 with invalid path structure" do
+      config = %{"a" => %{"b" => "scalar"}}
+
+      # Try to put_in through a scalar value, should fail gracefully
+      assert {:error, {:invalid_path, _}} = Zenohex.Config.insert(config, "a/b/c", "value")
+    end
+
+    test "from_map/1 with empty list (edge case)" do
+      map = %{items: []}
+
+      assert {:ok, config} = Zenohex.Config.from_map(map)
+      assert {:ok, []} = Zenohex.Config.get(config, "items")
+    end
+  end
 end
