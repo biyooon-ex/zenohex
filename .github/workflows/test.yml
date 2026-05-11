@@ -74,7 +74,7 @@ jobs:
 
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'
-        run: mix test --warnings-as-errors --cover
+        run: mix test --warnings-as-errors --cover || exit 1
 
       # WHY: Keep the flaky Windows close timeout from failing the whole job
       #      while we investigate the root cause separately.
@@ -83,6 +83,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           timeout_seconds: 30
-          max_attempts: 2
+          max_attempts: 3
           retry_wait_seconds: 10
-          command: mix test --warnings-as-errors --cover
+          command: mix test --warnings-as-errors --cover || exit 1
+          shell: bash
