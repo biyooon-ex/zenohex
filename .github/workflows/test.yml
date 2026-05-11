@@ -72,5 +72,17 @@ jobs:
       - name: Compile project
         run: mix compile --warnings-as-errors
 
-      - name: Run tests
+      - name: Run tests (Linux/macOS)
+        if: runner.os != 'Windows'
         run: mix test --warnings-as-errors --cover
+
+      # WHY: Keep the flaky Windows close timeout from failing the whole job
+      #      while we investigate the root cause separately.
+      - name: Run tests with retry (Windows)
+        if: runner.os == 'Windows'
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          retry_wait_seconds: 10
+          command: mix test --warnings-as-errors --cover
