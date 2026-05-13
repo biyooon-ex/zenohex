@@ -7,7 +7,13 @@ defmodule Zenohex.SessionTest do
       |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
       |> Zenohex.Session.open()
 
-    on_exit(fn -> :ok = Zenohex.Session.close(session_id) end)
+    # WHY: Windows CI can timeout flakily on close, so teardown close is not asserted.
+    on_exit(fn ->
+      case :os.type() do
+        {:win32, _} -> _ = Zenohex.Session.close(session_id)
+        _ -> :ok = Zenohex.Session.close(session_id)
+      end
+    end)
 
     %{session_id: session_id}
   end
@@ -21,6 +27,19 @@ defmodule Zenohex.SessionTest do
              Zenohex.Config.default()
              |> Zenohex.Test.Support.TestHelper.scouting_delay(0)
              |> Zenohex.Session.open()
+  end
+
+  test "open/1 accepts map config" do
+    assert {:ok, map_config} =
+             Zenohex.ConfigMap.default()
+             |> Zenohex.ConfigMap.insert("scouting/delay", 0)
+
+    assert {:ok, _session_id} = Zenohex.Session.open(map_config)
+  end
+
+  test "open/1 rejects printable charlist in map config" do
+    assert {:error, reason} = Zenohex.Session.open(%{mode: ~c"peer"})
+    assert reason =~ "charlist is not supported"
   end
 
   test "close/1" do

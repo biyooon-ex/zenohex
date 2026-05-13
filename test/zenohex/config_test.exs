@@ -67,13 +67,34 @@ defmodule Zenohex.ConfigTest do
   test "insert_json5/3" do
     config = Zenohex.Config.default()
 
-    assert {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-    assert {:ok, "100"} = Zenohex.Config.get_json(updated, "scouting/delay")
+    # Case 1: Insert numeric value
+    assert {:ok, updated1} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+    assert {:ok, "100"} = Zenohex.Config.get_json(updated1, "scouting/delay")
 
-    assert {:ok, updated1} = Zenohex.Config.insert_json5(updated, "mode", "\"peer\"")
-    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated1, "mode")
+    # Case 2: Insert valid JSON5 string (manually quoted)
+    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated1, "mode", "\"peer\"")
+    assert {:ok, "\"peer\""} = Zenohex.Config.get_json(updated2, "mode")
 
-    assert {:ok, updated2} = Zenohex.Config.insert_json5(updated, "mode", "client")
-    assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated2, "mode")
+    # Case 3: Insert plain string (automatically quoted)
+    assert {:ok, updated3} = Zenohex.Config.insert_json5(updated2, "mode", "client")
+    assert {:ok, "\"client\""} = Zenohex.Config.get_json(updated3, "mode")
+
+    # Case 4: Insert list as JSON array
+    assert {:ok, updated4} =
+             Zenohex.Config.insert_json5(updated3, "connect/endpoints", ["tcp/localhost:7447"])
+
+    assert {:ok, "[\"tcp/localhost:7447\"]"} =
+             Zenohex.Config.get_json(updated4, "connect/endpoints")
+
+    assert {:error, reason} = Zenohex.Config.insert_json5(updated4, "mode", ~c"client")
+    assert reason =~ "charlist is not supported"
+
+    assert {:error, {:json_encode_failed, reason}} =
+             Zenohex.Config.insert_json5(updated4, "connect/endpoints", [self()])
+
+    assert %Protocol.UndefinedError{} = reason
+
+    assert {:ok, updated5} = Zenohex.Config.insert_json5(updated4, "connect/endpoints", [])
+    assert {:ok, "[]"} = Zenohex.Config.get_json(updated5, "connect/endpoints")
   end
 end

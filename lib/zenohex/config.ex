@@ -7,6 +7,11 @@ defmodule Zenohex.Config do
   This module provides helpers to obtain default configuration,
   load from files or environment variables, parse JSON5 strings,
   and retrieve or update individual config keys.
+
+  These functions are intended to stay equivalent to the config interfaces
+  provided by other language APIs such as `zenoh-python`.
+
+  If you want an Elixir-like map-centric API, use `Zenohex.ConfigMap`.
   """
 
   @doc """
@@ -19,7 +24,7 @@ defmodule Zenohex.Config do
   Print the config in a readable form to check its contents.
 
       iex> config = Zenohex.Config.default()
-      iex> config |> :json.decode() |> :json.format() |> IO.puts()
+      iex> config |> JSON.decode!() |> IO.inspect(pretty: true)
   """
   @spec default() :: t()
   defdelegate default(), to: Zenohex.Nif, as: :config_default
@@ -51,7 +56,7 @@ defmodule Zenohex.Config do
   end
 
   @doc """
-  Loads configuration from the file at the given path.
+  Loads configuration from the file at the given path and returns it as a JSON string.
 
   ## Examples
 
@@ -62,7 +67,20 @@ defmodule Zenohex.Config do
   @spec from_file(String.t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
 
-  @doc false
+  @doc """
+  Parses a JSON5 configuration string and returns it as a JSON string.
+
+  This is useful when you already have configuration content in memory,
+  such as text loaded from a file, template output, or environment-driven
+  string construction.
+
+  ## Examples
+
+      iex> json5 = File.read!("path/to/zenoh_config.json5")
+      iex> {:ok, config} = Zenohex.Config.from_json5(json5)
+      iex> is_binary(config)
+      true
+  """
   @spec from_json5(t()) :: {:ok, t()} | {:error, reason :: term()}
   defdelegate from_json5(binary), to: Zenohex.Nif, as: :config_from_json5
 
@@ -83,24 +101,37 @@ defmodule Zenohex.Config do
 
   `value` should be a valid JSON5 string (e.g., `"500"`, `"true"`, or `"\"peer\""`).
   If `value` is not valid JSON5 format (for example, a plain string like `"peer"`
-  missing its quotes), this function automatically quotes it and retries the insertion.
+  missing its quotes), this function automatically quotes it (encodes as a JSON string)
+  and retries the insertion.
+
+  A list value (e.g., `["tcp/localhost:7447"]`) is also accepted and encoded as a JSON
+  array before insertion.
+  Printable ASCII `charlist` values (e.g., single-quoted text like `'peer'`) are
+  rejected to avoid accidentally inserting a list of integer codepoints. Other
+  non-ASCII charlists are treated as lists and may be encoded as JSON arrays of integers.
 
   ## Examples
 
+      ### Case 1: Insert numeric value
       iex> config = Zenohex.Config.default()
-      iex> {:ok, updated} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
-      iex> Zenohex.Config.get_json(updated, "scouting/delay")
+      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "scouting/delay", "100")
+      iex> Zenohex.Config.get_json(updated1, "scouting/delay")
       {:ok, "100"}
 
-      ### Pass a valid JSON5 string (manually quoted)
-      iex> {:ok, updated1} = Zenohex.Config.insert_json5(config, "mode", "\"peer\"")
-      iex> Zenohex.Config.get_json(updated1, "mode")
+      ### Case 2: Insert valid JSON5 string (manually quoted)
+      iex> {:ok, updated2} = Zenohex.Config.insert_json5(updated1, "mode", "\"peer\"")
+      iex> Zenohex.Config.get_json(updated2, "mode")
       {:ok, "\"peer\""}
 
-      ### Pass a plain string (automatically quoted by this function)
-      iex> {:ok, updated2} = Zenohex.Config.insert_json5(config, "mode", "client")
-      iex> Zenohex.Config.get_json(updated2, "mode")
+      ### Case 3: Insert plain string (automatically quoted by this function)
+      iex> {:ok, updated3} = Zenohex.Config.insert_json5(updated2, "mode", "client")
+      iex> Zenohex.Config.get_json(updated3, "mode")
       {:ok, "\"client\""}
+
+      ### Case 4: Insert list as JSON array
+      iex> {:ok, updated4} = Zenohex.Config.insert_json5(updated3, "connect/endpoints", ["tcp/localhost:7447"])
+      iex> Zenohex.Config.get_json(updated4, "connect/endpoints")
+      {:ok, "[\"tcp/localhost:7447\"]"}
 
   > #### Migration from `update_in/3` {: .info}
   > The function `update_in/3` has been removed in v0.9.0.
@@ -113,7 +144,23 @@ defmodule Zenohex.Config do
   Zenohex.Config.insert_json5(config, "scouting/delay", "100")
   ```
   """
-  @spec insert_json5(t(), String.t(), String.t()) :: {:ok, t()} | {:error, reason :: term()}
+  @spec insert_json5(t(), String.t(), String.t() | list()) ::
+          {:ok, t()} | {:error, reason :: term()}
+  def insert_json5(config, key, value)
+      when is_binary(config) and is_binary(key) and is_list(value) do
+    if value != [] and List.ascii_printable?(value) do
+      {:error,
+       "charlist is not supported for insert_json5/3. Pass a binary string (\"peer\") or a JSON array list."}
+    else
+      try do
+        encoded_value = value |> JSON.encode_to_iodata!() |> IO.iodata_to_binary()
+        insert_json5(config, key, encoded_value)
+      rescue
+        error -> {:error, {:json_encode_failed, error}}
+      end
+    end
+  end
+
   def insert_json5(config, key, value)
       when is_binary(config) and is_binary(key) and is_binary(value) do
     case Zenohex.Nif.config_insert_json5(config, key, value) do
@@ -124,7 +171,7 @@ defmodule Zenohex.Config do
         # If the value is not a valid JSON5 format (e.g., `"peer"`),
         # retry by quoting it as a JSON string.
         # If the retry also fails, return the original error.
-        quoted_value = value |> :json.encode() |> IO.iodata_to_binary()
+        quoted_value = JSON.encode!(value)
 
         case Zenohex.Nif.config_insert_json5(config, key, quoted_value) do
           {:ok, _updated_config} = result -> result
