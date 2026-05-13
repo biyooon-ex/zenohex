@@ -64,13 +64,6 @@ defmodule Zenohex.ConfigMapTest do
       assert {:ok, 42} = Zenohex.ConfigMap.get(map, "scouting/delay")
     end
 
-    test "get/2 rejects binary config" do
-      config = Zenohex.Config.default()
-
-      assert {:error, {:config_must_be_map, ^config}} =
-               Zenohex.ConfigMap.get(config, "scouting/delay")
-    end
-
     test "get/2 returns nil when key exists with null value" do
       map = %{"mode" => nil, "scouting" => %{"delay" => nil}}
 
@@ -89,13 +82,6 @@ defmodule Zenohex.ConfigMapTest do
                Zenohex.ConfigMap.insert(updated1, "connect/endpoints", ["tcp/localhost:7447"])
 
       assert {:ok, ["tcp/localhost:7447"]} = Zenohex.ConfigMap.get(updated2, "connect/endpoints")
-    end
-
-    test "insert/3 rejects binary config" do
-      config = Zenohex.Config.default()
-
-      assert {:error, {:config_must_be_map, ^config}} =
-               Zenohex.ConfigMap.insert(config, "connect/endpoints", ["tcp/localhost:7447"])
     end
 
     test "insert/3 rejects printable charlist" do

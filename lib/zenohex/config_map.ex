@@ -10,17 +10,12 @@ defmodule Zenohex.ConfigMap do
   load from files or environment variables, parse JSON5 strings,
   and retrieve or update individual config keys as Elixir map values.
 
+  This module automatically normalizes maps internally: atom keys become strings,
+  charlist values are rejected, and only JSON-compatible types are accepted.
+
   This module is intended for configuring Zenoh naturally with Elixir maps.
   For the raw JSON / JSON5 API that tracks other language APIs (for example,
   `zenoh-python`), use `Zenohex.Config`.
-
-  - `default/0`
-  - `from_env/0`
-  - `from_file/1`
-  - `from_json5/1`
-  - `get/2`
-  - `insert/3`
-  - `merge/2`
   """
 
   @doc """
@@ -34,8 +29,12 @@ defmodule Zenohex.ConfigMap do
   """
   @spec default() :: t()
   def default() do
-    Zenohex.Config.default()
-    |> JSON.decode!()
+    {:ok, config} =
+      Zenohex.Config.default()
+      |> JSON.decode!()
+      |> normalize_value()
+
+    config
   end
 
   @doc """
@@ -54,13 +53,7 @@ defmodule Zenohex.ConfigMap do
   """
   @spec get(map(), String.t()) :: {:ok, json_value()} | {:error, reason :: term()}
   def get(config, key) when is_map(config) and is_binary(key) do
-    with {:ok, normalized} <- normalize_data(config) do
-      get_in_data(normalized, key)
-    end
-  end
-
-  def get(config, key) when is_binary(key) do
-    {:error, {:config_must_be_map, config}}
+    get_in_data(config, key)
   end
 
   @doc """
@@ -80,14 +73,9 @@ defmodule Zenohex.ConfigMap do
   """
   @spec insert(map(), String.t(), json_value() | map()) :: {:ok, t()} | {:error, reason :: term()}
   def insert(config, key, value) when is_map(config) and is_binary(key) do
-    with {:ok, normalized} <- normalize_data(config),
-         {:ok, normalized_value} <- normalize_value(value) do
-      put_in_data(normalized, key, normalized_value)
+    with {:ok, normalized_value} <- normalize_value(value) do
+      put_in_data(config, key, normalized_value)
     end
-  end
-
-  def insert(config, key, _value) when is_binary(key) do
-    {:error, {:config_must_be_map, config}}
   end
 
   @doc """
@@ -143,7 +131,7 @@ defmodule Zenohex.ConfigMap do
   Keys in `map` overwrite corresponding keys in `config`. Nested maps are merged
   recursively, so unrelated sub-keys in `config` are preserved.
 
-  The returned value is a normalized Elixir map with string keys.
+  The `map` argument is normalized before merging.
 
   ## Examples
 
@@ -155,14 +143,9 @@ defmodule Zenohex.ConfigMap do
   """
   @spec merge(map(), map()) :: {:ok, t()} | {:error, reason :: term()}
   def merge(config, map) when is_map(config) and is_map(map) do
-    with {:ok, normalized_config} <- normalize_data(config),
-         {:ok, normalized_map} <- normalize_data(map) do
-      {:ok, deep_merge(normalized_config, normalized_map)}
+    with {:ok, normalized_map} <- normalize_value(map) do
+      {:ok, deep_merge(config, normalized_map)}
     end
-  end
-
-  def merge(config, map) when is_map(map) do
-    {:error, {:config_must_be_map, config}}
   end
 
   defp decode_json(binary) when is_binary(binary) do
@@ -174,7 +157,7 @@ defmodule Zenohex.ConfigMap do
 
   defp decode_config_result({:ok, config_binary}) do
     with {:ok, decoded} <- decode_json(config_binary) do
-      normalize_data(decoded)
+      normalize_value(decoded)
     end
   end
 
@@ -207,15 +190,6 @@ defmodule Zenohex.ConfigMap do
   defp split_key_path(key) do
     key
     |> String.split("/", trim: true)
-    |> Enum.reject(&(&1 == ""))
-  end
-
-  defp normalize_data(data) when is_map(data) do
-    normalize_map(data)
-  end
-
-  defp normalize_data(data) do
-    {:error, {:config_must_be_map, data}}
   end
 
   defp normalize_value(value) when is_map(value), do: normalize_map(value)

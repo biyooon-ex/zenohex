@@ -12,13 +12,6 @@ defmodule Zenohex.Config do
   provided by other language APIs such as `zenoh-python`.
 
   If you want an Elixir-like map-centric API, use `Zenohex.ConfigMap`.
-
-  - `default/0`
-  - `from_env/0`
-  - `from_file/1`
-  - `from_json5/1`
-  - `get_json/2`
-  - `insert_json5/3`
   """
 
   @doc """
@@ -63,7 +56,7 @@ defmodule Zenohex.Config do
   end
 
   @doc """
-  Loads configuration from the file at the given path.
+  Loads configuration from the file at the given path and returns it as a JSON string.
 
   ## Examples
 
@@ -75,7 +68,7 @@ defmodule Zenohex.Config do
   defdelegate from_file(path), to: Zenohex.Nif, as: :config_from_file
 
   @doc """
-  Parses a JSON5 configuration string and returns canonical JSON.
+  Parses a JSON5 configuration string and returns it as a JSON string.
 
   This is useful when you already have configuration content in memory,
   such as text loaded from a file, template output, or environment-driven
