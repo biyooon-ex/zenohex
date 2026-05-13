@@ -4122,7 +4122,7 @@ dependencies = [
 
 [[package]]
 name = "zenohex_nif"
-version = "0.9.0"
+version = "0.9.1-beta.1"
 dependencies = [
  "log",
  "rustler",
