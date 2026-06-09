@@ -36,8 +36,8 @@ Please also check the description on [Releases](https://github.com/biyooon-ex/ze
 
 FYI, the development team currently uses the following versions.
 
-- Elixir 1.18.4-otp-27
-- Erlang/OTP 27.3.4.2
+- Elixir 1.19.5-otp-28
+- Erlang/OTP 28.5
 - Rust 1.93.0
 
 ### Installation

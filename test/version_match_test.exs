@@ -1,32 +1,33 @@
 defmodule Zenohex.VersionMatchTest do
   use ExUnit.Case
 
-  describe "CI" do
+  defp tool_versions_map do
+    File.read!(".tool-versions")
+    |> String.split("\n")
+    |> Enum.reduce(%{}, fn line, acc ->
+      cond do
+        String.contains?(line, "erlang") ->
+          [_, version] = String.split(line, " ")
+          Map.put(acc, :erlang, version)
+
+        String.contains?(line, "elixir") ->
+          [_, version] = String.split(line, " ")
+          [version, "otp", _] = String.split(version, "-")
+          Map.put(acc, :elixir, version)
+
+        true ->
+          acc
+      end
+    end)
+  end
+
+  describe "Elixir/Erlang" do
     for filename <- [
           "code-analysis.yml",
           "test.yml",
           "release-automation.yml"
         ] do
       test "#{filename} version match" do
-        tool_versions_map =
-          File.read!(".tool-versions")
-          |> String.split("\n")
-          |> Enum.reduce(%{}, fn line, acc ->
-            cond do
-              String.contains?(line, "erlang") ->
-                [_, version] = String.split(line, " ")
-                Map.put(acc, :erlang, version)
-
-              String.contains?(line, "elixir") ->
-                [_, version] = String.split(line, " ")
-                [version, "otp", _] = String.split(version, "-")
-                Map.put(acc, :elixir, version)
-
-              true ->
-                acc
-            end
-          end)
-
         ciyaml_versions_map =
           File.read!(".github/workflows/#{unquote(filename)}")
           |> String.split("\n")
@@ -45,13 +46,37 @@ defmodule Zenohex.VersionMatchTest do
             end
           end)
 
-        assert tool_versions_map.erlang == ciyaml_versions_map.erlang
-        assert tool_versions_map.elixir == ciyaml_versions_map.elixir
+        assert tool_versions_map().erlang == ciyaml_versions_map.erlang
+        assert tool_versions_map().elixir == ciyaml_versions_map.elixir
       end
+    end
+
+    test "README version match" do
+      readme_versions_map =
+        File.read!("README.md")
+        |> String.split("\n")
+        |> Enum.reduce(%{}, fn line, acc ->
+          cond do
+            String.starts_with?(line, "- Elixir ") ->
+              [_, version] = String.split(line, "- Elixir ")
+              [elixir_version, "otp", _] = String.split(version, "-")
+              Map.put(acc, :elixir, elixir_version)
+
+            String.starts_with?(line, "- Erlang/OTP ") ->
+              [_, version] = String.split(line, "- Erlang/OTP ")
+              Map.put(acc, :erlang, version)
+
+            true ->
+              acc
+          end
+        end)
+
+      assert tool_versions_map().erlang == readme_versions_map.erlang
+      assert tool_versions_map().elixir == readme_versions_map.elixir
     end
   end
 
-  describe "Elixir/Rust" do
+  describe "Rust" do
     test "package version match" do
       version_on_mix_exs =
         Mix.Project.config()
@@ -82,7 +107,18 @@ defmodule Zenohex.VersionMatchTest do
       rust_version_on_toml =
         Toml.decode_file!("native/zenohex_nif/rust-toolchain.toml")["toolchain"]["channel"]
 
+      rust_version_on_readme =
+        File.read!("README.md")
+        |> String.split("\n")
+        |> Enum.find_value(fn line ->
+          if String.starts_with?(line, "- Rust ") do
+            [_, version] = String.split(line, "- Rust ")
+            version
+          end
+        end)
+
       assert rust_version_on_yaml == rust_version_on_toml
+      assert rust_version_on_readme == rust_version_on_toml
     end
   end
 end
