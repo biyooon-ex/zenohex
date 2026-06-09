@@ -2,7 +2,11 @@ defmodule Zenohex.VersionMatchTest do
   use ExUnit.Case
 
   describe "CI" do
-    for filename <- ["code-analysis.yml", "test.yml"] do
+    for filename <- [
+          "code-analysis.yml",
+          "test.yml",
+          "release-automation.yml"
+        ] do
       test "#{filename} version match" do
         tool_versions_map =
           File.read!(".tool-versions")
