@@ -21,10 +21,31 @@ defmodule Zenohex.VersionMatchTest do
     end)
   end
 
+  defp beam_versions_list do
+    File.read!(".github/workflows/test.yml")
+    |> String.split("\n")
+    |> Enum.reduce({[], nil}, fn line, {pairs, current_otp} ->
+      cond do
+        String.contains?(line, "otp_version:") ->
+          [_, version] = String.split(line, ":")
+          {pairs, String.trim(version)}
+
+        String.contains?(line, "elixir_version:") and current_otp != nil ->
+          [_, version] = String.split(line, ":")
+          pair = %{erlang: current_otp, elixir: String.trim(version)}
+          {[pair | pairs], nil}
+
+        true ->
+          {pairs, current_otp}
+      end
+    end)
+    |> elem(0)
+    |> Enum.reverse()
+  end
+
   describe "Elixir/Erlang" do
     for filename <- [
           "code-analysis.yml",
-          "test.yml",
           "release-automation.yml"
         ] do
       test "#{filename} version match" do
@@ -49,6 +70,10 @@ defmodule Zenohex.VersionMatchTest do
         assert tool_versions_map().erlang == ciyaml_versions_map.erlang
         assert tool_versions_map().elixir == ciyaml_versions_map.elixir
       end
+    end
+
+    test "test.yml includes current tool versions in beam matrix" do
+      assert tool_versions_map() in beam_versions_list()
     end
 
     test "README version match" do
