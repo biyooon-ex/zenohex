@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    name: mix test (${{ matrix.os }}, OTP ${{ matrix.beam.otp_version }}, Elixir ${{ matrix.beam.elixir_version }})
+    name: mix test (${{ matrix.os }}, Elixir ${{ matrix.beam.elixir_version }}, OTP ${{ matrix.beam.otp_version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
