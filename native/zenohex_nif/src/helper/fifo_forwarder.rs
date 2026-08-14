@@ -12,10 +12,6 @@ pub fn fifo_channel() -> zenoh::handlers::FifoChannel {
 //      targeting the same pid and can reorder deliveries. Draining `handler` from a
 //      single dedicated thread and reusing one `OwnedEnv` preserves delivery order and
 //      keeps `send_and_clear` allocations low.
-//
-// WHY panic isolation matters: unlike the previous one-thread-per-message design, a
-//      panic here would stop delivery for the entire lifetime of this entity, so any
-//      `encode` closure passed in must not panic on malformed input.
 pub fn spawn_forwarder<T, F>(
     pid: rustler::LocalPid,
     handler: zenoh::handlers::FifoChannelHandler<T>,
@@ -27,7 +23,18 @@ pub fn spawn_forwarder<T, F>(
     std::thread::spawn(move || {
         let mut owned_env = rustler::OwnedEnv::new();
         for item in handler.iter() {
-            let _ = owned_env.send_and_clear(&pid, |env| encode(env, item));
+            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                owned_env.send_and_clear(&pid, |env| encode(env, item))
+            }));
+
+            // WHY: a single thread now forwards every message for this entity's whole
+            //      lifetime, so a panic in `encode` must not kill it silently. Log and
+            //      replace `owned_env` (its state after an unwind is not guaranteed)
+            //      instead of letting the thread die and delivery stop forever.
+            if outcome.is_err() {
+                log::error!("zenohex_nif: encode panicked while forwarding, message dropped");
+                owned_env = rustler::OwnedEnv::new();
+            }
         }
     });
 }
