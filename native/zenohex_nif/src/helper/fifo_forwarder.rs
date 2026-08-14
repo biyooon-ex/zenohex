@@ -1,5 +1,7 @@
-/// Channel capacity for `fifo_channel()`. Bounded so a slow BEAM consumer applies
-/// backpressure to Zenoh's callback threads instead of growing memory unbounded.
+/// Channel capacity for `fifo_channel()`. Bounds only the native-side queue between
+/// Zenoh callback threads and the forwarder; `send_and_clear` does not wait for the
+/// BEAM process to consume its mailbox, so a slow/stuck consumer can still grow that
+/// mailbox unbounded regardless of this value.
 const CHANNEL_CAPACITY: usize = 256;
 
 /// Build the handler used to receive callback items in FIFO order.
