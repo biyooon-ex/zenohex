@@ -119,17 +119,25 @@ fn liveliness_declare_subscriber(
 
     let liveliness_subscriber_buidler = session_locked.liveliness().declare_subscriber(key_expr);
 
+    let (tx, rx) = std::sync::mpsc::channel::<zenoh::sample::Sample>();
+    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    std::thread::spawn(move || {
+        let mut owned_env = rustler::OwnedEnv::new();
+        for sample in rx {
+            let _ = owned_env.send_and_clear(&pid, |env| {
+                crate::sample::ZenohexSample::from(env, sample).encode(env)
+            });
+        }
+    });
+
     let subscriber = liveliness_subscriber_buidler
         .apply_opts(opts)?
-        .callback(move |sample| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::sample::ZenohexSample::from(env, sample))
-                });
-            });
+        .callback_mut({
+            let sender = sender.clone();
+            move |sample: zenoh::sample::Sample| {
+                let _ = sender.lock().unwrap().send(sample);
+            }
         })
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;

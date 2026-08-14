@@ -3,6 +3,7 @@ use std::sync::RwLock;
 use std::time::Duration;
 use std::time::Instant;
 
+use rustler::Encoder;
 use zenoh::Wait;
 
 #[derive(rustler::NifStruct)]
@@ -116,15 +117,24 @@ fn scouting_declare_scout(
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
-        .callback(move |hello| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new()
-                    .run(|env: rustler::Env| env.send(&pid, ZenohexScoutingHello::from(hello)));
+    let (tx, rx) = std::sync::mpsc::channel::<zenoh::scouting::Hello>();
+    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    std::thread::spawn(move || {
+        let mut owned_env = rustler::OwnedEnv::new();
+        for hello in rx {
+            let _ = owned_env.send_and_clear(&pid, |env| {
+                ZenohexScoutingHello::from(hello).encode(env)
             });
+        }
+    });
+
+    let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
+        .callback_mut({
+            let sender = sender.clone();
+            move |hello: zenoh::scouting::Hello| {
+                let _ = sender.lock().unwrap().send(hello);
+            }
         })
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;

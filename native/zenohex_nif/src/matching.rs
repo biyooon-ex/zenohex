@@ -1,6 +1,7 @@
 use std::ops::Deref;
 use std::sync::Mutex;
 
+use rustler::Encoder;
 use zenoh::Wait;
 
 struct MatchingListenerResource {
@@ -102,15 +103,23 @@ fn matching_declare_listener(
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
-    let send_matching_status = move |matching_status| {
-        // WHY: Spawn a thread inside this callback.
-        //      If we don't spawn a thread, a panic will occur.
-        //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-        std::thread::spawn(move || {
-            let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                env.send(&pid, ZenohexMatchingStatus::from(matching_status))
+    let (tx, rx) = std::sync::mpsc::channel::<zenoh::matching::MatchingStatus>();
+    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    std::thread::spawn(move || {
+        let mut owned_env = rustler::OwnedEnv::new();
+        for matching_status in rx {
+            let _ = owned_env.send_and_clear(&pid, |env| {
+                ZenohexMatchingStatus::from(matching_status).encode(env)
             });
-        });
+        }
+    });
+
+    let send_matching_status = {
+        let sender = sender.clone();
+        move |matching_status: zenoh::matching::MatchingStatus| {
+            let _ = sender.lock().unwrap().send(matching_status);
+        }
     };
 
     let listener = match entity {

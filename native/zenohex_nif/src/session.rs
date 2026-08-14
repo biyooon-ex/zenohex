@@ -479,17 +479,29 @@ fn session_declare_subscriber(
 
     let subscriber_buidler = session_locked.declare_subscriber(key_expr);
 
+    let (tx, rx) = std::sync::mpsc::channel::<zenoh::sample::Sample>();
+    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    // WHY: Do not send directly from each callback thread to the BEAM pid.
+    //      Rustler's `OwnedEnv` is not safe to use as a multi-thread send gateway
+    //      to the same pid. The dedicated sender thread keeps all deliveries in a
+    //      single FIFO queue, which preserves the original callback sequence.
+    std::thread::spawn(move || {
+        let mut owned_env = rustler::OwnedEnv::new();
+        for sample in rx {
+            let _ = owned_env.send_and_clear(&pid, |env| {
+                crate::sample::ZenohexSample::from(env, sample).encode(env)
+            });
+        }
+    });
+
     let subscriber = subscriber_buidler
         .apply_opts(opts)?
-        .callback(move |sample| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::sample::ZenohexSample::from(env, sample))
-                });
-            });
+        .callback_mut({
+            let sender = sender.clone();
+            move |sample: zenoh::sample::Sample| {
+                let _ = sender.lock().unwrap().send(sample);
+            }
         })
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
@@ -521,17 +533,25 @@ fn session_declare_queryable(
 
     let queryable_builder = session_locked.declare_queryable(key_expr);
 
+    let (tx, rx) = std::sync::mpsc::channel::<zenoh::query::Query>();
+    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    std::thread::spawn(move || {
+        let mut owned_env = rustler::OwnedEnv::new();
+        for query in rx {
+            let _ = owned_env.send_and_clear(&pid, |env| {
+                crate::query::ZenohexQuery::from(env, query).encode(env)
+            });
+        }
+    });
+
     let queryable = queryable_builder
         .apply_opts(opts)?
-        .callback(move |query| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::query::ZenohexQuery::from(env, query))
-                });
-            });
+        .callback_mut({
+            let sender = sender.clone();
+            move |query: zenoh::query::Query| {
+                let _ = sender.lock().unwrap().send(query);
+            }
         })
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
