@@ -24,3 +24,8 @@ rustler = { version = "=0.38.0", features = ["nif_version_2_15"] }
 zenoh = { version = "=1.9.0", features = ["unstable", "internal", "plugins"] }
 
 log = { version = "0.4", features = ["std"] }
+
+# WHY: `fifo_forwarder` spawns one task per declared entity instead of one OS
+#      thread, so a shared, small worker pool serves all entities regardless
+#      of how many are declared.
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
