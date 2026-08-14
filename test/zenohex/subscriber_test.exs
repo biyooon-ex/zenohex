@@ -101,7 +101,7 @@ defmodule Zenohex.SubscriberTest do
     else
       receive do
         %Zenohex.Sample{payload: payload} ->
-          case Jason.decode(payload) do
+          case JSON.decode(payload) do
             {:ok, %{"seq" => seq}} -> collect_sequences(expected, [%{"seq" => seq} | acc])
             {:error, _} -> collect_sequences(expected, acc)
           end
