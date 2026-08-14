@@ -32,13 +32,19 @@ impl ZenohexScoutingHello {
     }
 }
 
-struct ScoutResource(RwLock<Option<zenoh::scouting::Scout<()>>>);
+struct ScoutResource(
+    RwLock<
+        Option<zenoh::scouting::Scout<zenoh::handlers::FifoChannelHandler<zenoh::scouting::Hello>>>,
+    >,
+);
 
 #[rustler::resource_impl]
 impl rustler::Resource for ScoutResource {}
 
 impl Deref for ScoutResource {
-    type Target = RwLock<Option<zenoh::scouting::Scout<()>>>;
+    type Target = RwLock<
+        Option<zenoh::scouting::Scout<zenoh::handlers::FifoChannelHandler<zenoh::scouting::Hello>>>,
+    >;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -56,7 +62,9 @@ impl Drop for ScoutResource {
 }
 
 impl ScoutResource {
-    fn new(scout: zenoh::scouting::Scout<()>) -> ScoutResource {
+    fn new(
+        scout: zenoh::scouting::Scout<zenoh::handlers::FifoChannelHandler<zenoh::scouting::Hello>>,
+    ) -> ScoutResource {
         ScoutResource(RwLock::new(Some(scout)))
     }
 }
@@ -117,27 +125,16 @@ fn scouting_declare_scout(
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::scouting::Hello>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for hello in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                ZenohexScoutingHello::from(hello).encode(env)
-            });
-        }
-    });
-
     let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
-        .callback_mut({
-            let sender = sender.clone();
-            move |hello: zenoh::scouting::Hello| {
-                let _ = sender.lock().unwrap().send(hello);
-            }
-        })
+        .with(crate::helper::fifo_forwarder::fifo_channel())
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    // WHY: `Scout` has no `handler()` accessor; it `Deref`s straight to the receiver,
+    //      so `.clone()` here resolves to `FifoChannelHandler::clone` via auto-deref.
+    crate::helper::fifo_forwarder::spawn_forwarder(pid, scout.clone(), |env, hello| {
+        ZenohexScoutingHello::from(hello).encode(env)
+    });
 
     Ok((
         rustler::types::atom::ok(),

@@ -93,34 +93,11 @@ fn querier_get_async(
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::query::Reply>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for reply in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                match reply.result() {
-                    Ok(sample) => crate::sample::ZenohexSample::from(env, sample.clone()).encode(env),
-                    Err(reply_error) => {
-                        crate::query::ZenohexQueryReplyError::from(env, reply_error.clone())
-                            .encode(env)
-                    }
-                }
-            });
-        }
-    });
-
-    match entity {
+    let handler = match entity {
         crate::session::Entity::Querier(querier, _) => querier
             .get()
             .apply_opts(opts)?
-            .callback_mut({
-                let sender = sender.clone();
-                move |reply: zenoh::query::Reply| {
-                    let _ = sender.lock().unwrap().send(reply);
-                }
-            })
+            .with(crate::helper::fifo_forwarder::fifo_channel())
             .wait()
             .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
         _ => {
@@ -128,7 +105,18 @@ fn querier_get_async(
                 crate::atoms::unsupported_entity(),
             )))
         }
-    }
+    };
+
+    crate::helper::fifo_forwarder::spawn_forwarder(
+        pid,
+        handler,
+        |env, reply: zenoh::query::Reply| match reply.result() {
+            Ok(sample) => crate::sample::ZenohexSample::from(env, sample.clone()).encode(env),
+            Err(reply_error) => {
+                crate::query::ZenohexQueryReplyError::from(env, reply_error.clone()).encode(env)
+            }
+        },
+    );
 
     Ok(rustler::types::atom::ok())
 }

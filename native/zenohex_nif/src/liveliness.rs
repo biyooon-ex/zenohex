@@ -119,28 +119,17 @@ fn liveliness_declare_subscriber(
 
     let liveliness_subscriber_buidler = session_locked.liveliness().declare_subscriber(key_expr);
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::sample::Sample>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for sample in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                crate::sample::ZenohexSample::from(env, sample).encode(env)
-            });
-        }
-    });
-
     let subscriber = liveliness_subscriber_buidler
         .apply_opts(opts)?
-        .callback_mut({
-            let sender = sender.clone();
-            move |sample: zenoh::sample::Sample| {
-                let _ = sender.lock().unwrap().send(sample);
-            }
-        })
+        .with(crate::helper::fifo_forwarder::fifo_channel())
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::fifo_forwarder::spawn_forwarder(
+        pid,
+        subscriber.handler().clone(),
+        |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),
+    );
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(

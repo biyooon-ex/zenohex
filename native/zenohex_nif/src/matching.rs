@@ -5,14 +5,26 @@ use rustler::Encoder;
 use zenoh::Wait;
 
 struct MatchingListenerResource {
-    listener: Mutex<Option<zenoh::matching::MatchingListener<()>>>,
+    listener: Mutex<
+        Option<
+            zenoh::matching::MatchingListener<
+                zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+            >,
+        >,
+    >,
 }
 
 #[rustler::resource_impl]
 impl rustler::Resource for MatchingListenerResource {}
 
 impl Deref for MatchingListenerResource {
-    type Target = Mutex<Option<zenoh::matching::MatchingListener<()>>>;
+    type Target = Mutex<
+        Option<
+            zenoh::matching::MatchingListener<
+                zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+            >,
+        >,
+    >;
 
     fn deref(&self) -> &Self::Target {
         &self.listener
@@ -20,7 +32,11 @@ impl Deref for MatchingListenerResource {
 }
 
 impl MatchingListenerResource {
-    fn new(listener: zenoh::matching::MatchingListener<()>) -> Self {
+    fn new(
+        listener: zenoh::matching::MatchingListener<
+            zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+        >,
+    ) -> Self {
         MatchingListenerResource {
             listener: Mutex::new(Some(listener)),
         }
@@ -103,33 +119,14 @@ fn matching_declare_listener(
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::matching::MatchingStatus>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for matching_status in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                ZenohexMatchingStatus::from(matching_status).encode(env)
-            });
-        }
-    });
-
-    let send_matching_status = {
-        let sender = sender.clone();
-        move |matching_status: zenoh::matching::MatchingStatus| {
-            let _ = sender.lock().unwrap().send(matching_status);
-        }
-    };
-
     let listener = match entity {
         crate::session::Entity::Publisher(publisher, _) => publisher
             .matching_listener()
-            .callback(send_matching_status)
+            .with(crate::helper::fifo_forwarder::fifo_channel())
             .wait(),
         crate::session::Entity::Querier(querier, _) => querier
             .matching_listener()
-            .callback(send_matching_status)
+            .with(crate::helper::fifo_forwarder::fifo_channel())
             .wait(),
         _ => {
             return Err(rustler::Error::Term(Box::new(
@@ -138,6 +135,12 @@ fn matching_declare_listener(
         }
     }
     .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::fifo_forwarder::spawn_forwarder(
+        pid,
+        listener.handler().clone(),
+        |env, matching_status| ZenohexMatchingStatus::from(matching_status).encode(env),
+    );
 
     Ok((
         rustler::types::atom::ok(),

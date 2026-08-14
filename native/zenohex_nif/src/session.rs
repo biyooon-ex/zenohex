@@ -22,11 +22,11 @@ pub enum Entity<'a> {
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Subscriber(
-        zenoh::pubsub::Subscriber<()>,
+        zenoh::pubsub::Subscriber<zenoh::handlers::FifoChannelHandler<zenoh::sample::Sample>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Queryable(
-        zenoh::query::Queryable<()>,
+        zenoh::query::Queryable<zenoh::handlers::FifoChannelHandler<zenoh::query::Query>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
 }
@@ -479,32 +479,17 @@ fn session_declare_subscriber(
 
     let subscriber_buidler = session_locked.declare_subscriber(key_expr);
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::sample::Sample>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    // WHY: Do not send directly from each callback thread to the BEAM pid.
-    //      Rustler's `OwnedEnv` is not safe to use as a multi-thread send gateway
-    //      to the same pid. The dedicated sender thread keeps all deliveries in a
-    //      single FIFO queue, which preserves the original callback sequence.
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for sample in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                crate::sample::ZenohexSample::from(env, sample).encode(env)
-            });
-        }
-    });
-
     let subscriber = subscriber_buidler
         .apply_opts(opts)?
-        .callback_mut({
-            let sender = sender.clone();
-            move |sample: zenoh::sample::Sample| {
-                let _ = sender.lock().unwrap().send(sample);
-            }
-        })
+        .with(crate::helper::fifo_forwarder::fifo_channel())
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::fifo_forwarder::spawn_forwarder(
+        pid,
+        subscriber.handler().clone(),
+        |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),
+    );
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
@@ -533,28 +518,17 @@ fn session_declare_queryable(
 
     let queryable_builder = session_locked.declare_queryable(key_expr);
 
-    let (tx, rx) = std::sync::mpsc::channel::<zenoh::query::Query>();
-    let sender = std::sync::Arc::new(std::sync::Mutex::new(tx));
-
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for query in rx {
-            let _ = owned_env.send_and_clear(&pid, |env| {
-                crate::query::ZenohexQuery::from(env, query).encode(env)
-            });
-        }
-    });
-
     let queryable = queryable_builder
         .apply_opts(opts)?
-        .callback_mut({
-            let sender = sender.clone();
-            move |query: zenoh::query::Query| {
-                let _ = sender.lock().unwrap().send(query);
-            }
-        })
+        .with(crate::helper::fifo_forwarder::fifo_channel())
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::fifo_forwarder::spawn_forwarder(
+        pid,
+        queryable.handler().clone(),
+        |env, query| crate::query::ZenohexQuery::from(env, query).encode(env),
+    );
 
     let queryable_id = queryable.id();
     session_locked.insert_entity(
