@@ -15,13 +15,20 @@ defmodule SubscriberOrderRepro do
   ]
 
   def run do
-    Enum.each(@cases, fn %{spacing_ms: spacing_ms, burst_count: burst_count, messages_per_burst: messages_per_burst} = scenario ->
-      IO.puts("=== spacing=#{spacing_ms}ms burst_count=#{burst_count} messages_per_burst=#{messages_per_burst} ===")
-
+    Enum.each(@cases, fn %{
+                           spacing_ms: spacing_ms,
+                           burst_count: burst_count,
+                           messages_per_burst: messages_per_burst
+                         } = scenario ->
       result = run_case(scenario)
+
+      IO.puts(
+        "=== spacing=#{spacing_ms}ms burst_count=#{burst_count} messages_per_burst=#{messages_per_burst} ==="
+      )
 
       IO.puts("received=#{result.received}")
       IO.puts("inversions=#{result.inversions}")
+      IO.puts("elapsed_ms=#{result.elapsed_ms}")
 
       if result.inversions > 0 do
         IO.puts("ordering issue reproduced")
@@ -49,15 +56,19 @@ defmodule SubscriberOrderRepro do
 
     try do
       Process.sleep(500)
+      drain_mailbox()
 
+      started_at = System.monotonic_time(:millisecond)
       publish_bursts(publisher_id, burst_count, messages_per_burst, spacing_ms)
 
       expected = burst_count * messages_per_burst
       received = collect_received(expected)
+      elapsed_ms = System.monotonic_time(:millisecond) - started_at
 
       %{
         received: length(received),
-        inversions: count_inversions(received)
+        inversions: count_inversions(received),
+        elapsed_ms: elapsed_ms
       }
     after
       _ = Zenohex.Subscriber.undeclare(subscriber_id)
@@ -72,6 +83,14 @@ defmodule SubscriberOrderRepro do
       Zenohex.Config.insert_json5(config, "scouting/delay", Integer.to_string(delay))
 
     updated
+  end
+
+  defp drain_mailbox do
+    receive do
+      %Zenohex.Sample{} -> drain_mailbox()
+    after
+      0 -> :ok
+    end
   end
 
   defp publish_bursts(_publisher_id, burst_no, _messages_per_burst, _spacing_ms)
