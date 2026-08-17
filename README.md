@@ -157,6 +157,8 @@ Therefore, we clearly specify these version numbers with `==` in mix.exs and `=`
 
 ### How to release
 
+Before releasing a new version of Zenohex, we usually run `cargo update` in `native/zenohex_nif` to update the dependencies of cargo packages. 
+
 We expect [release-automation.yml](https://github.com/biyooon-ex/zenohex/blob/main/.github/workflows/release-automation.yml) to automatically trigger the following workflow when the version numbers in `mix.exs`, `Cargo.toml`, and `Cargo.lock` are updated and pushed to main branch; if that doesn’t happen, operate the following steps manually.
 
 These steps just follow the [Recommended flow of rustler_precompiled](https://hexdocs.pm/rustler_precompiled/precompilation_guide.html#recommended-flow).
