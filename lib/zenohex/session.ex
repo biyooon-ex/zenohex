@@ -58,6 +58,7 @@ defmodule Zenohex.Session do
 
   @type put_opts :: [
           attachment: binary() | nil,
+          allowed_destination: locality(),
           congestion_control: congestion_control(),
           encoding: String.t(),
           express: boolean(),
@@ -67,6 +68,7 @@ defmodule Zenohex.Session do
 
   @type delete_opts :: [
           attachment: binary() | nil,
+          allowed_destination: locality(),
           congestion_control: congestion_control(),
           express: boolean(),
           priority: priority(),

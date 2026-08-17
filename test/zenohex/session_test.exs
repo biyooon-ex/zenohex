@@ -52,8 +52,34 @@ defmodule Zenohex.SessionTest do
     assert Zenohex.Session.put(context.session_id, "key/expr", "payload") == :ok
   end
 
+  test "put/4 accepts allowed_destination", context do
+    {:ok, subscriber_id} =
+      Zenohex.Session.declare_subscriber(context.session_id, "key/expr", self())
+
+    on_exit(fn -> :ok = Zenohex.Subscriber.undeclare(subscriber_id) end)
+
+    assert :ok =
+             Zenohex.Session.put(context.session_id, "key/expr", "payload",
+               allowed_destination: :remote
+             )
+
+    refute_receive %Zenohex.Sample{kind: :put, key_expr: "key/expr"}
+  end
+
   test "delete/2", context do
     assert Zenohex.Session.delete(context.session_id, "key/expr") == :ok
+  end
+
+  test "delete/3 accepts allowed_destination", context do
+    {:ok, subscriber_id} =
+      Zenohex.Session.declare_subscriber(context.session_id, "key/expr", self())
+
+    on_exit(fn -> :ok = Zenohex.Subscriber.undeclare(subscriber_id) end)
+
+    assert :ok =
+             Zenohex.Session.delete(context.session_id, "key/expr", allowed_destination: :remote)
+
+    refute_receive %Zenohex.Sample{kind: :delete, key_expr: "key/expr"}
   end
 
   test "delete/3 accepts timestamp", context do
