@@ -179,4 +179,29 @@ defmodule Zenohex.Config do
         end
     end
   end
+
+  @doc """
+  Inserts or updates a JSON5 object in an existing configuration array.
+
+  The key must use the `array-key/field=value` form, and `value` must be an
+  object containing the matching field. The third tuple element indicates
+  whether the field-filter operation was applied.
+  """
+  @spec try_insert_json5_array_item(t(), String.t(), String.t()) ::
+          {:ok, t(), boolean()} | {:error, reason :: term()}
+  defdelegate try_insert_json5_array_item(config, key, value),
+    to: Zenohex.Nif,
+    as: :config_try_insert_json5_array_item
+
+  @doc """
+  Removes objects from an existing configuration array using a field filter.
+
+  The key must use the `array-key/field=value` form. The third tuple element
+  indicates whether the field-filter operation was applied.
+  """
+  @spec try_remove_json5_array_item(t(), String.t()) ::
+          {:ok, t(), boolean()} | {:error, reason :: term()}
+  defdelegate try_remove_json5_array_item(config, key),
+    to: Zenohex.Nif,
+    as: :config_try_remove_json5_array_item
 end

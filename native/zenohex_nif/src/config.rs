@@ -100,3 +100,30 @@ fn config_insert_json5(
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
     Ok((rustler::types::atom::ok(), config.to_string()))
 }
+
+#[rustler::nif]
+fn config_try_insert_json5_array_item(
+    json5_binary: &str,
+    key: &str,
+    value: &str,
+) -> rustler::NifResult<(rustler::Atom, String, bool)> {
+    let mut config = zenoh::Config::from_json5(json5_binary)
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    let changed = config
+        .try_insert_json5_array_item(key, value)
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    Ok((rustler::types::atom::ok(), config.to_string(), changed))
+}
+
+#[rustler::nif]
+fn config_try_remove_json5_array_item(
+    json5_binary: &str,
+    key: &str,
+) -> rustler::NifResult<(rustler::Atom, String, bool)> {
+    let mut config = zenoh::Config::from_json5(json5_binary)
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    let changed = config
+        .try_remove_json5_array_item(key)
+        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    Ok((rustler::types::atom::ok(), config.to_string(), changed))
+}

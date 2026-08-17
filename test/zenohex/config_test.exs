@@ -97,4 +97,40 @@ defmodule Zenohex.ConfigTest do
     assert {:ok, updated5} = Zenohex.Config.insert_json5(updated4, "connect/endpoints", [])
     assert {:ok, "[]"} = Zenohex.Config.get_json(updated5, "connect/endpoints")
   end
+
+  test "try_insert_json5_array_item/3" do
+    config = Zenohex.Config.default()
+
+    assert {:ok, config} =
+             Zenohex.Config.insert_json5(config, "qos/publication", [])
+
+    assert {:ok, updated, true} =
+             Zenohex.Config.try_insert_json5_array_item(
+               config,
+               "qos/publication/id=rule1",
+               "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+             )
+
+    assert {:ok, updated, false} =
+             Zenohex.Config.try_insert_json5_array_item(
+               updated,
+               "qos/publication",
+               "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+             )
+  end
+
+  test "try_remove_json5_array_item/2" do
+    config = Zenohex.Config.default()
+
+    assert {:ok, config} =
+             Zenohex.Config.insert_json5(config, "qos/publication", [
+               %{id: "rule1", key_exprs: ["demo/**"], config: %{}}
+             ])
+
+    assert {:ok, updated, true} =
+             Zenohex.Config.try_remove_json5_array_item(config, "qos/publication/id=rule1")
+
+    assert {:ok, _updated, false} =
+             Zenohex.Config.try_remove_json5_array_item(updated, "qos/publication")
+  end
 end
