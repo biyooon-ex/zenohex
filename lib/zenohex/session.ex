@@ -194,7 +194,8 @@ defmodule Zenohex.Session do
   Closes a session.
 
   Releases all resources associated with the given `session_id`.
-  After calling this function, the `session_id` must not be used again.
+  After calling this function, the `session_id` must not be used for session
+  operations other than `closed?/1`.
 
   ## Parameters
 
@@ -202,6 +203,28 @@ defmodule Zenohex.Session do
   """
   @spec close(session_id :: id()) :: :ok | {:error, reason :: term()}
   defdelegate close(session_id), to: Zenohex.Nif, as: :session_close
+
+  @doc """
+  Checks whether a session is closed from Zenohex's perspective.
+
+  Returns `true` when the underlying Zenoh session is closed or when the
+  session is no longer present in Zenohex's session registry. The latter also
+  applies after `close/1` has removed the session from the registry.
+
+  This function is the only session operation supported with a `session_id`
+  after `close/1`.
+
+  ## Examples
+
+      iex> {:ok, session_id} = Zenohex.Session.open()
+      iex> Zenohex.Session.closed?(session_id)
+      false
+      iex> :ok = Zenohex.Session.close(session_id)
+      iex> Zenohex.Session.closed?(session_id)
+      true
+  """
+  @spec closed?(session_id :: id()) :: boolean()
+  defdelegate closed?(session_id), to: Zenohex.Nif, as: :session_is_closed
 
   @doc """
   Publishes a payload to the given `key_expr` within an open session.

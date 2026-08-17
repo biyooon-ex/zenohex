@@ -43,6 +43,9 @@ defmodule Zenohex.Nif do
   @spec session_close(session_id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
 
+  @spec session_is_closed(session_id()) :: boolean()
+  def session_is_closed(_session_id), do: err()
+
   @spec session_put(session_id(), String.t(), binary(), keyword()) ::
           :ok | {:error, reason :: term()}
   def session_put(_session_id, _key_expr, _payload, _opts), do: err()
