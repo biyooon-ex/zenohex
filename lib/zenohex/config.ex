@@ -201,8 +201,8 @@ defmodule Zenohex.Config do
   ## Examples
 
       iex> config = Zenohex.Config.default()
-      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/publication", [])
-      iex> Zenohex.Config.try_insert_json5_array_item(config, "qos/publication/id=rule1", "{id: \\\"rule1\\\", config: {}}")
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [])
+      iex> Zenohex.Config.try_insert_json5_array_item(config, "qos/network/id=rule1", "{id: \\\"rule1\\\", messages: [\\\"put\\\"], key_exprs: [\\\"**\\\"], overwrite: {priority: \\\"data\\\"}, flows: [\\\"egress\\\"]}")
       {:ok, _updated_config, true}
   """
   @spec try_insert_json5_array_item(t(), String.t(), String.t()) ::
@@ -226,8 +226,8 @@ defmodule Zenohex.Config do
   ## Examples
 
       iex> config = Zenohex.Config.default()
-      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/publication", [%{id: "rule1", config: %{}}])
-      iex> Zenohex.Config.try_remove_json5_array_item(config, "qos/publication/id=rule1")
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [%{id: "rule1", messages: ["put"], key_exprs: ["**"], overwrite: %{priority: "data"}, flows: ["egress"]}])
+      iex> Zenohex.Config.try_remove_json5_array_item(config, "qos/network/id=rule1")
       {:ok, _updated_config, true}
   """
   @spec try_remove_json5_array_item(t(), String.t()) ::

@@ -100,10 +100,12 @@ defmodule Zenohex.ConfigTest do
 
   test "insert_json5/3 rejects array-item field filters" do
     config = Zenohex.Config.default()
-    value = "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+
+    value =
+      "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
 
     assert {:error, reason} =
-             Zenohex.Config.insert_json5(config, "qos/publication/id=rule1", value)
+             Zenohex.Config.insert_json5(config, "qos/network/id=rule1", value)
 
     assert reason =~ "unknown key"
   end
@@ -111,26 +113,42 @@ defmodule Zenohex.ConfigTest do
   test "try_insert_json5_array_item/3" do
     config = Zenohex.Config.default()
 
-    assert {:ok, config} =
-             Zenohex.Config.insert_json5(config, "qos/publication", [])
+    assert {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [])
 
     assert {:ok, updated, true} =
              Zenohex.Config.try_insert_json5_array_item(
                config,
-               "qos/publication/id=rule1",
-               "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+               "qos/network/id=rule1",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
              )
 
-    assert {:ok, before_noop} = Zenohex.Config.get_json(updated, "qos/publication")
+    assert {:ok, inserted_json} = Zenohex.Config.get_json(updated, "qos/network")
+
+    assert [%{"id" => "rule1", "overwrite" => %{"priority" => "data"}}] =
+             JSON.decode!(inserted_json)
+
+    assert {:ok, replaced, true} =
+             Zenohex.Config.try_insert_json5_array_item(
+               updated,
+               "qos/network/id=rule1",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"real_time\"}, flows: [\"egress\"]}"
+             )
+
+    assert {:ok, replaced_json} = Zenohex.Config.get_json(replaced, "qos/network")
+
+    assert [%{"id" => "rule1", "overwrite" => %{"priority" => "real_time"}}] =
+             JSON.decode!(replaced_json)
+
+    assert {:ok, before_noop} = Zenohex.Config.get_json(replaced, "qos/network")
 
     assert {:ok, updated_noop, false} =
              Zenohex.Config.try_insert_json5_array_item(
-               updated,
-               "qos/publication",
-               "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+               replaced,
+               "qos/network",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
              )
 
-    assert {:ok, after_noop} = Zenohex.Config.get_json(updated_noop, "qos/publication")
+    assert {:ok, after_noop} = Zenohex.Config.get_json(updated_noop, "qos/network")
     assert before_noop == after_noop
   end
 
@@ -138,14 +156,27 @@ defmodule Zenohex.ConfigTest do
     config = Zenohex.Config.default()
 
     assert {:ok, config} =
-             Zenohex.Config.insert_json5(config, "qos/publication", [
-               %{id: "rule1", key_exprs: ["demo/**"], config: %{}}
+             Zenohex.Config.insert_json5(config, "qos/network", [
+               %{
+                 id: "rule1",
+                 messages: ["put"],
+                 key_exprs: ["**"],
+                 overwrite: %{priority: "data"},
+                 flows: ["egress"]
+               }
              ])
 
     assert {:ok, updated, true} =
-             Zenohex.Config.try_remove_json5_array_item(config, "qos/publication/id=rule1")
+             Zenohex.Config.try_remove_json5_array_item(config, "qos/network/id=rule1")
+
+    assert {:ok, "[]"} = Zenohex.Config.get_json(updated, "qos/network")
+
+    assert {:ok, missing, true} =
+             Zenohex.Config.try_remove_json5_array_item(updated, "qos/network/id=missing")
+
+    assert {:ok, "[]"} = Zenohex.Config.get_json(missing, "qos/network")
 
     assert {:ok, _updated, false} =
-             Zenohex.Config.try_remove_json5_array_item(updated, "qos/publication")
+             Zenohex.Config.try_remove_json5_array_item(updated, "qos/network")
   end
 end
