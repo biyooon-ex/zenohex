@@ -110,6 +110,10 @@ defmodule Zenohex.Config do
   rejected to avoid accidentally inserting a list of integer codepoints. Other
   non-ASCII charlists are treated as lists and may be encoded as JSON arrays of integers.
 
+  This function updates a configuration key directly. It does not interpret
+  `array-key/field=value` as a field filter; use `try_insert_json5_array_item/3`
+  for that operation.
+
   ## Examples
 
       ### Case 1: Insert numeric value
@@ -183,9 +187,23 @@ defmodule Zenohex.Config do
   @doc """
   Inserts or updates a JSON5 object in an existing configuration array.
 
-  The key must use the `array-key/field=value` form, and `value` must be an
-  object containing the matching field. The third tuple element indicates
-  whether the field-filter operation was applied.
+  The key must use the `array-key/field=value` form, for example
+  `"qos/network/id=rule1"`. The `value` must be a JSON5 object containing
+  the matching field. The object replaces the first matching item, or is
+  appended when no matching item exists.
+
+  The third tuple element is `true` when the field-filter operation was
+  applied. It is `false` when the key does not contain a field filter; in that
+  case the config is returned unchanged. This function is the field-filter
+  counterpart to `insert_json5/3`; passing a field-filter key to
+  `insert_json5/3` is not supported.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/publication", [])
+      iex> Zenohex.Config.try_insert_json5_array_item(config, "qos/publication/id=rule1", "{id: \\\"rule1\\\", config: {}}")
+      {:ok, _updated_config, true}
   """
   @spec try_insert_json5_array_item(t(), String.t(), String.t()) ::
           {:ok, t(), boolean()} | {:error, reason :: term()}
@@ -196,8 +214,21 @@ defmodule Zenohex.Config do
   @doc """
   Removes objects from an existing configuration array using a field filter.
 
-  The key must use the `array-key/field=value` form. The third tuple element
-  indicates whether the field-filter operation was applied.
+  The key must use the `array-key/field=value` form, for example
+  `"qos/network/id=rule1"`. All objects whose field matches the filter are
+  removed.
+
+  The third tuple element is `true` when the field-filter operation was
+  applied. It is `false` when the key does not contain a field filter; in that
+  case the config is returned unchanged. A `true` result means the operation
+  was recognized and applied, not necessarily that an object was removed.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/publication", [%{id: "rule1", config: %{}}])
+      iex> Zenohex.Config.try_remove_json5_array_item(config, "qos/publication/id=rule1")
+      {:ok, _updated_config, true}
   """
   @spec try_remove_json5_array_item(t(), String.t()) ::
           {:ok, t(), boolean()} | {:error, reason :: term()}

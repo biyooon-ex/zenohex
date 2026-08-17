@@ -98,6 +98,16 @@ defmodule Zenohex.ConfigTest do
     assert {:ok, "[]"} = Zenohex.Config.get_json(updated5, "connect/endpoints")
   end
 
+  test "insert_json5/3 rejects array-item field filters" do
+    config = Zenohex.Config.default()
+    value = "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
+
+    assert {:error, reason} =
+             Zenohex.Config.insert_json5(config, "qos/publication/id=rule1", value)
+
+    assert reason =~ "unknown key"
+  end
+
   test "try_insert_json5_array_item/3" do
     config = Zenohex.Config.default()
 
@@ -111,12 +121,17 @@ defmodule Zenohex.ConfigTest do
                "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
              )
 
-    assert {:ok, updated, false} =
+    assert {:ok, before_noop} = Zenohex.Config.get_json(updated, "qos/publication")
+
+    assert {:ok, updated_noop, false} =
              Zenohex.Config.try_insert_json5_array_item(
                updated,
                "qos/publication",
                "{id: \"rule1\", key_exprs: [\"demo/**\"], config: {}}"
              )
+
+    assert {:ok, after_noop} = Zenohex.Config.get_json(updated_noop, "qos/publication")
+    assert before_noop == after_noop
   end
 
   test "try_remove_json5_array_item/2" do
