@@ -38,7 +38,7 @@ FYI, the development team currently uses the following versions.
 
 - Elixir 1.19.5-otp-28
 - Erlang/OTP 28.5
-- Rust 1.93.0
+- Rust 1.97.1
 
 ### Installation
 
