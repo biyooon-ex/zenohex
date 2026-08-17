@@ -21,4 +21,23 @@ defmodule Zenohex.ScoutingTest do
 
     assert %Zenohex.Scouting.Hello{} = List.first(hellos)
   end
+
+  test "scout/3 accepts multiple node types" do
+    assert {:ok, hellos} =
+             Zenohex.Scouting.scout([:peer, :router, :client], Zenohex.Config.default(), 100)
+
+    assert is_list(hellos)
+  end
+
+  test "scout/3 rejects an empty matcher" do
+    assert {:error, :invalid_what_matcher} =
+             Zenohex.Scouting.scout([], Zenohex.Config.default(), 100)
+  end
+
+  test "declare_scout/3 accepts multiple node types" do
+    assert {:ok, scout} =
+             Zenohex.Scouting.declare_scout([:peer, :router, :client], Zenohex.Config.default())
+
+    assert :ok = Zenohex.Scouting.stop_scout(scout)
+  end
 end

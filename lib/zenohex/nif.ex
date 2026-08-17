@@ -204,11 +204,11 @@ defmodule Zenohex.Nif do
 
   # Scouting
 
-  @spec scouting_scout(:peer | :router, String.t(), non_neg_integer()) ::
+  @spec scouting_scout([:peer | :router | :client], String.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   def scouting_scout(_what, _json5_binary, _timeout), do: err()
 
-  @spec scouting_declare_scout(:peer | :router, String.t(), pid()) ::
+  @spec scouting_declare_scout([:peer | :router | :client], String.t(), pid()) ::
           {:ok, scout()} | {:error, reason :: term()}
   def scouting_declare_scout(_what, _json5_binary, _pid), do: err()
 

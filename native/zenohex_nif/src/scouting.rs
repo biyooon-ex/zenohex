@@ -5,6 +5,13 @@ use std::time::Instant;
 
 use zenoh::Wait;
 
+fn what_matcher(what: Vec<crate::config::WhatAmI>) -> zenoh::config::WhatAmIMatcher {
+    what.into_iter()
+        .fold(zenoh::config::WhatAmIMatcher::empty(), |matcher, what| {
+            matcher | zenoh::config::WhatAmI::from(what)
+        })
+}
+
 #[derive(rustler::NifStruct)]
 #[module = "Zenohex.Scouting.Hello"]
 pub struct ZenohexScoutingHello {
@@ -62,14 +69,14 @@ impl ScoutResource {
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn scouting_scout(
-    what: crate::config::WhatAmI,
+    what: Vec<crate::config::WhatAmI>,
     json5_binary: &str,
     timeout: u64,
 ) -> rustler::NifResult<(rustler::Atom, Vec<crate::scouting::ZenohexScoutingHello>)> {
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
+    let scout = zenoh::scout(what_matcher(what), config)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
@@ -107,7 +114,7 @@ fn scouting_scout(
 
 #[rustler::nif]
 fn scouting_declare_scout(
-    what: crate::config::WhatAmI,
+    what: Vec<crate::config::WhatAmI>,
     json5_binary: &str,
     // WHY: Pass `pid` instead of using `env.pid()`
     //      so the user can specify any receiver process
@@ -116,7 +123,7 @@ fn scouting_declare_scout(
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
+    let scout = zenoh::scout(what_matcher(what), config)
         .callback(move |hello| {
             // WHY: Spawn a thread inside this callback.
             //      If we don't spawn a thread, a panic will occur.
