@@ -38,7 +38,7 @@ FYI, the development team currently uses the following versions.
 
 - Elixir 1.19.5-otp-28
 - Erlang/OTP 28.5
-- Rust 1.93.0
+- Rust 1.97.1
 
 ### Installation
 
@@ -156,6 +156,8 @@ Also, the version number of Rustler is specified in both mix.exs (Elixir hex pac
 Therefore, we clearly specify these version numbers with `==` in mix.exs and `=` in Cargo.toml.
 
 ### How to release
+
+Before releasing a new version of Zenohex, we usually run `cargo update` in `native/zenohex_nif` to update the dependencies of cargo packages. 
 
 We expect [release-automation.yml](https://github.com/biyooon-ex/zenohex/blob/main/.github/workflows/release-automation.yml) to automatically trigger the following workflow when the version numbers in `mix.exs`, `Cargo.toml`, and `Cargo.lock` are updated and pushed to main branch; if that doesn’t happen, operate the following steps manually.
 
