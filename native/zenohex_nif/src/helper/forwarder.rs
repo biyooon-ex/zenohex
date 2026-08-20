@@ -135,8 +135,27 @@ where
 {
     std::thread::spawn(move || {
         let mut owned_env = rustler::OwnedEnv::new();
+        let mut iter = handler.iter();
+        let mut was_full = false;
 
-        for item in handler.iter() {
+        loop {
+            // WHY: surfaces backpressure to the user instead of failing silently.
+            //      A full Fifo means Zenoh's callback thread is blocked on this
+            //      entity right now; only logging on the not-full -> full
+            //      transition avoids spamming the log once per message during
+            //      sustained overload.
+            if let ChannelHandler::Fifo(fifo) = &handler {
+                let is_full = fifo.is_full();
+                if is_full && !was_full {
+                    log::warn!(
+                        "zenohex_nif: fifo channel is full, Zenoh's callback thread is blocked until it drains"
+                    );
+                }
+                was_full = is_full;
+            }
+
+            let Some(item) = iter.next() else { break };
+
             let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 owned_env.send_and_clear(&pid, |env| encode(env, item))
             }));

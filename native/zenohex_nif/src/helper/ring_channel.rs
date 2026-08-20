@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 
 /// A drop-oldest-when-full channel, mirroring `zenoh::handlers::RingChannel`
@@ -21,6 +21,9 @@ struct RingInner<T> {
     not_empty: Condvar,
     capacity: usize,
     closed: AtomicBool,
+    // WHY: tracks cumulative drop-oldest evictions, so `send` can throttle its
+    //      log warning instead of logging once per dropped sample.
+    dropped: AtomicUsize,
 }
 
 pub struct RingChannelHandler<T> {
@@ -79,6 +82,12 @@ impl<T> RingSender<T> {
         // oldest sample instead, preserving order for what remains.
         if buffer.len() >= self.inner.capacity {
             buffer.pop_front();
+            let dropped = self.inner.dropped.fetch_add(1, Ordering::Relaxed) + 1;
+            // WHY: surfaces data loss to the user instead of failing silently;
+            //      throttled so sustained overload doesn't log once per sample.
+            if dropped == 1 || dropped.is_multiple_of(1000) {
+                log::warn!("zenohex_nif: ring channel full, dropped {dropped} sample(s) so far");
+            }
         }
         buffer.push_back(item);
         drop(buffer);
@@ -102,6 +111,7 @@ impl<T: Send + 'static> zenoh::handlers::IntoHandler<T> for RingChannel {
             not_empty: Condvar::new(),
             capacity: self.capacity,
             closed: AtomicBool::new(false),
+            dropped: AtomicUsize::new(0),
         });
 
         let sender = RingSender {
