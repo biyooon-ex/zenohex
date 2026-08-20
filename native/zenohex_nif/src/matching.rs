@@ -142,7 +142,7 @@ fn matching_declare_listener(
         pid,
         listener.handler().clone(),
         |env, matching_status| ZenohexMatchingStatus::from(matching_status).encode(env),
-    );
+    )?;
 
     Ok((
         rustler::types::atom::ok(),

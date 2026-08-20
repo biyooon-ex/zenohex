@@ -138,7 +138,7 @@ fn scouting_declare_scout(
     //      so `.clone()` here resolves to `ChannelHandler::clone` via auto-deref.
     crate::helper::forwarder::spawn_forwarder(pid, scout.clone(), |env, hello| {
         ZenohexScoutingHello::from(hello).encode(env)
-    });
+    })?;
 
     Ok((
         rustler::types::atom::ok(),

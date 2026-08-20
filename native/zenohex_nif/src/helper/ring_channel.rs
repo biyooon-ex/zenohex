@@ -23,6 +23,9 @@ impl RingChannel {
 struct RingInner<T> {
     buffer: Mutex<VecDeque<T>>,
     not_empty: Condvar,
+    // WHY: separate from `not_empty` because async and blocking consumers use
+    //      different wait mechanisms; a single consumer uses only one of them.
+    not_empty_async: tokio::sync::Notify,
     capacity: usize,
     closed: AtomicBool,
 }
@@ -45,6 +48,27 @@ impl<T> RingChannelHandler<T> {
     pub fn iter(&self) -> RingIter<'_, T> {
         RingIter {
             inner: &self.inner,
+        }
+    }
+
+    /// Async counterpart to `iter`, for use on a tokio runtime. Returns `None`
+    /// once the sender side is dropped. Mirrors `FifoChannelHandler::recv_async`.
+    pub async fn recv_async(&self) -> Option<T> {
+        loop {
+            // WHY: create the `Notified` future before checking the buffer, so a
+            //      `notify_one` from `send`/`Drop` that races with this check is
+            //      not lost (tokio stores it as a permit for this waiter).
+            let notified = self.inner.not_empty_async.notified();
+            {
+                let mut buffer = self.inner.buffer.lock().unwrap();
+                if let Some(item) = buffer.pop_front() {
+                    return Some(item);
+                }
+                if self.inner.closed.load(Ordering::Acquire) {
+                    return None;
+                }
+            }
+            notified.await;
         }
     }
 }
@@ -87,6 +111,7 @@ impl<T> RingSender<T> {
         buffer.push_back(item);
         drop(buffer);
         self.inner.not_empty.notify_one();
+        self.inner.not_empty_async.notify_one();
     }
 }
 
@@ -94,6 +119,7 @@ impl<T> Drop for RingSender<T> {
     fn drop(&mut self) {
         self.inner.closed.store(true, Ordering::Release);
         self.inner.not_empty.notify_all();
+        self.inner.not_empty_async.notify_one();
     }
 }
 
@@ -104,6 +130,7 @@ impl<T: Send + 'static> zenoh::handlers::IntoHandler<T> for RingChannel {
         let inner = Arc::new(RingInner {
             buffer: Mutex::new(VecDeque::with_capacity(self.capacity)),
             not_empty: Condvar::new(),
+            not_empty_async: tokio::sync::Notify::new(),
             capacity: self.capacity,
             closed: AtomicBool::new(false),
         });

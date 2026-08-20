@@ -116,7 +116,7 @@ fn querier_get_async(
                 crate::query::ZenohexQueryReplyError::from(env, reply_error.clone()).encode(env)
             }
         },
-    );
+    )?;
 
     Ok(rustler::types::atom::ok())
 }

@@ -109,26 +109,103 @@ impl<T: Send + 'static> zenoh::handlers::IntoHandler<T> for ChannelKind {
 //      targeting the same pid and can reorder deliveries. Draining `handler` from a
 //      single dedicated thread and reusing one `OwnedEnv` preserves delivery order and
 //      keeps `send_and_clear` allocations low.
-pub fn spawn_forwarder<T, F>(pid: rustler::LocalPid, handler: ChannelHandler<T>, encode: F)
+pub fn spawn_forwarder<T, F>(pid: rustler::LocalPid, handler: ChannelHandler<T>, encode: F) -> rustler::NifResult<()>
 where
     T: Send + 'static,
     F: for<'a> Fn(rustler::Env<'a>, T) -> rustler::Term<'a> + Send + 'static,
 {
-    std::thread::spawn(move || {
-        let mut owned_env = rustler::OwnedEnv::new();
-        for item in handler.iter() {
-            let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                owned_env.send_and_clear(&pid, |env| encode(env, item))
-            }));
-
-            // WHY: a single thread now forwards every message for this entity's whole
-            //      lifetime, so a panic in `encode` must not kill it silently. Log and
-            //      replace `owned_env` (its state after an unwind is not guaranteed)
-            //      instead of letting the thread die and delivery stop forever.
-            if outcome.is_err() {
-                log::error!("zenohex_nif: encode panicked while forwarding, message dropped");
-                owned_env = rustler::OwnedEnv::new();
-            }
+    match (ForwarderExecutor::from_env()?, handler) {
+        (ForwarderExecutor::Tokio, ChannelHandler::Fifo(fifo)) => {
+            tokio_runtime().spawn(async move {
+                let mut owned_env = rustler::OwnedEnv::new();
+                while let Ok(item) = fifo.recv_async().await {
+                    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        owned_env.send_and_clear(&pid, |env| encode(env, item))
+                    }));
+                    if outcome.is_err() {
+                        log::error!("zenohex_nif: encode panicked while forwarding, message dropped");
+                        owned_env = rustler::OwnedEnv::new();
+                    }
+                }
+            });
         }
-    });
+        (ForwarderExecutor::Tokio, ChannelHandler::Ring(ring)) => {
+            tokio_runtime().spawn(async move {
+                let mut owned_env = rustler::OwnedEnv::new();
+                while let Some(item) = ring.recv_async().await {
+                    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        owned_env.send_and_clear(&pid, |env| encode(env, item))
+                    }));
+                    if outcome.is_err() {
+                        log::error!("zenohex_nif: encode panicked while forwarding, message dropped");
+                        owned_env = rustler::OwnedEnv::new();
+                    }
+                }
+            });
+        }
+        (_, handler) => {
+            std::thread::spawn(move || {
+                let mut owned_env = rustler::OwnedEnv::new();
+                for item in handler.iter() {
+                    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        owned_env.send_and_clear(&pid, |env| encode(env, item))
+                    }));
+
+                    // WHY: a single thread now forwards every message for this entity's whole
+                    //      lifetime, so a panic in `encode` must not kill it silently. Log and
+                    //      replace `owned_env` (its state after an unwind is not guaranteed)
+                    //      instead of letting the thread die and delivery stop forever.
+                    if outcome.is_err() {
+                        log::error!("zenohex_nif: encode panicked while forwarding, message dropped");
+                        owned_env = rustler::OwnedEnv::new();
+                    }
+                }
+            });
+        }
+    }
+    Ok(())
 }
+
+// WHY: prototype/benchmark only (see Cargo.toml), scoped to this file.
+#[derive(Clone, Copy)]
+enum ForwarderExecutor {
+    Thread,
+    Tokio,
+}
+
+impl ForwarderExecutor {
+    fn from_env() -> rustler::NifResult<Self> {
+        match std::env::var("ZENOHEX_FORWARDER_EXECUTOR") {
+            Err(std::env::VarError::NotPresent) => Ok(ForwarderExecutor::Thread),
+            Ok(value) if value.eq_ignore_ascii_case("thread") => Ok(ForwarderExecutor::Thread),
+            Ok(value) if value.eq_ignore_ascii_case("tokio") => Ok(ForwarderExecutor::Tokio),
+            Ok(value) => Err(rustler::Error::RaiseTerm(Box::new(
+                crate::helper::exception::ArgumentError {
+                    message: format!(
+                        "invalid ZENOHEX_FORWARDER_EXECUTOR {value:?}, expected \"thread\" or \"tokio\""
+                    ),
+                },
+            ))),
+            Err(std::env::VarError::NotUnicode(_)) => Err(rustler::Error::RaiseTerm(Box::new(
+                crate::helper::exception::ArgumentError {
+                    message: "ZENOHEX_FORWARDER_EXECUTOR is not valid unicode".to_string(),
+                },
+            ))),
+        }
+    }
+}
+
+// WHY: not calling `.worker_threads()` leaves tokio reading `TOKIO_WORKER_THREADS`
+//      (falling back to the number of cores), so operators retain the same tuning
+//      knob pojiro flagged as a benefit of this approach in PR #217.
+fn tokio_runtime() -> &'static tokio::runtime::Runtime {
+    static RUNTIME: std::sync::OnceLock<tokio::runtime::Runtime> = std::sync::OnceLock::new();
+    RUNTIME.get_or_init(|| {
+        tokio::runtime::Builder::new_multi_thread()
+            .thread_name("zenohex-forwarder")
+            .enable_all()
+            .build()
+            .expect("failed to build zenohex forwarder tokio runtime")
+    })
+}
+

@@ -129,7 +129,7 @@ fn liveliness_declare_subscriber(
         pid,
         subscriber.handler().clone(),
         |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),
-    );
+    )?;
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
