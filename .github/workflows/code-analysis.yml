@@ -62,14 +62,13 @@ jobs:
       - name: Compile project
         run: mix compile --warnings-as-errors
 
-      - name: mix format
+      - name: mix format (along with cargo fmt)
         run: mix format --check-formatted
 
-      - name: cargo clippy & fmt
+      - name: cargo clippy
         working-directory: native/zenohex_nif
         run: |
           cargo clippy --all-targets --all-features -- -D warnings
-          cargo fmt --all -- --check
 
       - name: mix credo
         run: mix credo

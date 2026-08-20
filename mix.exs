@@ -19,7 +19,8 @@ defmodule Zenohex.MixProject do
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      aliases: aliases()
     ]
   end
 
@@ -33,6 +34,36 @@ defmodule Zenohex.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      format: &format/1
+    ]
+  end
+
+  defp format(args) do
+    Mix.Tasks.Format.run(args)
+
+    cargo_args = [
+      "fmt",
+      "--manifest-path",
+      "native/zenohex_nif/Cargo.toml"
+    ]
+
+    cargo_args =
+      if "--check-formatted" in args do
+        cargo_args ++ ["--", "--check"]
+      else
+        cargo_args
+      end
+
+    {_output, status} =
+      System.cmd("cargo", cargo_args, into: IO.stream(:stdio, :line))
+
+    if status != 0 do
+      Mix.raise("cargo fmt failed")
+    end
+  end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
