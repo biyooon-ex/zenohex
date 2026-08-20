@@ -102,6 +102,10 @@ defmodule Zenohex.ChannelConfigTest do
   defp flood_and_assert_warning(key_expr, expected_message) do
     :ok = Zenohex.Nif.nif_logger_init(self(), :warning)
     :ok = Zenohex.Nif.Logger.enable()
+    # WHY: other test modules can leave the logger's target broadened to
+    #      "zenoh" (matches both crates by prefix), so pin it back here or an
+    #      unrelated Zenoh-internal warning can race ahead of ours below.
+    :ok = Zenohex.Nif.Logger.set_target("zenohex_nif")
     on_exit(fn -> Zenohex.Nif.Logger.disable() end)
 
     {:ok, session_id} =
