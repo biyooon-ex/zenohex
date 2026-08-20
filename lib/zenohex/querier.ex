@@ -37,7 +37,9 @@ defmodule Zenohex.Querier do
   use an application-level protocol to determine when to stop waiting.
   """
   @spec get_async(id(), pid(), get_opts()) :: :ok | {:error, reason :: term()}
-  defdelegate get_async(id, pid \\ self(), opts \\ []), to: Zenohex.Nif, as: :querier_get_async
+  def get_async(id, pid \\ self(), opts \\ []) do
+    Zenohex.Nif.querier_get_async(id, pid, opts, Zenohex.ChannelConfig.get())
+  end
 
   @doc """
   Undeclares the querier identified by the given ID.

@@ -108,6 +108,7 @@ fn liveliness_declare_subscriber(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
@@ -121,7 +122,7 @@ fn liveliness_declare_subscriber(
 
     let subscriber = liveliness_subscriber_buidler
         .apply_opts(opts)?
-        .with(crate::helper::forwarder::ChannelKind::from_env()?)
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 

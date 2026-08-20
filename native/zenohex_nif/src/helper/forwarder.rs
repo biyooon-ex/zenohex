@@ -1,13 +1,3 @@
-/// Default channel capacity, overridable via `ZENOHEX_CHANNEL_CAPACITY`. Bounds
-/// two independent things differently, not one:
-/// - Zenoh -> native queue: when full, `Fifo` blocks the Zenoh callback thread
-///   until this forwarder drains a slot; `Ring` drops the oldest item instead
-///   and never blocks it.
-/// - native queue -> BEAM mailbox: `send_and_clear` does not wait for the BEAM
-///   process to consume its mailbox, so a slow/stuck consumer can still grow
-///   that mailbox unbounded regardless of this value.
-const DEFAULT_CHANNEL_CAPACITY: usize = 256;
-
 /// Selects the delivery semantics used between a Zenoh callback and the
 /// forwarder thread. `Fifo` (default, matches Zenoh's own default handler)
 /// blocks the Zenoh callback thread when full and never drops. `Ring` never
@@ -20,48 +10,20 @@ pub enum ChannelKind {
     Ring { capacity: usize },
 }
 
-impl ChannelKind {
-    // WHY: env var switch for now; a Config-level API is a planned follow-up.
-    //      Unset falls back to Fifo with the default capacity; a set but
-    //      unrecognized/invalid value raises instead of silently falling back.
-    pub fn from_env() -> rustler::NifResult<Self> {
-        let capacity = channel_capacity_from_env()?;
-
-        match std::env::var("ZENOHEX_CHANNEL_KIND") {
-            Err(std::env::VarError::NotPresent) => Ok(ChannelKind::Fifo { capacity }),
-            Ok(value) if value.eq_ignore_ascii_case("fifo") => Ok(ChannelKind::Fifo { capacity }),
-            Ok(value) if value.eq_ignore_ascii_case("ring") => Ok(ChannelKind::Ring { capacity }),
-            Ok(value) => Err(rustler::Error::RaiseTerm(Box::new(
-                crate::helper::exception::ArgumentError {
-                    message: format!(
-                        "invalid ZENOHEX_CHANNEL_KIND {value:?}, expected \"fifo\" or \"ring\""
-                    ),
-                },
-            ))),
-            Err(std::env::VarError::NotUnicode(_)) => Err(rustler::Error::RaiseTerm(Box::new(
-                crate::helper::exception::ArgumentError {
-                    message: "ZENOHEX_CHANNEL_KIND is not valid unicode".to_string(),
-                },
-            ))),
+// WHY: `Zenohex.ChannelConfig.get()` resolves `config :zenohex, channel_kind:
+//      ..., channel_capacity: ...` on the Elixir side and passes it as a
+//      `{:fifo | :ring, pos_integer()}` tuple, so every call site decodes it
+//      the same way instead of each NIF re-reading application config itself.
+impl<'a> rustler::Decoder<'a> for ChannelKind {
+    fn decode(term: rustler::Term<'a>) -> rustler::NifResult<Self> {
+        let (kind, capacity): (rustler::Atom, usize) = term.decode()?;
+        if kind == crate::atoms::fifo() {
+            Ok(ChannelKind::Fifo { capacity })
+        } else if kind == crate::atoms::ring() {
+            Ok(ChannelKind::Ring { capacity })
+        } else {
+            Err(rustler::Error::BadArg)
         }
-    }
-}
-
-fn channel_capacity_from_env() -> rustler::NifResult<usize> {
-    match std::env::var("ZENOHEX_CHANNEL_CAPACITY") {
-        Err(std::env::VarError::NotPresent) => Ok(DEFAULT_CHANNEL_CAPACITY),
-        Ok(value) => value.parse::<usize>().map_err(|_| {
-            rustler::Error::RaiseTerm(Box::new(crate::helper::exception::ArgumentError {
-                message: format!(
-                    "invalid ZENOHEX_CHANNEL_CAPACITY {value:?}, expected a positive integer"
-                ),
-            }))
-        }),
-        Err(std::env::VarError::NotUnicode(_)) => Err(rustler::Error::RaiseTerm(Box::new(
-            crate::helper::exception::ArgumentError {
-                message: "ZENOHEX_CHANNEL_CAPACITY is not valid unicode".to_string(),
-            },
-        ))),
     }
 }
 

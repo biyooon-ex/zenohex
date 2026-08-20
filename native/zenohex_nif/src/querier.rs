@@ -84,6 +84,7 @@ fn querier_get_async(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &entity_global_id_resource.zid();
     let entity_global_id = &entity_global_id_resource;
@@ -97,7 +98,7 @@ fn querier_get_async(
         crate::session::Entity::Querier(querier, _) => querier
             .get()
             .apply_opts(opts)?
-            .with(crate::helper::forwarder::ChannelKind::from_env()?)
+            .with(channel_kind)
             .wait()
             .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
         _ => {

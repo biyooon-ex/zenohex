@@ -107,6 +107,7 @@ fn matching_status(
 fn matching_declare_listener(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     pid: rustler::LocalPid,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<MatchingListenerResource>,
@@ -118,8 +119,6 @@ fn matching_declare_listener(
         crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
-
-    let channel_kind = crate::helper::forwarder::ChannelKind::from_env()?;
 
     let listener = match entity {
         crate::session::Entity::Publisher(publisher, _) => publisher

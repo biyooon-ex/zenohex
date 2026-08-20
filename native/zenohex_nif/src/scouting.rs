@@ -125,12 +125,13 @@ fn scouting_declare_scout(
     // WHY: Pass `pid` instead of using `env.pid()`
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<ScoutResource>)> {
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
-        .with(crate::helper::forwarder::ChannelKind::from_env()?)
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 

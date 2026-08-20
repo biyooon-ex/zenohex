@@ -374,9 +374,15 @@ defmodule Zenohex.Session do
   """
   @spec declare_subscriber(session_id :: id(), String.t(), pid(), subscriber_opts()) ::
           {:ok, subscriber_id :: Zenohex.Subscriber.id()} | {:error, reason :: term()}
-  defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
-    to: Zenohex.Nif,
-    as: :session_declare_subscriber
+  def declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []) do
+    Zenohex.Nif.session_declare_subscriber(
+      session_id,
+      key_expr,
+      pid,
+      opts,
+      Zenohex.ChannelConfig.get()
+    )
+  end
 
   @doc """
   Declares a queryable for the specified `key_expr`.
@@ -397,7 +403,13 @@ defmodule Zenohex.Session do
   """
   @spec declare_queryable(session_id :: id(), String.t(), pid(), queryable_opts()) ::
           {:ok, queryable_id :: Zenohex.Queryable.id()} | {:error, reason :: term()}
-  defdelegate declare_queryable(session_id, key_expr, pid \\ self(), opts \\ []),
-    to: Zenohex.Nif,
-    as: :session_declare_queryable
+  def declare_queryable(session_id, key_expr, pid \\ self(), opts \\ []) do
+    Zenohex.Nif.session_declare_queryable(
+      session_id,
+      key_expr,
+      pid,
+      opts,
+      Zenohex.ChannelConfig.get()
+    )
+  end
 end

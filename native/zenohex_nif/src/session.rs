@@ -472,6 +472,7 @@ fn session_declare_subscriber(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
@@ -481,7 +482,7 @@ fn session_declare_subscriber(
 
     let subscriber = subscriber_buidler
         .apply_opts(opts)?
-        .with(crate::helper::forwarder::ChannelKind::from_env()?)
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
@@ -511,6 +512,7 @@ fn session_declare_queryable(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
@@ -520,7 +522,7 @@ fn session_declare_queryable(
 
     let queryable = queryable_builder
         .apply_opts(opts)?
-        .with(crate::helper::forwarder::ChannelKind::from_env()?)
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 

@@ -29,6 +29,22 @@ defmodule Zenohex.Nif.Logger do
 
       11:12:16.166 [info] [zenoh::net::runtime::orchestrator] zenohd listening scout messages on 224.0.0.224:7446
       {:ok, #Reference<0.3207146932.3642621953.187320>}
+
+  Zenohex itself also logs a warning when a `:fifo` channel (see the
+  [Configuration](readme.html#configuration) section in the README) becomes full, or when a
+  `:ring` channel drops a sample:
+
+      iex> :ok = Zenohex.Nif.Logger.enable()
+      iex> :ok = Zenohex.Nif.Logger.set_level(:warning)
+
+      11:12:16.162 [warning] [zenohex_nif::helper::forwarder] zenohex_nif: fifo channel is full, Zenoh's callback thread is blocked until it drains
+
+  Note that `set_target/1` matches by string prefix, and `"zenohex_nif"` happens to start
+  with `"zenoh"`, so the default target (`"zenoh"`) already includes these warnings above.
+  Set the target to `"zenohex_nif"` instead of `"zenoh"` to see only Zenohex's own
+  warnings, without Zenoh's own (noisier, at `:info`) internal logs:
+
+      iex> :ok = Zenohex.Nif.Logger.set_target("zenohex_nif")
   """
 
   @type level :: :error | :warning | :info | :debug
