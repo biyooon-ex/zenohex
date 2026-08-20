@@ -42,9 +42,7 @@ impl<T> RingChannelHandler<T> {
     /// Blocking iterator, ending once the sender side (the Zenoh callback) is
     /// dropped, e.g. via `undeclare`. Mirrors `FifoChannelHandler::iter`.
     pub fn iter(&self) -> RingIter<'_, T> {
-        RingIter {
-            inner: &self.inner,
-        }
+        RingIter { inner: &self.inner }
     }
 }
 
@@ -97,7 +95,10 @@ impl<T> RingSender<T> {
 
 impl<T> Drop for RingSender<T> {
     fn drop(&mut self) {
+        // WHY: lock before notifying so a racing `next` can't miss this wakeup and block forever.
+        let buffer = self.inner.buffer.lock().unwrap();
         self.inner.closed.store(true, Ordering::Release);
+        drop(buffer);
         self.inner.not_empty.notify_all();
     }
 }
