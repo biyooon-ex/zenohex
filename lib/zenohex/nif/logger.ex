@@ -39,10 +39,12 @@ defmodule Zenohex.Nif.Logger do
 
       11:12:16.162 [warning] [zenohex_nif::helper::forwarder] zenohex_nif: fifo channel is full, Zenoh's callback thread is blocked until it drains
 
-  Note that `set_target/1` matches by string prefix, and `"zenohex_nif"` happens to start
-  with `"zenoh"`, so the default target (`"zenoh"`) already includes these warnings above.
-  Set the target to `"zenohex_nif"` instead of `"zenoh"` to see only Zenohex's own
-  warnings, without Zenoh's own (noisier, at `:info`) internal logs:
+  Note that the logger's default target is `"zenohex_nif"` (see `get_target/0`), so these
+  warnings are visible even without calling `set_target/1`. `set_target/1` matches by string
+  prefix, and `"zenohex_nif"` happens to start with `"zenoh"`, so broadening the target to
+  `"zenoh"` (as in the example above, to see Zenoh's own internal logs) still includes these
+  warnings. Set the target back to `"zenohex_nif"` to see only Zenohex's own warnings, without
+  Zenoh's own (noisier, at `:info`) internal logs:
 
       iex> :ok = Zenohex.Nif.Logger.set_target("zenohex_nif")
   """
