@@ -121,11 +121,11 @@ fn liveliness_declare_subscriber(
 
     let subscriber = liveliness_subscriber_buidler
         .apply_opts(opts)?
-        .with(crate::helper::fifo_forwarder::fifo_channel())
+        .with(crate::helper::forwarder::ChannelKind::from_env()?)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    crate::helper::fifo_forwarder::spawn_forwarder(
+    crate::helper::forwarder::spawn_forwarder(
         pid,
         subscriber.handler().clone(),
         |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),

@@ -22,11 +22,11 @@ pub enum Entity<'a> {
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Subscriber(
-        zenoh::pubsub::Subscriber<zenoh::handlers::FifoChannelHandler<zenoh::sample::Sample>>,
+        zenoh::pubsub::Subscriber<crate::helper::forwarder::ChannelHandler<zenoh::sample::Sample>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Queryable(
-        zenoh::query::Queryable<zenoh::handlers::FifoChannelHandler<zenoh::query::Query>>,
+        zenoh::query::Queryable<crate::helper::forwarder::ChannelHandler<zenoh::query::Query>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
 }
@@ -481,11 +481,11 @@ fn session_declare_subscriber(
 
     let subscriber = subscriber_buidler
         .apply_opts(opts)?
-        .with(crate::helper::fifo_forwarder::fifo_channel())
+        .with(crate::helper::forwarder::ChannelKind::from_env()?)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    crate::helper::fifo_forwarder::spawn_forwarder(
+    crate::helper::forwarder::spawn_forwarder(
         pid,
         subscriber.handler().clone(),
         |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),
@@ -520,11 +520,11 @@ fn session_declare_queryable(
 
     let queryable = queryable_builder
         .apply_opts(opts)?
-        .with(crate::helper::fifo_forwarder::fifo_channel())
+        .with(crate::helper::forwarder::ChannelKind::from_env()?)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    crate::helper::fifo_forwarder::spawn_forwarder(
+    crate::helper::forwarder::spawn_forwarder(
         pid,
         queryable.handler().clone(),
         |env, query| crate::query::ZenohexQuery::from(env, query).encode(env),

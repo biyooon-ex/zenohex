@@ -97,7 +97,7 @@ fn querier_get_async(
         crate::session::Entity::Querier(querier, _) => querier
             .get()
             .apply_opts(opts)?
-            .with(crate::helper::fifo_forwarder::fifo_channel())
+            .with(crate::helper::forwarder::ChannelKind::from_env()?)
             .wait()
             .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
         _ => {
@@ -107,7 +107,7 @@ fn querier_get_async(
         }
     };
 
-    crate::helper::fifo_forwarder::spawn_forwarder(
+    crate::helper::forwarder::spawn_forwarder(
         pid,
         handler,
         |env, reply: zenoh::query::Reply| match reply.result() {

@@ -8,7 +8,7 @@ struct MatchingListenerResource {
     listener: Mutex<
         Option<
             zenoh::matching::MatchingListener<
-                zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+                crate::helper::forwarder::ChannelHandler<zenoh::matching::MatchingStatus>,
             >,
         >,
     >,
@@ -21,7 +21,7 @@ impl Deref for MatchingListenerResource {
     type Target = Mutex<
         Option<
             zenoh::matching::MatchingListener<
-                zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+                crate::helper::forwarder::ChannelHandler<zenoh::matching::MatchingStatus>,
             >,
         >,
     >;
@@ -34,7 +34,7 @@ impl Deref for MatchingListenerResource {
 impl MatchingListenerResource {
     fn new(
         listener: zenoh::matching::MatchingListener<
-            zenoh::handlers::FifoChannelHandler<zenoh::matching::MatchingStatus>,
+            crate::helper::forwarder::ChannelHandler<zenoh::matching::MatchingStatus>,
         >,
     ) -> Self {
         MatchingListenerResource {
@@ -119,14 +119,16 @@ fn matching_declare_listener(
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
+    let channel_kind = crate::helper::forwarder::ChannelKind::from_env()?;
+
     let listener = match entity {
         crate::session::Entity::Publisher(publisher, _) => publisher
             .matching_listener()
-            .with(crate::helper::fifo_forwarder::fifo_channel())
+            .with(channel_kind)
             .wait(),
         crate::session::Entity::Querier(querier, _) => querier
             .matching_listener()
-            .with(crate::helper::fifo_forwarder::fifo_channel())
+            .with(channel_kind)
             .wait(),
         _ => {
             return Err(rustler::Error::Term(Box::new(
@@ -136,7 +138,7 @@ fn matching_declare_listener(
     }
     .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    crate::helper::fifo_forwarder::spawn_forwarder(
+    crate::helper::forwarder::spawn_forwarder(
         pid,
         listener.handler().clone(),
         |env, matching_status| ZenohexMatchingStatus::from(matching_status).encode(env),
