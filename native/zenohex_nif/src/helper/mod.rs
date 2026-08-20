@@ -1,4 +1,5 @@
 pub mod exception;
-pub mod fifo_forwarder;
+pub mod forwarder;
 pub mod keyword;
 pub mod logger;
+pub mod ring_channel;

@@ -106,6 +106,32 @@ iex()> flush()
 We implemented practical examples under [lib/zenohex/examples](https://github.com/biyooon-ex/zenohex/tree/main/lib/zenohex/examples).
 Since they consist of `GenServer`, we think they are useful as examples of more Elixir-like applications.
 
+### Configuration
+
+Subscribers, queryables, liveliness subscribers, matching listeners, queriers, and scouts are
+all delivered to your process through a native channel that sits between Zenoh's callback and
+your process's mailbox. You can choose its behavior in your application's `config.exs`:
+
+```elixir
+config :zenohex,
+  channel_kind: :fifo,
+  channel_capacity: 256
+```
+
+- `:channel_kind` — `:fifo` (default) or `:ring`.
+  - `:fifo` never drops data: if the channel fills up, Zenoh's callback blocks until it drains.
+  - `:ring` never blocks Zenoh's callback: if the channel fills up, it drops the oldest
+    undelivered item instead.
+- `:channel_capacity` — a positive integer (default `256`) bounding how many items the channel
+  holds before `:fifo` blocks or `:ring` starts dropping.
+
+Both settings apply process-wide to every entity declared afterward; they are not configurable
+per declaration.
+
+If you enable `Zenohex.Nif.Logger` (see its module docs), a warning is logged when a `:fifo`
+channel becomes full or when `:ring` drops a sample, so you can notice backpressure or data
+loss without guessing.
+
 ## Notice
 
 Please note that Zenohex does not support every API and feature provided by the core Zenoh library, which is implemented in Rust.

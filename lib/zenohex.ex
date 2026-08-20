@@ -11,6 +11,9 @@ defmodule Zenohex do
   check the example implementations in the following directory:
 
   - #{Zenohex.MixProject.project()[:source_url]}/tree/main/lib/zenohex/examples
+
+  See the [Configuration](readme.html#configuration) section in the README for
+  `channel_kind`/`channel_capacity` settings.
   """
 
   @doc """

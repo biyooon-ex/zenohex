@@ -71,9 +71,9 @@ defmodule Zenohex.Scouting do
   """
   @spec declare_scout(what(), Zenohex.Config.t(), pid()) ::
           {:ok, scout()} | {:error, reason :: term()}
-  defdelegate declare_scout(what, config, pid \\ self()),
-    to: Zenohex.Nif,
-    as: :scouting_declare_scout
+  def declare_scout(what, config, pid \\ self()) do
+    Zenohex.Nif.scouting_declare_scout(what, config, pid, Zenohex.ChannelConfig.get())
+  end
 
   @doc """
   Stop scouting.

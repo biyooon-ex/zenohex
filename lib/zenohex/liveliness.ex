@@ -51,9 +51,15 @@ defmodule Zenohex.Liveliness do
   """
   @spec declare_subscriber(Zenohex.Session.id(), String.t(), pid(), declare_subscriber_opts()) ::
           {:ok, subscriber_id :: Zenohex.Subscriber.id()} | {:error, reason :: term()}
-  defdelegate declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []),
-    to: Zenohex.Nif,
-    as: :liveliness_declare_subscriber
+  def declare_subscriber(session_id, key_expr, pid \\ self(), opts \\ []) do
+    Zenohex.Nif.liveliness_declare_subscriber(
+      session_id,
+      key_expr,
+      pid,
+      opts,
+      Zenohex.ChannelConfig.get()
+    )
+  end
 
   @doc """
   Undeclare the Subscriber.
