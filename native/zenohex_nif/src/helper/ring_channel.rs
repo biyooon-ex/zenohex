@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 
 /// A drop-oldest-when-full channel, mirroring `zenoh::handlers::RingChannel`
@@ -28,6 +28,10 @@ struct RingInner<T> {
     not_empty_async: tokio::sync::Notify,
     capacity: usize,
     closed: AtomicBool,
+    // WHY: diagnostic-only counter so callers can observe drop-oldest evictions
+    //      directly, instead of inferring drops from end-to-end message loss
+    //      (which also includes unrelated causes, e.g. Zenoh transport loss).
+    dropped: AtomicUsize,
 }
 
 pub struct RingChannelHandler<T> {
@@ -71,6 +75,16 @@ impl<T> RingChannelHandler<T> {
             notified.await;
         }
     }
+
+    /// Diagnostic-only: number of items currently buffered.
+    pub fn len(&self) -> usize {
+        self.inner.buffer.lock().unwrap().len()
+    }
+
+    /// Diagnostic-only: total items evicted by drop-oldest so far.
+    pub fn dropped_count(&self) -> usize {
+        self.inner.dropped.load(Ordering::Relaxed)
+    }
 }
 
 pub struct RingIter<'a, T> {
@@ -107,6 +121,7 @@ impl<T> RingSender<T> {
         // oldest sample instead, preserving order for what remains.
         if buffer.len() >= self.inner.capacity {
             buffer.pop_front();
+            self.inner.dropped.fetch_add(1, Ordering::Relaxed);
         }
         buffer.push_back(item);
         drop(buffer);
@@ -133,6 +148,7 @@ impl<T: Send + 'static> zenoh::handlers::IntoHandler<T> for RingChannel {
             not_empty_async: tokio::sync::Notify::new(),
             capacity: self.capacity,
             closed: AtomicBool::new(false),
+            dropped: AtomicUsize::new(0),
         });
 
         let sender = RingSender {

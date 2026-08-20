@@ -67,6 +67,15 @@ impl<T> ChannelHandler<T> {
             ChannelHandler::Ring(handler) => ChannelIter::Ring(handler.iter()),
         }
     }
+
+    // WHY: diagnostic-only (see spawn_forwarder), for observing native queue
+    //      fullness directly instead of inferring it from end-to-end message loss.
+    fn len(&self) -> usize {
+        match self {
+            ChannelHandler::Fifo(handler) => handler.len(),
+            ChannelHandler::Ring(handler) => handler.len(),
+        }
+    }
 }
 
 pub enum ChannelIter<'a, T> {
@@ -118,7 +127,9 @@ where
         (ForwarderExecutor::Tokio, ChannelHandler::Fifo(fifo)) => {
             tokio_runtime().spawn(async move {
                 let mut owned_env = rustler::OwnedEnv::new();
+                let mut max_len = 0usize;
                 while let Ok(item) = fifo.recv_async().await {
+                    max_len = max_len.max(fifo.len());
                     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         owned_env.send_and_clear(&pid, |env| encode(env, item))
                     }));
@@ -127,12 +138,17 @@ where
                         owned_env = rustler::OwnedEnv::new();
                     }
                 }
+                eprintln!(
+                    "[zenohex_nif debug] fifo+tokio forwarder done: max_queue_len={max_len} capacity={CHANNEL_CAPACITY}"
+                );
             });
         }
         (ForwarderExecutor::Tokio, ChannelHandler::Ring(ring)) => {
             tokio_runtime().spawn(async move {
                 let mut owned_env = rustler::OwnedEnv::new();
+                let mut max_len = 0usize;
                 while let Some(item) = ring.recv_async().await {
+                    max_len = max_len.max(ring.len());
                     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         owned_env.send_and_clear(&pid, |env| encode(env, item))
                     }));
@@ -141,12 +157,18 @@ where
                         owned_env = rustler::OwnedEnv::new();
                     }
                 }
+                eprintln!(
+                    "[zenohex_nif debug] ring+tokio forwarder done: max_queue_len={max_len} capacity={CHANNEL_CAPACITY} dropped={}",
+                    ring.dropped_count()
+                );
             });
         }
         (_, handler) => {
             std::thread::spawn(move || {
                 let mut owned_env = rustler::OwnedEnv::new();
+                let mut max_len = 0usize;
                 for item in handler.iter() {
+                    max_len = max_len.max(handler.len());
                     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         owned_env.send_and_clear(&pid, |env| encode(env, item))
                     }));
@@ -160,6 +182,17 @@ where
                         owned_env = rustler::OwnedEnv::new();
                     }
                 }
+                let dropped = match &handler {
+                    ChannelHandler::Ring(ring) => Some(ring.dropped_count()),
+                    ChannelHandler::Fifo(_) => None,
+                };
+                eprintln!(
+                    "[zenohex_nif debug] {}+thread forwarder done: max_queue_len={max_len} capacity={CHANNEL_CAPACITY} dropped={dropped:?}",
+                    match &handler {
+                        ChannelHandler::Fifo(_) => "fifo",
+                        ChannelHandler::Ring(_) => "ring",
+                    }
+                );
             });
         }
     }
