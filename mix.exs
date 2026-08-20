@@ -19,7 +19,8 @@ defmodule Zenohex.MixProject do
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      aliases: aliases()
     ]
   end
 
@@ -33,6 +34,19 @@ defmodule Zenohex.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp aliases do
+    [
+      format: [
+        "format",
+        "cmd cargo fmt --manifest-path native/zenohex_nif/Cargo.toml"
+      ],
+      "format.check": [
+        "format --check-formatted",
+        "cmd cargo fmt --manifest-path native/zenohex_nif/Cargo.toml -- --check"
+      ]
+    ]
+  end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
