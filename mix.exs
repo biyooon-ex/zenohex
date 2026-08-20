@@ -37,15 +37,32 @@ defmodule Zenohex.MixProject do
 
   defp aliases do
     [
-      format: [
-        "format",
-        "cmd cargo fmt --manifest-path native/zenohex_nif/Cargo.toml"
-      ],
-      "format.check": [
-        "format --check-formatted",
-        "cmd cargo fmt --manifest-path native/zenohex_nif/Cargo.toml -- --check"
-      ]
+      format: &format/1
     ]
+  end
+
+  defp format(args) do
+    Mix.Tasks.Format.run(args)
+
+    cargo_args = [
+      "fmt",
+      "--manifest-path",
+      "native/zenohex_nif/Cargo.toml"
+    ]
+
+    cargo_args =
+      if "--check-formatted" in args do
+        cargo_args ++ ["--", "--check"]
+      else
+        cargo_args
+      end
+
+    {_output, status} =
+      System.cmd("cargo", cargo_args, into: IO.stream(:stdio, :line))
+
+    if status != 0 do
+      Mix.raise("cargo fmt failed")
+    end
   end
 
   # Run "mix help deps" to learn about dependencies.
