@@ -121,14 +121,12 @@ fn matching_declare_listener(
     let entity = session_locked.get_entity(entity_global_id)?;
 
     let listener = match entity {
-        crate::session::Entity::Publisher(publisher, _) => publisher
-            .matching_listener()
-            .with(channel_kind)
-            .wait(),
-        crate::session::Entity::Querier(querier, _) => querier
-            .matching_listener()
-            .with(channel_kind)
-            .wait(),
+        crate::session::Entity::Publisher(publisher, _) => {
+            publisher.matching_listener().with(channel_kind).wait()
+        }
+        crate::session::Entity::Querier(querier, _) => {
+            querier.matching_listener().with(channel_kind).wait()
+        }
         _ => {
             return Err(rustler::Error::Term(Box::new(
                 crate::atoms::unsupported_entity(),

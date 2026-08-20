@@ -35,7 +35,9 @@ impl ZenohexScoutingHello {
 struct ScoutResource(
     RwLock<
         Option<
-            zenoh::scouting::Scout<crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>>,
+            zenoh::scouting::Scout<
+                crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+            >,
         >,
     >,
 );
@@ -46,7 +48,9 @@ impl rustler::Resource for ScoutResource {}
 impl Deref for ScoutResource {
     type Target = RwLock<
         Option<
-            zenoh::scouting::Scout<crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>>,
+            zenoh::scouting::Scout<
+                crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+            >,
         >,
     >;
 
@@ -67,7 +71,9 @@ impl Drop for ScoutResource {
 
 impl ScoutResource {
     fn new(
-        scout: zenoh::scouting::Scout<crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>>,
+        scout: zenoh::scouting::Scout<
+            crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+        >,
     ) -> ScoutResource {
         ScoutResource(RwLock::new(Some(scout)))
     }

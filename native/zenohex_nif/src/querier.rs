@@ -108,16 +108,14 @@ fn querier_get_async(
         }
     };
 
-    crate::helper::forwarder::spawn_forwarder(
-        pid,
-        handler,
-        |env, reply: zenoh::query::Reply| match reply.result() {
+    crate::helper::forwarder::spawn_forwarder(pid, handler, |env, reply: zenoh::query::Reply| {
+        match reply.result() {
             Ok(sample) => crate::sample::ZenohexSample::from(env, sample.clone()).encode(env),
             Err(reply_error) => {
                 crate::query::ZenohexQueryReplyError::from(env, reply_error.clone()).encode(env)
             }
-        },
-    )?;
+        }
+    })?;
 
     Ok(rustler::types::atom::ok())
 }

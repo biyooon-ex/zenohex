@@ -90,7 +90,11 @@ impl<T: Send + 'static> zenoh::handlers::IntoHandler<T> for ChannelKind {
 //      targeting the same pid and can reorder deliveries. Draining `handler` from a
 //      single dedicated thread and reusing one `OwnedEnv` preserves delivery order and
 //      keeps `send_and_clear` allocations low.
-pub fn spawn_forwarder<T, F>(pid: rustler::LocalPid, handler: ChannelHandler<T>, encode: F) -> rustler::NifResult<()>
+pub fn spawn_forwarder<T, F>(
+    pid: rustler::LocalPid,
+    handler: ChannelHandler<T>,
+    encode: F,
+) -> rustler::NifResult<()>
 where
     T: Send + 'static,
     F: for<'a> Fn(rustler::Env<'a>, T) -> rustler::Term<'a> + Send + 'static,
@@ -134,4 +138,3 @@ where
     });
     Ok(())
 }
-

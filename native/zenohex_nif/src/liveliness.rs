@@ -126,11 +126,9 @@ fn liveliness_declare_subscriber(
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    crate::helper::forwarder::spawn_forwarder(
-        pid,
-        subscriber.handler().clone(),
-        |env, sample| crate::sample::ZenohexSample::from(env, sample).encode(env),
-    )?;
+    crate::helper::forwarder::spawn_forwarder(pid, subscriber.handler().clone(), |env, sample| {
+        crate::sample::ZenohexSample::from(env, sample).encode(env)
+    })?;
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
