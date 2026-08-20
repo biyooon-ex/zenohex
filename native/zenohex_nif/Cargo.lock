@@ -4017,7 +4017,6 @@ version = "0.9.1-beta.2"
 dependencies = [
  "log",
  "rustler",
- "tokio",
  "zenoh",
 ]
 

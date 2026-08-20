@@ -24,8 +24,3 @@ rustler = { version = "=0.38.0", features = ["nif_version_2_15"] }
 zenoh = { version = "=1.10.0", features = ["unstable", "internal", "plugins"] }
 
 log = { version = "0.4", features = ["std"] }
-
-# WHY: prototype only, scoped to forwarder.rs, to benchmark whether a shared
-#      tokio runtime avoids the OS-thread-per-entity scaling issue (#217).
-#      Not used anywhere else; selected via ZENOHEX_FORWARDER_EXECUTOR=tokio.
-tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
