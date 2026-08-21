@@ -285,6 +285,16 @@ fn session_close(
 }
 
 #[rustler::nif]
+fn session_is_closed(session_id_resource: rustler::ResourceArc<SessionIdResource>) -> bool {
+    let session_id = &session_id_resource;
+
+    match SessionMap::get_session(&SESSION_MAP, session_id) {
+        Ok(session) => session.read().unwrap().is_closed(),
+        Err(_) => true,
+    }
+}
+
+#[rustler::nif]
 fn session_put(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
     key_expr: &str,

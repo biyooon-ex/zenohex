@@ -44,7 +44,9 @@ defmodule Zenohex.SessionTest do
 
   test "close/1" do
     {:ok, session_id} = Zenohex.Session.open()
+    refute Zenohex.Session.closed?(session_id)
     assert Zenohex.Session.close(session_id) == :ok
+    assert Zenohex.Session.closed?(session_id)
     assert Zenohex.Session.close(session_id) == {:error, "session not found"}
   end
 
