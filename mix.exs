@@ -105,13 +105,7 @@ defmodule Zenohex.MixProject do
       main: "readme",
       nest_modules_by_prefix: [
         Zenohex.Examples,
-        Examples.Publisher,
-        Examples.Subscriber,
-        Examples.Queryable,
-        Examples.LivelinessSubscriber,
-        Examples.Scout,
-        Zenohex.Examples.Plugins,
-        Plugins.StorageBackendFs
+        Zenohex.Examples.Plugins
       ],
       groups_for_modules: [
         Examples: [
