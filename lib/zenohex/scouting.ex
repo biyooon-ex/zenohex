@@ -1,6 +1,6 @@
 defmodule Zenohex.Scouting do
   @moduledoc """
-  Provides functions for Zenoh scouting, which allows discovery of peers and routers.
+  Provides functions for Zenoh scouting, which allows discovery of peers, routers, and clients.
 
   This module wraps Zenoh's scouting functionality, enabling Elixir programs to send scout messages,
   receive `Hello` replies, and manage periodic scouting processes.
@@ -8,7 +8,9 @@ defmodule Zenohex.Scouting do
   See the `Zenohex.Scouting.Hello` module for details on the reply format.
   """
 
-  @type what :: :peer | :router
+  @type what :: :peer | :router | :client
+  @type what_matcher :: nonempty_list(what())
+  @type what_or_matcher :: what() | what_matcher()
   @type scout :: reference()
 
   defmodule Hello do
@@ -33,7 +35,7 @@ defmodule Zenohex.Scouting do
 
     @type t :: %__MODULE__{
             locators: [String.t()],
-            whatami: :peer | :router,
+            whatami: :peer | :router | :client,
             zid: Zenohex.Session.zid()
           }
 
@@ -47,32 +49,44 @@ defmodule Zenohex.Scouting do
   @doc """
   Sends scout messages and waits for Hello replies.
 
+  A single node type or a non-empty list of node types can be specified.
+  An empty list is rejected.
+
   ## Parameters
 
-    - `what`: `:peer` or `:router`.
+    - `what`: `:peer`, `:router`, `:client`, or a non-empty list of these atoms.
     - `config`: The configuration to use for scouting
     - `timeout`: Timeout in milliseconds to wait for Hello replies.
   """
-  @spec scout(what(), Zenohex.Config.t(), non_neg_integer()) ::
+  @spec scout(what_or_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
           {:ok, [Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
-  defdelegate scout(what, config, timeout),
-    to: Zenohex.Nif,
-    as: :scouting_scout
+  def scout(what_or_matcher, config, timeout) do
+    with {:ok, what_matcher} <- normalize_what(what_or_matcher) do
+      Zenohex.Nif.scouting_scout(what_matcher, config, timeout)
+    end
+  end
 
   @doc """
   Declares a scout that periodically sends scout messages and waits for Hello replies.
 
   ## Parameters
 
-    - `what`: `:peer` or `:router`.
+    - `what`: `:peer`, `:router`, `:client`, or a non-empty list of these atoms.
     - `config`: The configuration to use for scouting
     - `pid`: Process to receive Hello messages. Defaults to the calling process.
       - Messages are delivered as `Zenohex.Scouting.Hello`.
   """
-  @spec declare_scout(what(), Zenohex.Config.t(), pid()) ::
+  @spec declare_scout(what_or_matcher(), Zenohex.Config.t(), pid()) ::
           {:ok, scout()} | {:error, reason :: term()}
-  def declare_scout(what, config, pid \\ self()) do
-    Zenohex.Nif.scouting_declare_scout(what, config, pid, Zenohex.ChannelConfig.get())
+  def declare_scout(what_or_matcher, config, pid \\ self()) do
+    with {:ok, what_matcher} <- normalize_what(what_or_matcher) do
+      Zenohex.Nif.scouting_declare_scout(
+        what_matcher,
+        config,
+        pid,
+        Zenohex.ChannelConfig.get()
+      )
+    end
   end
 
   @doc """
@@ -82,4 +96,18 @@ defmodule Zenohex.Scouting do
   defdelegate stop_scout(scout),
     to: Zenohex.Nif,
     as: :scouting_stop_scout
+
+  defp normalize_what(what_or_matcher) when is_atom(what_or_matcher) do
+    normalize_what([what_or_matcher])
+  end
+
+  defp normalize_what(what_matcher) when is_list(what_matcher) do
+    if what_matcher != [] and Enum.all?(what_matcher, &(&1 in [:peer, :router, :client])) do
+      {:ok, what_matcher}
+    else
+      {:error, :invalid_what_matcher}
+    end
+  end
+
+  defp normalize_what(_what), do: {:error, :invalid_what_matcher}
 end

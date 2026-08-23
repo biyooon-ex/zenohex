@@ -85,14 +85,15 @@ defmodule Zenohex do
   end
 
   @doc """
-  Scouts for routers or peers.
+  Scouts for routers, peers, or clients.
 
-  This function discovers either `:peer` or `:router` nodes based on the given configuration.
+  This function discovers nodes matching the given node type or non-empty list of node types
+  based on the given configuration.
   It blocks until a response is received or the timeout is reached.
 
   ## Parameters
 
-    - `what`: Either `:peer` or `:router`, indicating what type of node to search for.
+    - `what`: `:peer`, `:router`, `:client`, or a non-empty list of these atoms.
     - `config`: The Zenoh configuration used for the scout operation.
     - `timeout`: The maximum time to wait (in milliseconds) before giving up.
 
@@ -102,7 +103,7 @@ defmodule Zenohex do
       iex> {:ok, hellos} = Zenohex.scout(:peer, config, 1000)
 
   """
-  @spec scout(Zenohex.Scouting.what(), Zenohex.Config.t(), non_neg_integer()) ::
+  @spec scout(Zenohex.Scouting.what_or_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   defdelegate scout(what, config, timeout), to: Zenohex.Scouting, as: :scout
 end

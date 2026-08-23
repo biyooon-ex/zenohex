@@ -226,13 +226,18 @@ defmodule Zenohex.Nif do
 
   # Scouting
 
-  @spec scouting_scout(:peer | :router, String.t(), non_neg_integer()) ::
+  @spec scouting_scout(Zenohex.Scouting.what_matcher(), String.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
-  def scouting_scout(_what, _json5_binary, _timeout), do: err()
+  def scouting_scout(_what_matcher, _json5_binary, _timeout), do: err()
 
-  @spec scouting_declare_scout(:peer | :router, String.t(), pid(), Zenohex.ChannelConfig.t()) ::
+  @spec scouting_declare_scout(
+          Zenohex.Scouting.what_matcher(),
+          String.t(),
+          pid(),
+          Zenohex.ChannelConfig.t()
+        ) ::
           {:ok, scout()} | {:error, reason :: term()}
-  def scouting_declare_scout(_what, _json5_binary, _pid, _channel_config), do: err()
+  def scouting_declare_scout(_what_matcher, _json5_binary, _pid, _channel_config), do: err()
 
   @spec scouting_stop_scout(scout()) :: :ok | {:error, reason :: term()}
   def scouting_stop_scout(_scout), do: err()
