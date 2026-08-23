@@ -8,11 +8,11 @@ fn publisher_put(
     payload: rustler::Binary,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_handle = entity_global_id_resource.session_handle();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
-        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_handle)?;
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
@@ -37,11 +37,11 @@ fn publisher_delete(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_handle = entity_global_id_resource.session_handle();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
-        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_handle)?;
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
@@ -65,11 +65,11 @@ fn publisher_delete(
 fn publisher_undeclare(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_handle = entity_global_id_resource.session_handle();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
-        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_handle)?;
     let mut session_locked = session.write().unwrap();
 
     let is_publisher = matches!(

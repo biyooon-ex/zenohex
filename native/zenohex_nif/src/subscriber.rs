@@ -4,11 +4,11 @@ use zenoh::Wait;
 fn subscriber_undeclare(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_handle = entity_global_id_resource.session_handle();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
-        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_id)?;
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, session_handle)?;
     let mut session_locked = session.write().unwrap();
 
     let is_subscriber = matches!(
