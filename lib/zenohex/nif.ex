@@ -258,6 +258,14 @@ defmodule Zenohex.Nif do
           {:ok, String.t()} | {:error, reason :: term()}
   def config_insert_json5(_json5, _key, _value), do: err()
 
+  @spec config_try_insert_json5_array_item(String.t(), String.t(), String.t()) ::
+          {:ok, String.t(), boolean()} | {:error, reason :: term()}
+  def config_try_insert_json5_array_item(_json5, _key, _value), do: err()
+
+  @spec config_try_remove_json5_array_item(String.t(), String.t()) ::
+          {:ok, String.t(), boolean()} | {:error, reason :: term()}
+  def config_try_remove_json5_array_item(_json5, _key), do: err()
+
   # Logger
 
   @spec nif_logger_init(pid(), nif_logger_level()) :: :ok

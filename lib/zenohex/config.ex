@@ -110,6 +110,10 @@ defmodule Zenohex.Config do
   rejected to avoid accidentally inserting a list of integer codepoints. Other
   non-ASCII charlists are treated as lists and may be encoded as JSON arrays of integers.
 
+  This function updates a configuration key directly. It does not interpret
+  `array-key/field=value` as a field filter; use `insert_json5_array_item/3`
+  for that operation.
+
   ## Examples
 
       ### Case 1: Insert numeric value
@@ -177,6 +181,64 @@ defmodule Zenohex.Config do
           {:ok, _updated_config} = result -> result
           {:error, _reason} -> original_error
         end
+    end
+  end
+
+  @doc """
+  Inserts or updates a JSON5 object in an existing configuration array.
+
+  The key must use the `array-key/field=value` form, for example
+  `"qos/network/id=rule1"`. The `value` must be a JSON5 object containing
+  the matching field. The object replaces the first matching item, or is
+  appended when no matching item exists.
+
+  Returns `{:error, :field_filter_required}` when the key does not contain a
+  field filter. This function is the field-filter counterpart to
+  `insert_json5/3`; passing a field-filter key to `insert_json5/3` is not
+  supported.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [])
+      iex> Zenohex.Config.insert_json5_array_item(config, "qos/network/id=rule1", "{id: \\\"rule1\\\", messages: [\\\"put\\\"], key_exprs: [\\\"**\\\"], overwrite: {priority: \\\"data\\\"}, flows: [\\\"egress\\\"]}")
+      {:ok, _updated_config}
+  """
+  @spec insert_json5_array_item(t(), String.t(), String.t()) ::
+          {:ok, t()} | {:error, reason :: term()}
+  def insert_json5_array_item(config, key, value) do
+    case Zenohex.Nif.config_try_insert_json5_array_item(config, key, value) do
+      {:ok, updated_config, true} -> {:ok, updated_config}
+      {:ok, _unchanged_config, false} -> {:error, :field_filter_required}
+      {:error, _reason} = error -> error
+    end
+  end
+
+  @doc """
+  Removes objects from an existing configuration array using a field filter.
+
+  The key must use the `array-key/field=value` form, for example
+  `"qos/network/id=rule1"`. All objects whose field matches the filter are
+  removed.
+
+  Returns `{:error, :field_filter_required}` when the key does not contain a
+  field filter. A successful result means the operation was recognized and
+  applied, not necessarily that an object was removed.
+
+  ## Examples
+
+      iex> config = Zenohex.Config.default()
+      iex> {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [%{id: "rule1", messages: ["put"], key_exprs: ["**"], overwrite: %{priority: "data"}, flows: ["egress"]}])
+      iex> Zenohex.Config.remove_json5_array_item(config, "qos/network/id=rule1")
+      {:ok, _updated_config}
+  """
+  @spec remove_json5_array_item(t(), String.t()) ::
+          {:ok, t()} | {:error, reason :: term()}
+  def remove_json5_array_item(config, key) do
+    case Zenohex.Nif.config_try_remove_json5_array_item(config, key) do
+      {:ok, updated_config, true} -> {:ok, updated_config}
+      {:ok, _unchanged_config, false} -> {:error, :field_filter_required}
+      {:error, _reason} = error -> error
     end
   end
 end

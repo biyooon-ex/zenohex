@@ -97,4 +97,81 @@ defmodule Zenohex.ConfigTest do
     assert {:ok, updated5} = Zenohex.Config.insert_json5(updated4, "connect/endpoints", [])
     assert {:ok, "[]"} = Zenohex.Config.get_json(updated5, "connect/endpoints")
   end
+
+  test "insert_json5/3 rejects array-item field filters" do
+    config = Zenohex.Config.default()
+
+    value =
+      "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
+
+    assert {:error, reason} =
+             Zenohex.Config.insert_json5(config, "qos/network/id=rule1", value)
+
+    assert reason =~ "unknown key"
+  end
+
+  test "insert_json5_array_item/3" do
+    config = Zenohex.Config.default()
+
+    assert {:ok, config} = Zenohex.Config.insert_json5(config, "qos/network", [])
+
+    assert {:ok, updated} =
+             Zenohex.Config.insert_json5_array_item(
+               config,
+               "qos/network/id=rule1",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
+             )
+
+    assert {:ok, inserted_json} = Zenohex.Config.get_json(updated, "qos/network")
+
+    assert [%{"id" => "rule1", "overwrite" => %{"priority" => "data"}}] =
+             JSON.decode!(inserted_json)
+
+    assert {:ok, replaced} =
+             Zenohex.Config.insert_json5_array_item(
+               updated,
+               "qos/network/id=rule1",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"real_time\"}, flows: [\"egress\"]}"
+             )
+
+    assert {:ok, replaced_json} = Zenohex.Config.get_json(replaced, "qos/network")
+
+    assert [%{"id" => "rule1", "overwrite" => %{"priority" => "real_time"}}] =
+             JSON.decode!(replaced_json)
+
+    assert {:error, :field_filter_required} =
+             Zenohex.Config.insert_json5_array_item(
+               replaced,
+               "qos/network",
+               "{id: \"rule1\", messages: [\"put\"], key_exprs: [\"**\"], overwrite: {priority: \"data\"}, flows: [\"egress\"]}"
+             )
+  end
+
+  test "remove_json5_array_item/2" do
+    config = Zenohex.Config.default()
+
+    assert {:ok, config} =
+             Zenohex.Config.insert_json5(config, "qos/network", [
+               %{
+                 id: "rule1",
+                 messages: ["put"],
+                 key_exprs: ["**"],
+                 overwrite: %{priority: "data"},
+                 flows: ["egress"]
+               }
+             ])
+
+    assert {:ok, updated} =
+             Zenohex.Config.remove_json5_array_item(config, "qos/network/id=rule1")
+
+    assert {:ok, "[]"} = Zenohex.Config.get_json(updated, "qos/network")
+
+    assert {:ok, missing} =
+             Zenohex.Config.remove_json5_array_item(updated, "qos/network/id=missing")
+
+    assert {:ok, "[]"} = Zenohex.Config.get_json(missing, "qos/network")
+
+    assert {:error, :field_filter_required} =
+             Zenohex.Config.remove_json5_array_item(updated, "qos/network")
+  end
 end
