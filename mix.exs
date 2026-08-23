@@ -70,7 +70,7 @@ defmodule Zenohex.MixProject do
     [
       {:rustler_precompiled, "~> 0.9.0"},
       {:rustler, "== 0.38.0", optional: true},
-      {:ex_doc, "~> 0.33", only: :dev},
+      {:ex_doc, "~> 0.33", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -78,7 +78,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp package() do
+  defp package do
     [
       name: "zenohex",
       files: [
@@ -94,25 +94,18 @@ defmodule Zenohex.MixProject do
         "checksum-*.exs",
         "mix.exs"
       ],
-      maintainers: ["s-hosoai"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
     ]
   end
 
-  defp docs() do
+  defp docs do
     [
       extras: ["README.md", "LICENSE"],
       main: "readme",
       nest_modules_by_prefix: [
         Zenohex.Examples,
-        Examples.Publisher,
-        Examples.Subscriber,
-        Examples.Queryable,
-        Examples.LivelinessSubscriber,
-        Examples.Scout,
-        Zenohex.Examples.Plugins,
-        Plugins.StorageBackendFs
+        Zenohex.Examples.Plugins
       ],
       groups_for_modules: [
         Examples: [
@@ -128,7 +121,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp test_coverage() do
+  defp test_coverage do
     [
       ignore_modules: [
         Zenohex.Nif,
@@ -138,7 +131,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp dialyzer() do
+  defp dialyzer do
     [
       plt_file: {:no_warn, "priv/plts/project.plt"},
       plt_core_path: "priv/plts/core.plt"
