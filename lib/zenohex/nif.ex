@@ -11,7 +11,7 @@ defmodule Zenohex.Nif do
 
   mix_config = Mix.Project.config()
   version = mix_config[:version]
-  github_url = mix_config[:package][:links]["GitHub"]
+  source_url = mix_config[:source_url]
 
   use RustlerPrecompiled,
     # NOTE: FROM HERE Rustler opts which are passed through to Rustler
@@ -25,7 +25,7 @@ defmodule Zenohex.Nif do
     # mode: :debug,
     # NOTE: FROM HERE RustlerPrecompiled opts
     version: version,
-    base_url: "#{github_url}/releases/download/v#{version}",
+    base_url: "#{source_url}/releases/download/v#{version}",
     targets:
       RustlerPrecompiled.Config.default_targets()
       |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
