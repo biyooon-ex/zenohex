@@ -3,6 +3,7 @@ use std::sync::RwLock;
 use std::time::Duration;
 use std::time::Instant;
 
+use rustler::Encoder;
 use zenoh::Wait;
 
 #[derive(rustler::NifStruct)]
@@ -31,13 +32,27 @@ impl ZenohexScoutingHello {
     }
 }
 
-struct ScoutResource(RwLock<Option<zenoh::scouting::Scout<()>>>);
+struct ScoutResource(
+    RwLock<
+        Option<
+            zenoh::scouting::Scout<
+                crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+            >,
+        >,
+    >,
+);
 
 #[rustler::resource_impl]
 impl rustler::Resource for ScoutResource {}
 
 impl Deref for ScoutResource {
-    type Target = RwLock<Option<zenoh::scouting::Scout<()>>>;
+    type Target = RwLock<
+        Option<
+            zenoh::scouting::Scout<
+                crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+            >,
+        >,
+    >;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -55,7 +70,11 @@ impl Drop for ScoutResource {
 }
 
 impl ScoutResource {
-    fn new(scout: zenoh::scouting::Scout<()>) -> ScoutResource {
+    fn new(
+        scout: zenoh::scouting::Scout<
+            crate::helper::forwarder::ChannelHandler<zenoh::scouting::Hello>,
+        >,
+    ) -> ScoutResource {
         ScoutResource(RwLock::new(Some(scout)))
     }
 }
@@ -112,22 +131,21 @@ fn scouting_declare_scout(
     // WHY: Pass `pid` instead of using `env.pid()`
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<ScoutResource>)> {
     let config = zenoh::Config::from_json5(json5_binary)
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
     let scout = zenoh::scout(zenoh::config::WhatAmI::from(what), config)
-        .callback(move |hello| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new()
-                    .run(|env: rustler::Env| env.send(&pid, ZenohexScoutingHello::from(hello)));
-            });
-        })
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    // WHY: `Scout` has no `handler()` accessor; it `Deref`s straight to the receiver,
+    //      so `.clone()` here resolves to `ChannelHandler::clone` via auto-deref.
+    crate::helper::forwarder::spawn_forwarder(pid, scout.clone(), |env, hello| {
+        ZenohexScoutingHello::from(hello).encode(env)
+    })?;
 
     Ok((
         rustler::types::atom::ok(),

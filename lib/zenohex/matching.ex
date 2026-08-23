@@ -36,9 +36,9 @@ defmodule Zenohex.Matching do
   > the underlying listener in Rust will be automatically dropped.
   """
   @spec declare_listener(entity_id(), pid()) :: {:ok, listener_id()} | {:error, reason :: term()}
-  defdelegate declare_listener(entity_id, pid \\ self()),
-    to: Zenohex.Nif,
-    as: :matching_declare_listener
+  def declare_listener(entity_id, pid \\ self()) do
+    Zenohex.Nif.matching_declare_listener(entity_id, pid, Zenohex.ChannelConfig.get())
+  end
 
   @doc """
   Undeclares the matching listener identified by the given ID.

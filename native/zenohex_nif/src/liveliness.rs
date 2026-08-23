@@ -108,6 +108,7 @@ fn liveliness_declare_subscriber(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(
     rustler::Atom,
     rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
@@ -121,18 +122,13 @@ fn liveliness_declare_subscriber(
 
     let subscriber = liveliness_subscriber_buidler
         .apply_opts(opts)?
-        .callback(move |sample| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::sample::ZenohexSample::from(env, sample))
-                });
-            });
-        })
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::forwarder::spawn_forwarder(pid, subscriber.handler().clone(), |env, sample| {
+        crate::sample::ZenohexSample::from(env, sample).encode(env)
+    })?;
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
