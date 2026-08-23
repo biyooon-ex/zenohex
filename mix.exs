@@ -78,7 +78,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp package() do
+  defp package do
     [
       name: "zenohex",
       files: [
@@ -99,7 +99,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp docs() do
+  defp docs do
     [
       extras: ["README.md", "LICENSE"],
       main: "readme",
@@ -127,7 +127,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp test_coverage() do
+  defp test_coverage do
     [
       ignore_modules: [
         Zenohex.Nif,
@@ -137,7 +137,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp dialyzer() do
+  defp dialyzer do
     [
       plt_file: {:no_warn, "priv/plts/project.plt"},
       plt_core_path: "priv/plts/core.plt"
