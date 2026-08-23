@@ -129,7 +129,7 @@ Both settings apply process-wide to every entity declared afterward; they are no
 per declaration.
 
 If you enable `Zenohex.Nif.Logger` (see its module docs), a warning is logged when a `:fifo`
-channel becomes full or when `:ring` drops a sample, so you can notice backpressure or data
+channel becomes full or when `:ring` drops a sample, so you can notice queue saturation or data
 loss without guessing.
 
 ## Notice
