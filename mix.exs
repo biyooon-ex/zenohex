@@ -70,7 +70,7 @@ defmodule Zenohex.MixProject do
     [
       {:rustler_precompiled, "~> 0.9.0"},
       {:rustler, "== 0.38.0", optional: true},
-      {:ex_doc, "~> 0.33", only: :dev},
+      {:ex_doc, "~> 0.33", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
