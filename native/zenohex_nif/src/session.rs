@@ -158,18 +158,36 @@ impl<'a> SessionMap<'_> {
             .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
     }
 
-    fn remove_session(
+    fn begin_close(
         session_map: &'a SessionMap<'a>,
         session_handle: &SessionHandle,
-    ) -> rustler::NifResult<Arc<RwLock<Session<'a>>>> {
+    ) -> rustler::NifResult<SessionEntry<'a>> {
         let mut registry = session_map.0.write().unwrap();
-        let entry = registry
+        registry
             .sessions
             .remove(session_handle)
-            .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))?;
-        registry.handles_by_zid.remove(&entry.zid);
+            .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
+    }
 
-        Ok(entry.session)
+    fn finish_close(
+        session_map: &'a SessionMap<'a>,
+        session_handle: &SessionHandle,
+        session_id: &zenoh::session::ZenohId,
+    ) {
+        let mut registry = session_map.0.write().unwrap();
+
+        if registry.handles_by_zid.get(session_id) == Some(session_handle) {
+            registry.handles_by_zid.remove(session_id);
+        }
+    }
+
+    fn restore_session(
+        session_map: &'a SessionMap<'a>,
+        session_handle: SessionHandle,
+        entry: SessionEntry<'a>,
+    ) {
+        let mut registry = session_map.0.write().unwrap();
+        registry.sessions.insert(session_handle, entry);
     }
 }
 
@@ -194,18 +212,25 @@ impl Deref for SessionIdResource {
 
 impl Drop for SessionIdResource {
     fn drop(&mut self) {
-        let session_id = &self.0;
+        let session_handle = &self.0;
 
-        match SessionMap::remove_session(&SESSION_MAP, session_id) {
-            Ok(session) => {
-                let session_locked = session.read().unwrap();
-                let message = if session_locked.is_closed() {
-                    "session already closed"
-                } else {
-                    session_locked.close().wait().unwrap();
-                    "session closed by drop"
+        match SessionMap::begin_close(&SESSION_MAP, session_handle) {
+            Ok(entry) => {
+                let (close_result, success_message) = {
+                    let session_locked = entry.session.read().unwrap();
+                    if session_locked.is_closed() {
+                        (Ok(()), "session already closed")
+                    } else {
+                        (session_locked.close().wait(), "session closed by drop")
+                    }
                 };
-                log::debug!("{}", message)
+
+                SessionMap::finish_close(&SESSION_MAP, session_handle, &entry.zid);
+
+                match close_result {
+                    Ok(()) => log::debug!("{}", success_message),
+                    Err(error) => log::error!("failed to close session by drop: {}", error),
+                }
             }
             Err(_error) => log::debug!("session already removed"),
         };
@@ -319,14 +344,19 @@ fn session_open(
 fn session_close(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::remove_session(&SESSION_MAP, session_id)?;
-    let session_locked = session.read().unwrap();
+    let session_handle = **session_id_resource;
+    let entry = SessionMap::begin_close(&SESSION_MAP, &session_handle)?;
+    let close_result = {
+        let session_locked = entry.session.read().unwrap();
+        session_locked.close().wait()
+    };
 
-    session_locked
-        .close()
-        .wait()
-        .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+    if let Err(error) = close_result {
+        SessionMap::restore_session(&SESSION_MAP, session_handle, entry);
+        return Err(rustler::Error::Term(crate::zenoh_error!(error)));
+    }
+
+    SessionMap::finish_close(&SESSION_MAP, &session_handle, &entry.zid);
 
     Ok(rustler::types::atom::ok())
 }
