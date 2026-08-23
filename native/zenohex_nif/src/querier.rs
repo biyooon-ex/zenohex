@@ -84,6 +84,7 @@ fn querier_get_async(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<rustler::Atom> {
     let session_id = &entity_global_id_resource.zid();
     let entity_global_id = &entity_global_id_resource;
@@ -93,29 +94,11 @@ fn querier_get_async(
     let session_locked = session.read().unwrap();
     let entity = session_locked.get_entity(entity_global_id)?;
 
-    match entity {
+    let handler = match entity {
         crate::session::Entity::Querier(querier, _) => querier
             .get()
             .apply_opts(opts)?
-            .callback(move |reply| {
-                // WHY: Spawn a thread inside this callback.
-                //      If we don't spawn a thread, a panic will occur.
-                //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-                std::thread::spawn(move || {
-                    let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                        let term = match reply.result() {
-                            Ok(sample) => {
-                                crate::sample::ZenohexSample::from(env, sample.clone()).encode(env)
-                            }
-                            Err(reply_error) => {
-                                crate::query::ZenohexQueryReplyError::from(env, reply_error.clone())
-                                    .encode(env)
-                            }
-                        };
-                        env.send(&pid, term)
-                    });
-                });
-            })
+            .with(channel_kind)
             .wait()
             .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?,
         _ => {
@@ -123,7 +106,16 @@ fn querier_get_async(
                 crate::atoms::unsupported_entity(),
             )))
         }
-    }
+    };
+
+    crate::helper::forwarder::spawn_forwarder(pid, handler, |env, reply: zenoh::query::Reply| {
+        match reply.result() {
+            Ok(sample) => crate::sample::ZenohexSample::from(env, sample.clone()).encode(env),
+            Err(reply_error) => {
+                crate::query::ZenohexQueryReplyError::from(env, reply_error.clone()).encode(env)
+            }
+        }
+    })?;
 
     Ok(rustler::types::atom::ok())
 }

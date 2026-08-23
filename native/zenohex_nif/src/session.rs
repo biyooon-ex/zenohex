@@ -22,11 +22,11 @@ pub enum Entity<'a> {
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Subscriber(
-        zenoh::pubsub::Subscriber<()>,
+        zenoh::pubsub::Subscriber<crate::helper::forwarder::ChannelHandler<zenoh::sample::Sample>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
     Queryable(
-        zenoh::query::Queryable<()>,
+        zenoh::query::Queryable<crate::helper::forwarder::ChannelHandler<zenoh::query::Query>>,
         #[allow(dead_code)] rustler::ResourceArc<SessionIdResource>,
     ),
 }
@@ -285,6 +285,16 @@ fn session_close(
 }
 
 #[rustler::nif]
+fn session_is_closed(session_id_resource: rustler::ResourceArc<SessionIdResource>) -> bool {
+    let session_id = &session_id_resource;
+
+    match SessionMap::get_session(&SESSION_MAP, session_id) {
+        Ok(session) => session.read().unwrap().is_closed(),
+        Err(_) => true,
+    }
+}
+
+#[rustler::nif]
 fn session_put(
     session_id_resource: rustler::ResourceArc<SessionIdResource>,
     key_expr: &str,
@@ -472,6 +482,7 @@ fn session_declare_subscriber(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
@@ -481,18 +492,13 @@ fn session_declare_subscriber(
 
     let subscriber = subscriber_buidler
         .apply_opts(opts)?
-        .callback(move |sample| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::sample::ZenohexSample::from(env, sample))
-                });
-            });
-        })
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::forwarder::spawn_forwarder(pid, subscriber.handler().clone(), |env, sample| {
+        crate::sample::ZenohexSample::from(env, sample).encode(env)
+    })?;
 
     let subscriber_id = subscriber.id();
     session_locked.insert_entity(
@@ -514,6 +520,7 @@ fn session_declare_queryable(
     //      so the user can specify any receiver process
     pid: rustler::LocalPid,
     opts: rustler::Term,
+    channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
     let session_id = &session_id_resource;
     let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
@@ -523,18 +530,13 @@ fn session_declare_queryable(
 
     let queryable = queryable_builder
         .apply_opts(opts)?
-        .callback(move |query| {
-            // WHY: Spawn a thread inside this callback.
-            //      If we don't spawn a thread, a panic will occur.
-            //      See: https://docs.rs/rustler/latest/rustler/env/struct.OwnedEnv.html#panics
-            std::thread::spawn(move || {
-                let _ = rustler::OwnedEnv::new().run(|env: rustler::Env| {
-                    env.send(&pid, crate::query::ZenohexQuery::from(env, query))
-                });
-            });
-        })
+        .with(channel_kind)
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
+
+    crate::helper::forwarder::spawn_forwarder(pid, queryable.handler().clone(), |env, query| {
+        crate::query::ZenohexQuery::from(env, query).encode(env)
+    })?;
 
     let queryable_id = queryable.id();
     session_locked.insert_entity(

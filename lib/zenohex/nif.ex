@@ -11,7 +11,7 @@ defmodule Zenohex.Nif do
 
   mix_config = Mix.Project.config()
   version = mix_config[:version]
-  github_url = mix_config[:package][:links]["GitHub"]
+  source_url = mix_config[:source_url]
 
   use RustlerPrecompiled,
     # NOTE: FROM HERE Rustler opts which are passed through to Rustler
@@ -25,7 +25,7 @@ defmodule Zenohex.Nif do
     # mode: :debug,
     # NOTE: FROM HERE RustlerPrecompiled opts
     version: version,
-    base_url: "#{github_url}/releases/download/v#{version}",
+    base_url: "#{source_url}/releases/download/v#{version}",
     targets:
       RustlerPrecompiled.Config.default_targets()
       |> Enum.reject(&(&1 == "riscv64gc-unknown-linux-gnu"))
@@ -42,6 +42,9 @@ defmodule Zenohex.Nif do
 
   @spec session_close(session_id()) :: :ok | {:error, reason :: term()}
   def session_close(_session_id), do: err()
+
+  @spec session_is_closed(session_id()) :: boolean()
+  def session_is_closed(_session_id), do: err()
 
   @spec session_put(session_id(), String.t(), binary(), keyword()) ::
           :ok | {:error, reason :: term()}
@@ -83,13 +86,25 @@ defmodule Zenohex.Nif do
           {:ok, entity_id()} | {:error, reason :: term()}
   def session_declare_querier(_session_id, _key_expr, _opts), do: err()
 
-  @spec session_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
+  @spec session_declare_subscriber(
+          session_id(),
+          String.t(),
+          pid(),
+          keyword(),
+          Zenohex.ChannelConfig.t()
+        ) ::
           {:ok, entity_id()} | {:error, reason :: term()}
-  def session_declare_subscriber(_session_id, _key_expr, _pid, _opts), do: err()
+  def session_declare_subscriber(_session_id, _key_expr, _pid, _opts, _channel_config), do: err()
 
-  @spec session_declare_queryable(session_id(), String.t(), pid(), keyword()) ::
+  @spec session_declare_queryable(
+          session_id(),
+          String.t(),
+          pid(),
+          keyword(),
+          Zenohex.ChannelConfig.t()
+        ) ::
           {:ok, entity_id()} | {:error, reason :: term()}
-  def session_declare_queryable(_session_id, _key_expr, _pid, _opts), do: err()
+  def session_declare_queryable(_session_id, _key_expr, _pid, _opts, _channel_config), do: err()
 
   # Publisher
 
@@ -110,9 +125,9 @@ defmodule Zenohex.Nif do
           | {:error, reason :: term()}
   def querier_get(_querier_id, _timeout, _opts), do: err()
 
-  @spec querier_get_async(entity_id(), pid(), keyword()) ::
+  @spec querier_get_async(entity_id(), pid(), keyword(), Zenohex.ChannelConfig.t()) ::
           :ok | {:error, reason :: term()}
-  def querier_get_async(_querier_id, _pid, _opts), do: err()
+  def querier_get_async(_querier_id, _pid, _opts, _channel_config), do: err()
 
   @spec querier_undeclare(entity_id()) :: :ok | {:error, reason :: term()}
   def querier_undeclare(_querier_id), do: err()
@@ -123,9 +138,9 @@ defmodule Zenohex.Nif do
           {:ok, boolean()} | {:error, reason :: term()}
   def matching_status(_entity_id), do: err()
 
-  @spec matching_declare_listener(entity_id(), pid()) ::
+  @spec matching_declare_listener(entity_id(), pid(), Zenohex.ChannelConfig.t()) ::
           {:ok, matching_listener()} | {:error, reason :: term()}
-  def matching_declare_listener(_entity_id, _pid), do: err()
+  def matching_declare_listener(_entity_id, _pid, _channel_config), do: err()
 
   @spec matching_undeclare_listener(matching_listener()) :: :ok | {:error, reason :: term()}
   def matching_undeclare_listener(_matching_listener), do: err()
@@ -191,9 +206,16 @@ defmodule Zenohex.Nif do
   #         :ok | {:error, reason :: term()}
   # def liveliness_get_async(_session_id, _key_expr, _pid, _opts \\ []), do: err()
 
-  @spec liveliness_declare_subscriber(session_id(), String.t(), pid(), keyword()) ::
+  @spec liveliness_declare_subscriber(
+          session_id(),
+          String.t(),
+          pid(),
+          keyword(),
+          Zenohex.ChannelConfig.t()
+        ) ::
           {:ok, subscriber_id :: entity_id()} | {:error, reason :: term()}
-  def liveliness_declare_subscriber(_session_id, _key_expr, _pid, _opts \\ []), do: err()
+  def liveliness_declare_subscriber(_session_id, _key_expr, _pid, _opts, _channel_config),
+    do: err()
 
   @spec liveliness_declare_token(session_id(), String.t()) ::
           {:ok, liveliness_token()} | {:error, reason :: term()}
@@ -208,9 +230,14 @@ defmodule Zenohex.Nif do
           {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   def scouting_scout(_what_matcher, _json5_binary, _timeout), do: err()
 
-  @spec scouting_declare_scout(Zenohex.Scouting.what_matcher(), String.t(), pid()) ::
+  @spec scouting_declare_scout(
+          Zenohex.Scouting.what_matcher(),
+          String.t(),
+          pid(),
+          Zenohex.ChannelConfig.t()
+        ) ::
           {:ok, scout()} | {:error, reason :: term()}
-  def scouting_declare_scout(_what_matcher, _json5_binary, _pid), do: err()
+  def scouting_declare_scout(_what_matcher, _json5_binary, _pid, _channel_config), do: err()
 
   @spec scouting_stop_scout(scout()) :: :ok | {:error, reason :: term()}
   def scouting_stop_scout(_scout), do: err()

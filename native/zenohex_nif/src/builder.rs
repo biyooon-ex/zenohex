@@ -159,6 +159,10 @@ impl Builder
                         Ok(builder)
                     }
                 }
+                k if k == crate::atoms::allowed_destination() => {
+                    let allowed_destination = v.decode::<Locality>()?;
+                    Ok(builder.allowed_destination(allowed_destination.into()))
+                }
                 k if k == crate::atoms::congestion_control() => {
                     let congestion_control = v.decode::<CongestionControl>()?;
                     Ok(builder.congestion_control(congestion_control.into()))
@@ -210,6 +214,10 @@ impl Builder
                     } else {
                         Ok(builder)
                     }
+                }
+                k if k == crate::atoms::allowed_destination() => {
+                    let allowed_destination = v.decode::<Locality>()?;
+                    Ok(builder.allowed_destination(allowed_destination.into()))
                 }
                 k if k == crate::atoms::congestion_control() => {
                     let congestion_control = v.decode::<CongestionControl>()?;

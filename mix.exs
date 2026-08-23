@@ -19,7 +19,8 @@ defmodule Zenohex.MixProject do
       source_url: @source_url,
       docs: docs(),
       test_coverage: test_coverage(),
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      aliases: aliases()
     ]
   end
 
@@ -34,12 +35,42 @@ defmodule Zenohex.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
+  defp aliases do
+    [
+      format: &format/1
+    ]
+  end
+
+  defp format(args) do
+    Mix.Tasks.Format.run(args)
+
+    cargo_args = [
+      "fmt",
+      "--manifest-path",
+      "native/zenohex_nif/Cargo.toml"
+    ]
+
+    cargo_args =
+      if "--check-formatted" in args do
+        cargo_args ++ ["--", "--check"]
+      else
+        cargo_args
+      end
+
+    {_output, status} =
+      System.cmd("cargo", cargo_args, into: IO.stream(:stdio, :line))
+
+    if status != 0 do
+      Mix.raise("cargo fmt failed")
+    end
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:rustler_precompiled, "~> 0.9.0"},
       {:rustler, "== 0.38.0", optional: true},
-      {:ex_doc, "~> 0.33", only: :dev},
+      {:ex_doc, "~> 0.33", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.2", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
@@ -47,7 +78,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp package() do
+  defp package do
     [
       name: "zenohex",
       files: [
@@ -63,25 +94,18 @@ defmodule Zenohex.MixProject do
         "checksum-*.exs",
         "mix.exs"
       ],
-      maintainers: ["s-hosoai"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
     ]
   end
 
-  defp docs() do
+  defp docs do
     [
       extras: ["README.md", "LICENSE"],
       main: "readme",
       nest_modules_by_prefix: [
         Zenohex.Examples,
-        Examples.Publisher,
-        Examples.Subscriber,
-        Examples.Queryable,
-        Examples.LivelinessSubscriber,
-        Examples.Scout,
-        Zenohex.Examples.Plugins,
-        Plugins.StorageBackendFs
+        Zenohex.Examples.Plugins
       ],
       groups_for_modules: [
         Examples: [
@@ -97,7 +121,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp test_coverage() do
+  defp test_coverage do
     [
       ignore_modules: [
         Zenohex.Nif,
@@ -107,7 +131,7 @@ defmodule Zenohex.MixProject do
     ]
   end
 
-  defp dialyzer() do
+  defp dialyzer do
     [
       plt_file: {:no_warn, "priv/plts/project.plt"},
       plt_core_path: "priv/plts/core.plt"

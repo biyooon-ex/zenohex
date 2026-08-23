@@ -80,7 +80,12 @@ defmodule Zenohex.Scouting do
           {:ok, scout()} | {:error, reason :: term()}
   def declare_scout(what_or_matcher, config, pid \\ self()) do
     with {:ok, what_matcher} <- normalize_what(what_or_matcher) do
-      Zenohex.Nif.scouting_declare_scout(what_matcher, config, pid)
+      Zenohex.Nif.scouting_declare_scout(
+        what_matcher,
+        config,
+        pid,
+        Zenohex.ChannelConfig.get()
+      )
     end
   end
 
