@@ -94,7 +94,6 @@ defmodule Zenohex.MixProject do
         "checksum-*.exs",
         "mix.exs"
       ],
-      maintainers: ["s-hosoai"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
     ]
