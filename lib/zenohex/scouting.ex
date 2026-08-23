@@ -9,7 +9,8 @@ defmodule Zenohex.Scouting do
   """
 
   @type what :: :peer | :router | :client
-  @type what_matcher :: what() | nonempty_list(what())
+  @type what_matcher :: nonempty_list(what())
+  @type what_or_matcher :: what() | what_matcher()
   @type scout :: reference()
 
   defmodule Hello do
@@ -57,11 +58,11 @@ defmodule Zenohex.Scouting do
     - `config`: The configuration to use for scouting
     - `timeout`: Timeout in milliseconds to wait for Hello replies.
   """
-  @spec scout(what_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
+  @spec scout(what_or_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
           {:ok, [Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
-  def scout(what, config, timeout) do
-    with {:ok, matcher} <- normalize_what(what) do
-      Zenohex.Nif.scouting_scout(matcher, config, timeout)
+  def scout(what_or_matcher, config, timeout) do
+    with {:ok, what_matcher} <- normalize_what(what_or_matcher) do
+      Zenohex.Nif.scouting_scout(what_matcher, config, timeout)
     end
   end
 
@@ -75,11 +76,11 @@ defmodule Zenohex.Scouting do
     - `pid`: Process to receive Hello messages. Defaults to the calling process.
       - Messages are delivered as `Zenohex.Scouting.Hello`.
   """
-  @spec declare_scout(what_matcher(), Zenohex.Config.t(), pid()) ::
+  @spec declare_scout(what_or_matcher(), Zenohex.Config.t(), pid()) ::
           {:ok, scout()} | {:error, reason :: term()}
-  def declare_scout(what, config, pid \\ self()) do
-    with {:ok, matcher} <- normalize_what(what) do
-      Zenohex.Nif.scouting_declare_scout(matcher, config, pid)
+  def declare_scout(what_or_matcher, config, pid \\ self()) do
+    with {:ok, what_matcher} <- normalize_what(what_or_matcher) do
+      Zenohex.Nif.scouting_declare_scout(what_matcher, config, pid)
     end
   end
 
@@ -91,13 +92,13 @@ defmodule Zenohex.Scouting do
     to: Zenohex.Nif,
     as: :scouting_stop_scout
 
-  defp normalize_what(what) when is_atom(what) do
-    normalize_what([what])
+  defp normalize_what(what_or_matcher) when is_atom(what_or_matcher) do
+    normalize_what([what_or_matcher])
   end
 
-  defp normalize_what(what) when is_list(what) do
-    if what != [] and Enum.all?(what, &(&1 in [:peer, :router, :client])) do
-      {:ok, what}
+  defp normalize_what(what_matcher) when is_list(what_matcher) do
+    if what_matcher != [] and Enum.all?(what_matcher, &(&1 in [:peer, :router, :client])) do
+      {:ok, what_matcher}
     else
       {:error, :invalid_what_matcher}
     end

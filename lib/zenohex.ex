@@ -100,7 +100,7 @@ defmodule Zenohex do
       iex> {:ok, hellos} = Zenohex.scout(:peer, config, 1000)
 
   """
-  @spec scout(Zenohex.Scouting.what_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
+  @spec scout(Zenohex.Scouting.what_or_matcher(), Zenohex.Config.t(), non_neg_integer()) ::
           {:ok, [Zenohex.Scouting.Hello.t()]} | {:error, :timeout} | {:error, reason :: term()}
   defdelegate scout(what, config, timeout), to: Zenohex.Scouting, as: :scout
 end
