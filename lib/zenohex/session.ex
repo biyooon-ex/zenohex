@@ -156,9 +156,8 @@ defmodule Zenohex.Session do
   When a map is provided, it is first normalized and validated via
   `Zenohex.ConfigMap.merge/2`, then encoded to JSON and passed to the NIF.
 
-  Opening a session fails if another session with the same configured Zenoh ID
-  is open or still closing. The Zenoh ID can be reused after that session has
-  finished closing.
+  Each call returns a distinct `session_id`, including when multiple sessions
+  use the same configured Zenoh ID.
 
   ## Parameters
 
@@ -200,11 +199,8 @@ defmodule Zenohex.Session do
   Closes a session.
 
   Releases all resources associated with the given `session_id`.
-  After this function returns `:ok`, the `session_id` must not be used for
-  session operations other than `closed?/1`.
-
-  If closing fails, the session remains registered and the `session_id` can be
-  used to retry the operation.
+  After calling this function, the `session_id` must not be used for session
+  operations other than `closed?/1`.
 
   ## Parameters
 

@@ -113,9 +113,9 @@ fn liveliness_declare_subscriber(
     rustler::Atom,
     rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 )> {
-    let session_handle = **session_id_resource;
+    let session_id = **session_id_resource;
     let session =
-        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, &session_handle)?;
+        crate::session::SessionMap::get_session(&crate::session::SESSION_MAP, &session_id)?;
     let mut session_locked = session.write().unwrap();
 
     let liveliness_subscriber_buidler = session_locked.liveliness().declare_subscriber(key_expr);
@@ -139,7 +139,7 @@ fn liveliness_declare_subscriber(
     Ok((
         rustler::types::atom::ok(),
         rustler::ResourceArc::new(crate::session::EntityGlobalIdResource::new(
-            session_handle,
+            session_id,
             subscriber_id,
         )),
     ))

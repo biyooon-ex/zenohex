@@ -72,11 +72,10 @@ defmodule Zenohex.SessionTest do
       end)
 
     assert_receive {:old_session_open, ^owner}, 5_000
-    assert {:error, "session already existed"} = Zenohex.Session.open(config)
+    assert {:ok, new_session_id} = Zenohex.Session.open(config)
 
     send(owner, :close_old_session)
     assert_receive {:old_session_closed, ^owner}, 5_000
-    assert {:ok, new_session_id} = Zenohex.Session.open(config)
 
     on_exit(fn ->
       unless Zenohex.Session.closed?(new_session_id) do
