@@ -78,7 +78,7 @@ defmodule Zenohex.SessionTest do
     assert_receive {:old_session_closed, ^owner}
 
     on_exit(fn ->
-      unless Zenohex.Session.closed?(new_session_id) do
+      if not Zenohex.Session.closed?(new_session_id) do
         :ok = Zenohex.Session.close(new_session_id)
       end
     end)
@@ -121,7 +121,7 @@ defmodule Zenohex.SessionTest do
              Zenohex.Session.declare_publisher(new_session_id, "issue/230/new")
 
     on_exit(fn ->
-      unless Zenohex.Session.closed?(new_session_id) do
+      if not Zenohex.Session.closed?(new_session_id) do
         :ok = Zenohex.Session.close(new_session_id)
       end
     end)
