@@ -50,7 +50,7 @@ defmodule Zenohex.SessionTest do
     assert Zenohex.Session.close(session_id) == {:error, "session not found"}
   end
 
-  test "fixed Zenoh ID sessions retain per-open identity" do
+  test "sessions with the same Zenoh ID are managed independently" do
     config = ~s({ id: "2300000000000001", scouting: { delay: 0 } })
     parent = self()
 
@@ -71,11 +71,11 @@ defmodule Zenohex.SessionTest do
         end
       end)
 
-    assert_receive {:old_session_open, ^owner}, 5_000
+    assert_receive {:old_session_open, ^owner}
     assert {:ok, new_session_id} = Zenohex.Session.open(config)
 
     send(owner, :close_old_session)
-    assert_receive {:old_session_closed, ^owner}, 5_000
+    assert_receive {:old_session_closed, ^owner}
 
     on_exit(fn ->
       unless Zenohex.Session.closed?(new_session_id) do
@@ -84,8 +84,8 @@ defmodule Zenohex.SessionTest do
     end)
 
     send(owner, :check_and_drop_old)
-    assert_receive {:old_session_info, {:error, "session not found"}}, 5_000
-    assert_receive {:DOWN, ^owner_ref, :process, ^owner, :normal}, 5_000
+    assert_receive {:old_session_info, {:error, "session not found"}}
+    assert_receive {:DOWN, ^owner_ref, :process, ^owner, :normal}
 
     refute Zenohex.Session.closed?(new_session_id)
 
@@ -93,7 +93,7 @@ defmodule Zenohex.SessionTest do
              Zenohex.Session.info(new_session_id)
   end
 
-  test "old entity resources cannot resolve a reopened session" do
+  test "entity resources remain bound to their owning session" do
     config = ~s({ id: "2300000000000002", scouting: { delay: 0 } })
     parent = self()
 
@@ -114,7 +114,7 @@ defmodule Zenohex.SessionTest do
         end
       end)
 
-    assert_receive {:old_entity_ready, ^owner}, 5_000
+    assert_receive {:old_entity_ready, ^owner}
     assert {:ok, new_session_id} = Zenohex.Session.open(config)
 
     assert {:ok, new_publisher_id} =
@@ -127,8 +127,8 @@ defmodule Zenohex.SessionTest do
     end)
 
     send(owner, :check_old_entity)
-    assert_receive {:old_entity_result, {:error, "session not found"}}, 5_000
-    assert_receive {:DOWN, ^owner_ref, :process, ^owner, :normal}, 5_000
+    assert_receive {:old_entity_result, {:error, "session not found"}}
+    assert_receive {:DOWN, ^owner_ref, :process, ^owner, :normal}
 
     assert :ok = Zenohex.Publisher.put(new_publisher_id, "payload")
   end
