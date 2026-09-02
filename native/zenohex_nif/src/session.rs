@@ -93,6 +93,12 @@ pub struct SessionId(u64);
 
 static NEXT_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 
+impl SessionId {
+    fn new() -> Self {
+        Self(NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed))
+    }
+}
+
 pub struct SessionMap<'a>(RwLock<HashMap<SessionId, Arc<RwLock<Session<'a>>>>>);
 
 impl<'a> SessionMap<'_> {
@@ -100,25 +106,23 @@ impl<'a> SessionMap<'_> {
         SessionMap(RwLock::new(HashMap::new()))
     }
 
-    fn insert_session(session_map: &SessionMap, session: zenoh::Session) -> SessionId {
+    fn insert_session(
+        session_map: &SessionMap,
+        session_id: SessionId,
+        session: zenoh::Session,
+    ) -> rustler::NifResult<rustler::Atom> {
         let mut map = session_map.0.write().unwrap();
 
-        let session_id = loop {
-            let candidate = SessionId(NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed));
-            if !map.contains_key(&candidate) {
-                break candidate;
-            }
-        };
-
-        map.insert(
+        match map.insert(
             session_id,
             Arc::new(RwLock::new(Session {
                 inner: session,
                 entities: HashMap::new(),
             })),
-        );
-
-        session_id
+        ) {
+            Some(_) => Err(rustler::Error::Term(Box::new("session already existed"))),
+            None => Ok(rustler::types::atom::ok()),
+        }
     }
 
     pub fn get_session(
@@ -278,7 +282,9 @@ fn session_open(
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let session_id = SessionMap::insert_session(&SESSION_MAP, session);
+    let session_id = SessionId::new();
+
+    SessionMap::insert_session(&SESSION_MAP, session_id, session)?;
 
     Ok((
         rustler::types::atom::ok(),
