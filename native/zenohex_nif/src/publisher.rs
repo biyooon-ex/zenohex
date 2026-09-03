@@ -8,7 +8,7 @@ fn publisher_put(
     payload: rustler::Binary,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_id = entity_global_id_resource.session_id();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
@@ -37,7 +37,7 @@ fn publisher_delete(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
     opts: rustler::Term,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_id = entity_global_id_resource.session_id();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
@@ -65,7 +65,7 @@ fn publisher_delete(
 fn publisher_undeclare(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<rustler::Atom> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_id = entity_global_id_resource.session_id();
     let entity_global_id = &entity_global_id_resource;
 
     let session =

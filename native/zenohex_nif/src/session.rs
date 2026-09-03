@@ -1,6 +1,8 @@
 use core::fmt;
 use std::collections::HashMap;
 use std::ops::Deref;
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::LazyLock;
 use std::sync::RwLock;
@@ -86,15 +88,18 @@ impl Deref for Session<'_> {
     }
 }
 
-pub struct SessionMap<'a>(RwLock<HashMap<zenoh::session::ZenohId, Arc<RwLock<Session<'a>>>>>);
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct SessionId(u64);
 
-impl<'a> Deref for SessionMap<'a> {
-    type Target = RwLock<HashMap<zenoh::session::ZenohId, Arc<RwLock<Session<'a>>>>>;
+static NEXT_SESSION_ID: AtomicU64 = AtomicU64::new(1);
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl SessionId {
+    fn new() -> Self {
+        Self(NEXT_SESSION_ID.fetch_add(1, Ordering::Relaxed))
     }
 }
+
+pub struct SessionMap<'a>(RwLock<HashMap<SessionId, Arc<RwLock<Session<'a>>>>>);
 
 impl<'a> SessionMap<'_> {
     fn new() -> SessionMap<'a> {
@@ -103,10 +108,11 @@ impl<'a> SessionMap<'_> {
 
     fn insert_session(
         session_map: &SessionMap,
-        session_id: zenoh::session::ZenohId,
+        session_id: SessionId,
         session: zenoh::Session,
     ) -> rustler::NifResult<rustler::Atom> {
-        let mut map = session_map.write().unwrap();
+        let mut map = session_map.0.write().unwrap();
+
         match map.insert(
             session_id,
             Arc::new(RwLock::new(Session {
@@ -121,9 +127,9 @@ impl<'a> SessionMap<'_> {
 
     pub fn get_session(
         session_map: &'a SessionMap<'a>,
-        session_id: &zenoh::session::ZenohId,
+        session_id: &SessionId,
     ) -> rustler::NifResult<Arc<RwLock<Session<'a>>>> {
-        let map = session_map.read().unwrap();
+        let map = session_map.0.read().unwrap();
         map.get(session_id)
             .cloned()
             .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
@@ -131,9 +137,9 @@ impl<'a> SessionMap<'_> {
 
     fn remove_session(
         session_map: &'a SessionMap<'a>,
-        session_id: &zenoh::session::ZenohId,
+        session_id: &SessionId,
     ) -> rustler::NifResult<Arc<RwLock<Session<'a>>>> {
-        let mut map = session_map.write().unwrap();
+        let mut map = session_map.0.write().unwrap();
         map.remove(session_id)
             .ok_or_else(|| rustler::Error::Term(Box::new("session not found")))
     }
@@ -141,17 +147,17 @@ impl<'a> SessionMap<'_> {
 
 pub static SESSION_MAP: LazyLock<SessionMap> = LazyLock::new(SessionMap::new);
 
-// WHY: Use zenoh::session::ZenohId for resource, instead of zenoh::Session itself
+// WHY: Use a Zenohex-specific session ID for resource, instead of zenoh::Session itself
 //      If we use the session for resource, we got the following error.
 //      the trait std::panic::RefUnwindSafe is not implemented for
 //      std::cell::UnsafeCell<std::collections::HashSet<zenoh_protocol::core::ZenohIdProto>>
 
-pub struct SessionIdResource(zenoh::session::ZenohId);
+pub struct SessionIdResource(SessionId);
 
 #[rustler::resource_impl]
 impl rustler::Resource for SessionIdResource {}
 impl Deref for SessionIdResource {
-    type Target = zenoh::session::ZenohId;
+    type Target = SessionId;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -164,14 +170,19 @@ impl Drop for SessionIdResource {
 
         match SessionMap::remove_session(&SESSION_MAP, session_id) {
             Ok(session) => {
-                let session_locked = session.read().unwrap();
-                let message = if session_locked.is_closed() {
-                    "session already closed"
-                } else {
-                    session_locked.close().wait().unwrap();
-                    "session closed by drop"
+                let (close_result, success_message) = {
+                    let session_locked = session.read().unwrap();
+                    if session_locked.is_closed() {
+                        (Ok(()), "session already closed")
+                    } else {
+                        (session_locked.close().wait(), "session closed by drop")
+                    }
                 };
-                log::debug!("{}", message)
+
+                match close_result {
+                    Ok(()) => log::debug!("{}", success_message),
+                    Err(error) => log::error!("failed to close session by drop: {}", error),
+                }
             }
             Err(_error) => log::debug!("session already removed"),
         };
@@ -211,14 +222,27 @@ impl From<zenoh::session::SessionInfo> for ZenohexSessionInfo {
     }
 }
 
-pub struct EntityGlobalIdResource(zenoh::session::EntityGlobalId);
+pub struct EntityGlobalIdResource {
+    session_id: SessionId,
+    entity_global_id: zenoh::session::EntityGlobalId,
+}
 
 #[rustler::resource_impl]
 impl rustler::Resource for EntityGlobalIdResource {}
 
 impl EntityGlobalIdResource {
-    pub fn new(entity_global_id: zenoh::session::EntityGlobalId) -> EntityGlobalIdResource {
-        EntityGlobalIdResource(entity_global_id)
+    pub fn new(
+        session_id: SessionId,
+        entity_global_id: zenoh::session::EntityGlobalId,
+    ) -> EntityGlobalIdResource {
+        EntityGlobalIdResource {
+            session_id,
+            entity_global_id,
+        }
+    }
+
+    pub fn session_id(&self) -> &SessionId {
+        &self.session_id
     }
 }
 
@@ -226,14 +250,14 @@ impl Deref for EntityGlobalIdResource {
     type Target = zenoh::session::EntityGlobalId;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.entity_global_id
     }
 }
 
 impl Drop for EntityGlobalIdResource {
     fn drop(&mut self) {
-        let session_id = &self.0.zid();
-        let entity_global_id = &self.0;
+        let session_id = &self.session_id;
+        let entity_global_id = &self.entity_global_id;
 
         if let Ok(session) = SessionMap::get_session(&SESSION_MAP, session_id) {
             let mut session_locked = session.write().unwrap();
@@ -258,7 +282,7 @@ fn session_open(
         .wait()
         .map_err(|error| rustler::Error::Term(crate::zenoh_error!(error)))?;
 
-    let session_id = session.zid();
+    let session_id = SessionId::new();
 
     SessionMap::insert_session(&SESSION_MAP, session_id, session)?;
 
@@ -425,8 +449,8 @@ fn session_declare_publisher(
     key_expr: String,
     opts: rustler::Term,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_id = **session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, &session_id)?;
     let mut session_locked = session.write().unwrap();
 
     let publisher_builder = session_locked.declare_publisher(key_expr);
@@ -444,7 +468,7 @@ fn session_declare_publisher(
 
     Ok((
         rustler::types::atom::ok(),
-        rustler::ResourceArc::new(EntityGlobalIdResource::new(publisher_id)),
+        rustler::ResourceArc::new(EntityGlobalIdResource::new(session_id, publisher_id)),
     ))
 }
 
@@ -454,8 +478,8 @@ fn session_declare_querier(
     key_expr: String,
     opts: rustler::Term,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_id = **session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, &session_id)?;
     let mut session_locked = session.write().unwrap();
 
     let querier_builder = session_locked.declare_querier(key_expr);
@@ -470,7 +494,7 @@ fn session_declare_querier(
 
     Ok((
         rustler::types::atom::ok(),
-        rustler::ResourceArc::new(EntityGlobalIdResource::new(querier_id)),
+        rustler::ResourceArc::new(EntityGlobalIdResource::new(session_id, querier_id)),
     ))
 }
 
@@ -484,8 +508,8 @@ fn session_declare_subscriber(
     opts: rustler::Term,
     channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_id = **session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, &session_id)?;
     let mut session_locked = session.write().unwrap();
 
     let subscriber_buidler = session_locked.declare_subscriber(key_expr);
@@ -508,7 +532,7 @@ fn session_declare_subscriber(
 
     Ok((
         rustler::types::atom::ok(),
-        rustler::ResourceArc::new(EntityGlobalIdResource::new(subscriber_id)),
+        rustler::ResourceArc::new(EntityGlobalIdResource::new(session_id, subscriber_id)),
     ))
 }
 
@@ -522,8 +546,8 @@ fn session_declare_queryable(
     opts: rustler::Term,
     channel_kind: crate::helper::forwarder::ChannelKind,
 ) -> rustler::NifResult<(rustler::Atom, rustler::ResourceArc<EntityGlobalIdResource>)> {
-    let session_id = &session_id_resource;
-    let session = SessionMap::get_session(&SESSION_MAP, session_id)?;
+    let session_id = **session_id_resource;
+    let session = SessionMap::get_session(&SESSION_MAP, &session_id)?;
     let mut session_locked = session.write().unwrap();
 
     let queryable_builder = session_locked.declare_queryable(key_expr);
@@ -546,6 +570,6 @@ fn session_declare_queryable(
 
     Ok((
         rustler::types::atom::ok(),
-        rustler::ResourceArc::new(EntityGlobalIdResource::new(queryable_id)),
+        rustler::ResourceArc::new(EntityGlobalIdResource::new(session_id, queryable_id)),
     ))
 }

@@ -156,6 +156,9 @@ defmodule Zenohex.Session do
   When a map is provided, it is first normalized and validated via
   `Zenohex.ConfigMap.merge/2`, then encoded to JSON and passed to the NIF.
 
+  Each call returns a distinct `session_id`, including when multiple sessions
+  use the same configured Zenoh ID.
+
   ## Parameters
 
   - `config` : A JSON5 string or Elixir map representing the Zenoh configuration.

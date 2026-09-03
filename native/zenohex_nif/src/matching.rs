@@ -75,7 +75,7 @@ impl From<zenoh::matching::MatchingStatus> for ZenohexMatchingStatus {
 fn matching_status(
     entity_global_id_resource: rustler::ResourceArc<crate::session::EntityGlobalIdResource>,
 ) -> rustler::NifResult<(rustler::Atom, bool)> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_id = entity_global_id_resource.session_id();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
@@ -112,7 +112,7 @@ fn matching_declare_listener(
     rustler::Atom,
     rustler::ResourceArc<MatchingListenerResource>,
 )> {
-    let session_id = &entity_global_id_resource.zid();
+    let session_id = entity_global_id_resource.session_id();
     let entity_global_id = &entity_global_id_resource;
 
     let session =
