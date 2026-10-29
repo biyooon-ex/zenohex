@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::path::PathBuf;
 
 #[derive(rustler::NifUnitEnum)]
@@ -25,22 +24,6 @@ impl From<WhatAmI> for zenoh::config::WhatAmI {
             WhatAmI::Peer => zenoh::config::WhatAmI::Peer,
             WhatAmI::Client => zenoh::config::WhatAmI::Client,
         }
-    }
-}
-
-pub struct Locator(String);
-
-impl Deref for Locator {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<zenoh::config::Locator> for Locator {
-    fn from(value: zenoh::config::Locator) -> Self {
-        Locator(String::from(value.as_str()))
     }
 }
 
