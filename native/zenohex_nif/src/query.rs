@@ -40,7 +40,7 @@ pub struct ZenohexQuery<'a> {
 impl<'a> ZenohexQuery<'a> {
     pub fn from(env: rustler::Env<'a>, query: zenoh::query::Query) -> Self {
         let attachment = query.attachment().map(|attachment| {
-            let mut owned_binary = rustler::OwnedBinary::new(attachment.len()).unwrap();
+            let mut owned_binary = rustler::OwnedBinary::new(attachment.len());
 
             owned_binary
                 .as_mut_slice()
@@ -53,7 +53,7 @@ impl<'a> ZenohexQuery<'a> {
         let encoding: Option<String> = query.encoding().map(|encoding| encoding.to_string());
 
         let payload = query.payload().map(|payload| {
-            let mut owned_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+            let mut owned_binary = rustler::OwnedBinary::new(payload.len());
 
             owned_binary
                 .as_mut_slice()
@@ -85,7 +85,7 @@ pub struct ZenohexQueryReplyError<'a> {
 impl<'a> ZenohexQueryReplyError<'a> {
     pub fn from(env: rustler::Env<'a>, reply_error: zenoh::query::ReplyError) -> Self {
         let payload = reply_error.payload();
-        let mut payload_binary = rustler::OwnedBinary::new(payload.len()).unwrap();
+        let mut payload_binary = rustler::OwnedBinary::new(payload.len());
 
         payload_binary
             .as_mut_slice()
