@@ -108,8 +108,8 @@ jobs:
     permissions:
       contents: write
     env:
-      OTP_VERSION: 28.5
-      ELIXIR_VERSION: 1.19.5
+      OTP_VERSION: 28.5.0.8
+      ELIXIR_VERSION: 1.19.6
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7

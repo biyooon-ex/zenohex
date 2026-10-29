@@ -23,12 +23,12 @@ jobs:
           - macos-26
           - windows-2022
         beam:
-          - otp_version: 27.3.4.2
-            elixir_version: 1.18.4
-          - otp_version: 28.5
-            elixir_version: 1.19.5
-          - otp_version: 29.0.1
-            elixir_version: 1.20.0
+          - otp_version: 27.3.4.19
+            elixir_version: 1.18.5
+          - otp_version: 28.5.0.8
+            elixir_version: 1.19.6
+          - otp_version: 29.1.2
+            elixir_version: 1.20.4
 
     steps:
       - uses: actions/checkout@v7
