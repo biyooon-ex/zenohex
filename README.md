@@ -50,7 +50,7 @@ You can install this package into your project by adding `zenohex` to your list 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.10.1"},
+      {:zenohex, "~> 0.10.2"},
       ...
     ]
   end
@@ -168,7 +168,7 @@ When you want to build NIF module locally into your project, install Rustler by 
   defp deps do
     [
       ...
-      {:zenohex, "~> 0.10.1"},
+      {:zenohex, "~> 0.10.2"},
       {:rustler, ">= 0.0.0", optional: true},
       ...
     ]
