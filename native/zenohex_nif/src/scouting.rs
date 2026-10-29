@@ -24,13 +24,10 @@ pub struct ZenohexScoutingHello {
 
 impl ZenohexScoutingHello {
     pub fn from(hello: zenoh::scouting::Hello) -> Self {
-        let locators = hello.locators().iter().fold(
-            Vec::<String>::new(),
-            |mut locators: Vec<String>, locator: &zenoh::config::Locator| {
-                locators.push(crate::config::Locator::from(locator.clone()).to_string());
-                locators
-            },
-        );
+        let locators = hello
+            .locators_iter()
+            .map(|locator| locator.to_string())
+            .collect();
 
         ZenohexScoutingHello {
             locators,
